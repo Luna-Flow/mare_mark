@@ -112,6 +112,86 @@ async test "run_case validates sticky sequence and honors per-iteration setup" {
 }
 
 ///|
+async test "run_batch synchronizes around excluded operation timing" {
+  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::new(
+    "synchronization",
+    "1",
+    context => context.dataset_key.scale,
+    value => value.to_string(),
+    value => value,
+    (value, _, _) => value,
+    (_, _) => (),
+    @model.SetupPolicy::new(
+      @model.SetupFrequency::PerIteration,
+      @model.SetupTiming::ExcludedFromMeasurement,
+      @model.WorkspaceScope::OperationWorkspace,
+    ),
+  )
+  let synchronizations = Ref(0)
+  let implementation : Implementation[Int, Int, Int] = Implementation::in_process(
+    "candidate",
+    "1",
+    () => 0,
+    (value, context) => @model.OperationResult::completed(value, context),
+    synchronize=() => synchronizations.val += 1,
+  )
+  let result = run_batch(
+    fixture,
+    1,
+    implementation,
+    OutputSink::new(() => 0, (sum, value) => sum + value, value => value),
+    2,
+    0,
+    None,
+    @bench.Bench(),
+  )
+  assert_true(result.valid)
+  assert_eq(synchronizations.val, 4)
+}
+
+///|
+async test "excluded batch timing stops before reset" {
+  let events : Array[String] = []
+  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::new(
+    "excluded-reset",
+    "1",
+    context => context.dataset_key.scale,
+    value => value.to_string(),
+    value => value,
+    (value, _, _) => value,
+    (_, _) => events.push("reset"),
+    @model.SetupPolicy::new(
+      @model.SetupFrequency::PerBatch,
+      @model.SetupTiming::ExcludedFromMeasurement,
+      @model.WorkspaceScope::BatchWorkspace,
+    ),
+  )
+  let implementation : Implementation[Int, Int, Int] = Implementation::in_process(
+    "candidate",
+    "1",
+    () => 0,
+    (value, context) => {
+      events.push("run")
+      @model.OperationResult::completed(value, context)
+    },
+    synchronize=() => events.push("sync"),
+  )
+  ignore(
+    run_batch(
+      fixture,
+      1,
+      implementation,
+      OutputSink::new(() => 0, (sum, value) => sum + value, value => value),
+      1,
+      0,
+      None,
+      @bench.Bench(),
+    ),
+  )
+  assert_true(events == ["sync", "run", "sync", "reset"])
+}
+
+///|
 #cfg(target="native")
 async test "subprocess worker captures abort stderr and timeout" {
   let aborting : Implementation[Int, Int, Int] = Implementation::worker(
@@ -197,4 +277,17 @@ test "measurement order honors fixed and seeded balanced policies" {
     measurement_order(@model.OrderPolicy::BalancedBlocks(7), 3, 0, 7) ==
     [0, 1, 2],
   )
+  let positions = Array::makei(3, _ => Array::makei(3, _ => 0))
+  for block_id = 0; block_id < 3; block_id = block_id + 1 {
+    let order = measurement_order(
+      @model.OrderPolicy::BalancedBlocks(13),
+      3,
+      block_id,
+      99,
+    )
+    for position = 0; position < order.length(); position = position + 1 {
+      positions[order[position]][position] += 1
+    }
+  }
+  assert_true(positions == [[1, 1, 1], [1, 1, 1], [1, 1, 1]])
 }

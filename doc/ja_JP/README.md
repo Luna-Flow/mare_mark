@@ -1,6 +1,6 @@
 # Mare Mark ドキュメント
 
-このドキュメントは `0.1.0` の実装状況を説明します。公開名とシグネチャの基準は
+このドキュメントは `0.2.0` の実装状況を説明します。公開名とシグネチャの基準は
 各 package の `pkg.generated.mbti` です。
 
 [はじめに](./getting_started.md)、[アーキテクチャ](./architecture.md)、

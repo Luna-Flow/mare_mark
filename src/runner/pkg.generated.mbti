@@ -48,9 +48,10 @@ pub struct Implementation[Prepared, Output, Context] {
   version : String
   initial_context : () -> Context
   execution : ExecutionMode[Prepared, Output, Context]
+  synchronize : () -> Unit
 }
-pub fn[Prepared, Output, Context] Implementation::in_process(String, String, () -> Context, (Prepared, Context) -> @model.OperationResult[Output, Context]) -> Self[Prepared, Output, Context]
-pub fn[Prepared, Output, Context] Implementation::worker(String, String, () -> Context, WorkerSpec[Prepared, Output, Context]) -> Self[Prepared, Output, Context]
+pub fn[Prepared, Output, Context] Implementation::in_process(String, String, () -> Context, (Prepared, Context) -> @model.OperationResult[Output, Context], synchronize? : () -> Unit) -> Self[Prepared, Output, Context]
+pub fn[Prepared, Output, Context] Implementation::worker(String, String, () -> Context, WorkerSpec[Prepared, Output, Context], synchronize? : () -> Unit) -> Self[Prepared, Output, Context]
 
 pub struct OutputSink[Output, State, SinkValue] {
   initial : () -> State

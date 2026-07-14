@@ -174,8 +174,10 @@ pub struct PerformanceEnvironment {
   gc : String
   concurrency : Int
   clock : String
+  device : String
+  frequency_policy : String
 }
-pub fn PerformanceEnvironment::new(String, String, String, Int, String) -> Self
+pub fn PerformanceEnvironment::new(String, String, String, Int, String, device? : String, frequency_policy? : String) -> Self
 
 pub struct ProvenanceEnvironment {
   os : String
@@ -226,8 +228,9 @@ pub struct RunSummary {
   failed_count : Int
   unsupported_count : Int
   expected_difference_count : Int
+  environment : EnvironmentSnapshot?
 }
-pub fn RunSummary::new(String, Int, Int, Int, Bool, String?, passed_count? : Int, failed_count? : Int, unsupported_count? : Int, expected_difference_count? : Int) -> Self
+pub fn RunSummary::new(String, Int, Int, Int, Bool, String?, passed_count? : Int, failed_count? : Int, unsupported_count? : Int, expected_difference_count? : Int, environment? : EnvironmentSnapshot) -> Self
 
 pub struct ScaleBoundary[Scale] {
   below : Scale

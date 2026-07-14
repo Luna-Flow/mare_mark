@@ -53,11 +53,6 @@ pub fn JsonlSink::new() -> JsonlSink {
 }
 
 ///|
-fn quote(value : String) -> String {
-  "\"" + value.replace(old="\"", new="\\\"") + "\""
-}
-
-///|
 fn status_name(status : @model.ValidationStatus) -> String {
   match status {
     Valid => "valid"
@@ -165,29 +160,66 @@ fn calibration_json(calibration : @model.CalibrationEvent) -> Json {
 }
 
 ///|
+fn environment_json(environment : @model.EnvironmentSnapshot) -> Json {
+  Json::object({
+    "semantic": Json::object({
+      "target": Json::string(environment.semantic.target),
+      "toolchain": Json::string(environment.semantic.toolchain),
+      "compiler_flags": Json::string(environment.semantic.compiler_flags),
+      "dtype_abi": Json::string(environment.semantic.dtype_abi),
+    }),
+    "performance": Json::object({
+      "runtime": Json::string(environment.performance.runtime),
+      "cpu": Json::string(environment.performance.cpu),
+      "device": Json::string(environment.performance.device),
+      "concurrency": Json::number(
+        environment.performance.concurrency.to_double(),
+      ),
+      "frequency_policy": Json::string(environment.performance.frequency_policy),
+      "gc": Json::string(environment.performance.gc),
+      "clock": Json::string(environment.performance.clock),
+    }),
+    "provenance": Json::object({
+      "os": Json::string(environment.provenance.os),
+      "hostname": Json::string(environment.provenance.hostname),
+      "timestamp": Json::string(environment.provenance.timestamp),
+      "revision": Json::string(environment.provenance.revision),
+      "run_id": Json::string(environment.provenance.run_id),
+    }),
+  })
+}
+
+///|
+fn summary_json(summary : @model.RunSummary) -> Json {
+  let fields : Map[String, Json] = {
+    "type": Json::string("summary"),
+    "run_id": Json::string(summary.run_id),
+    "observation_count": Json::number(summary.observation_count.to_double()),
+    "validation_count": Json::number(summary.validation_count.to_double()),
+    "calibration_count": Json::number(summary.calibration_count.to_double()),
+    "complete": Json::boolean(summary.complete),
+    "passed_count": Json::number(summary.passed_count.to_double()),
+    "failed_count": Json::number(summary.failed_count.to_double()),
+    "unsupported_count": Json::number(summary.unsupported_count.to_double()),
+    "expected_difference_count": Json::number(
+      summary.expected_difference_count.to_double(),
+    ),
+  }
+  match summary.environment {
+    Some(environment) => fields["environment"] = environment_json(environment)
+    None => ()
+  }
+  Json::object(fields)
+}
+
+///|
 pub fn JsonlSink::as_sink(self : JsonlSink) -> ObservationSink {
   ObservationSink::new(
     observation => self.lines.push(observation_json(observation).stringify()),
     validation => self.lines.push(validation_json(validation).stringify()),
     calibration => self.lines.push(calibration_json(calibration).stringify()),
     summary => {
-      self.lines.push(
-        "{\"type\":\"summary\",\"run_id\":" +
-        quote(summary.run_id) +
-        ",\"observation_count\":" +
-        summary.observation_count.to_string() +
-        ",\"validation_count\":" +
-        summary.validation_count.to_string() +
-        ",\"passed_count\":" +
-        summary.passed_count.to_string() +
-        ",\"failed_count\":" +
-        summary.failed_count.to_string() +
-        ",\"unsupported_count\":" +
-        summary.unsupported_count.to_string() +
-        ",\"expected_difference_count\":" +
-        summary.expected_difference_count.to_string() +
-        "}",
-      )
+      self.lines.push(summary_json(summary).stringify())
       "jsonl://memory/" + summary.run_id
     },
     emit_failure=failure => self.lines.push(failure_json(failure).stringify()),
@@ -204,28 +236,7 @@ pub fn streaming_jsonl(
     validation => write_line(validation_json(validation).stringify()),
     calibration => write_line(calibration_json(calibration).stringify()),
     summary => {
-      write_line(
-        Json::object({
-          "type": Json::string("summary"),
-          "run_id": Json::string(summary.run_id),
-          "observation_count": Json::number(
-            summary.observation_count.to_double(),
-          ),
-          "validation_count": Json::number(summary.validation_count.to_double()),
-          "calibration_count": Json::number(
-            summary.calibration_count.to_double(),
-          ),
-          "complete": Json::boolean(summary.complete),
-          "passed_count": Json::number(summary.passed_count.to_double()),
-          "failed_count": Json::number(summary.failed_count.to_double()),
-          "unsupported_count": Json::number(
-            summary.unsupported_count.to_double(),
-          ),
-          "expected_difference_count": Json::number(
-            summary.expected_difference_count.to_double(),
-          ),
-        }).stringify(),
-      )
+      write_line(summary_json(summary).stringify())
       location
     },
     emit_failure=failure => write_line(failure_json(failure).stringify()),

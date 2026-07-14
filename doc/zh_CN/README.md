@@ -1,6 +1,6 @@
 # Mare Mark 文档
 
-本文档描述 `0.1.0` 当前实现；公开名称与签名以各包的
+本文档描述 `0.2.0` 当前实现；公开名称与签名以各包的
 `pkg.generated.mbti` 为准。
 
 建议先阅读[快速上手](./getting_started.md)、[架构](./architecture.md)和

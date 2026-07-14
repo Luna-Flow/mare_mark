@@ -6,9 +6,17 @@ import {
 }
 
 // Values
+pub fn confirmation_count(Int, Double, Int) -> Int
+
 pub fn[Candidate] exhaustive_scores(CandidateSpace[Candidate], Int, (Candidate) -> CandidateScore) -> TuningResult
 
 pub fn pareto_frontier(Array[CandidateScore]) -> Array[CandidateScore]
+
+pub fn score_samples(String, Array[Double], Double) -> CandidateScore
+
+pub fn[Candidate] seeded_order(Array[Candidate], UInt64, (Candidate) -> String) -> Array[Candidate]
+
+pub fn select_best(Array[CandidateScore], Double, Bool) -> CandidateScore?
 
 // Errors
 

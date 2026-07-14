@@ -7,10 +7,12 @@ packages so measurement code stays small and reviewable.
 
 ## Current Baseline
 
-Version `0.1.0` provides a stateful differential runner, typed execution
-outcomes, reference and relational oracles, native subprocess isolation,
-failure shrinking/replay artifacts, streaming JSONL adapters, statistics,
-tuning data models, and self-contained differential HTML reports.
+Version `0.2.0` provides a stateful differential runner with shared warmup,
+seeded balanced execution order, asynchronous synchronization hooks, typed
+execution outcomes, reference and relational oracles, native subprocess
+isolation, failure shrinking/replay artifacts, streaming JSONL adapters,
+median-based statistics, environment compatibility checks, tuning data models,
+and self-contained differential HTML reports.
 
 The CLI is an artifact-edge tool and deliberately stays outside benchmark
 execution. It provides report generation and native replay:
@@ -28,7 +30,7 @@ never enter a timed payload.
 ## Installation
 
 ```sh
-moon add Luna-Flow/mare_mark@0.1.0
+moon add Luna-Flow/mare_mark@0.2.0
 ```
 
 ## Package Map

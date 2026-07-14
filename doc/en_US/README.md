@@ -1,6 +1,6 @@
 # Mare Mark Documentation
 
-This documentation describes the `0.1.0` implementation baseline. Generated
+This documentation describes the `0.2.0` implementation baseline. Generated
 `pkg.generated.mbti` files are authoritative for public names and signatures.
 
 Start with [Getting started](./getting_started.md), then read

@@ -6,19 +6,43 @@ pub fn boundary_shapes(GemmScale) -> Array[GemmScale]
 
 pub fn candidate_id(GemmCandidate) -> String
 
+pub fn candidate_valid_for_shape(GemmCandidate, GemmScale, UInt64) -> Bool
+
 pub fn column_major() -> Layout
 
 pub fn compute_only() -> TimingScope
 
 pub fn config_json(GemmTuningConfig) -> String
 
+pub fn enumerate_gemm_candidates() -> Array[GemmCandidate]
+
+pub fn environment_compatible(GemmEnvironment, GemmEnvironment) -> Bool
+
+pub fn execute_candidate(GemmScale, Array[Double], Array[Double], GemmCandidate, UInt64) -> Array[Double]?
+
+pub fn gemm_blocked(GemmScale, Array[Double], Array[Double], GemmCandidate) -> Array[Double]
+
+pub fn gemm_is_correct(GemmScale, Array[Double], Array[Double], GemmCandidate, Double, UInt64) -> Bool
+
+pub fn gemm_reference(GemmScale, Array[Double], Array[Double]) -> Array[Double]
+
+pub fn matrix_length(GemmScale, String) -> Int
+
 pub fn pack_ab() -> Packing
+
+pub fn pack_operand(GemmScale, Array[Double], String) -> Array[Double]
+
+pub fn reproducible_matrix(UInt64, Int, Int, Layout) -> Array[Double]
 
 pub fn reusable_workspace() -> AllocationMode
 
 pub fn row_major() -> Layout
 
+pub fn supported_microkernels() -> Array[String]
+
 pub fn valid_candidate(GemmCandidate, UInt64) -> Bool
+
+pub fn validate_gemm(Array[Double], Array[Double], Double) -> GemmValidation
 
 pub fn workspace_bytes(GemmCandidate) -> UInt64
 
@@ -48,6 +72,28 @@ pub struct GemmCandidate {
 }
 pub fn GemmCandidate::new(Int, Int, Int, Int, Int, Packing, String, String, AllocationMode, TimingScope) -> Self
 
+pub struct GemmEnvironment {
+  target : String
+  toolchain : String
+  compiler_flags : String
+  dtype_abi : String
+  runtime : String
+  cpu : String
+  gc : String
+  concurrency : Int
+  clock : String
+}
+pub fn GemmEnvironment::new(String, String, String, String, String, String, String, Int, String) -> Self
+
+pub struct GemmProblem {
+  scale : GemmScale
+  a : Array[Double]
+  b : Array[Double]
+  c : Array[Double]
+}
+pub fn GemmProblem::from_inputs(GemmScale, Array[Double], Array[Double]) -> Self
+pub fn GemmProblem::new(GemmScale, Array[Double], Array[Double], Array[Double]) -> Self
+
 pub struct GemmScale {
   m : Int
   n : Int
@@ -70,6 +116,12 @@ pub struct GemmTuningConfig {
   confirmation_samples : Int
 }
 pub fn GemmTuningConfig::new(UInt64, Array[GemmScale], Array[GemmCandidate], UInt64, Int, Int) -> Self
+
+pub struct GemmValidation {
+  valid : Bool
+  mismatches : Int
+  max_abs_error : Double
+}
 
 pub(all) enum Layout {
   RowMajor

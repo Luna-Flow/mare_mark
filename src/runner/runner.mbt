@@ -30,6 +30,7 @@ pub struct Implementation[Prepared, Output, Context] {
   version : String
   initial_context : () -> Context
   execution : ExecutionMode[Prepared, Output, Context]
+  synchronize : () -> Unit
 }
 
 ///|
@@ -38,8 +39,9 @@ pub fn[Prepared, Output, Context] Implementation::in_process(
   version : String,
   initial_context : () -> Context,
   run : (Prepared, Context) -> @model.OperationResult[Output, Context],
+  synchronize? : () -> Unit = () => (),
 ) -> Implementation[Prepared, Output, Context] {
-  { id, version, initial_context, execution: InProcess(run) }
+  { id, version, initial_context, execution: InProcess(run), synchronize }
 }
 
 ///|
@@ -48,8 +50,9 @@ pub fn[Prepared, Output, Context] Implementation::worker(
   version : String,
   initial_context : () -> Context,
   worker : WorkerSpec[Prepared, Output, Context],
+  synchronize? : () -> Unit = () => (),
 ) -> Implementation[Prepared, Output, Context] {
-  { id, version, initial_context, execution: Subprocess(worker) }
+  { id, version, initial_context, execution: Subprocess(worker), synchronize }
 }
 
 ///|
@@ -501,16 +504,13 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] run_batch(
   let mut valid = true
   let mut prepared_cache = cached_prepared
   let included = fixture.setup_policy.timing is IncludedInMeasurement
-  let timestamp = if included {
-    Some(@bench.monotonic_clock_start())
-  } else {
-    None
-  }
   if frequency is PerIteration {
-    let operation_timestamp = if included {
-      timestamp
-    } else {
+    let mut elapsed = 0.0
+    let batch_timestamp = if included {
+      (implementation.synchronize)()
       Some(@bench.monotonic_clock_start())
+    } else {
+      None
     }
     for _ in 0..<iterations {
       let prepared = (fixture.prepare)(
@@ -518,10 +518,20 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] run_batch(
         implementation.id,
         @fixture.SampleContext::new(sample_id, implementation.id, sample_id),
       )
+      let operation_timestamp = if included {
+        None
+      } else {
+        (implementation.synchronize)()
+        Some(@bench.monotonic_clock_start())
+      }
       let result = execute_operation(implementation, prepared, context)
       match result.outcome.value_option() {
         Some(output) => current_state = (sink.fold)(current_state, output)
         None => valid = false
+      }
+      if !included {
+        (implementation.synchronize)()
+        elapsed += @bench.monotonic_clock_end(operation_timestamp.unwrap())
       }
       (fixture.reset)(
         prepared,
@@ -535,11 +545,20 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] run_batch(
         }
       }
     }
-    let elapsed = @bench.monotonic_clock_end(operation_timestamp.unwrap())
+    if included {
+      (implementation.synchronize)()
+      elapsed = @bench.monotonic_clock_end(batch_timestamp.unwrap())
+    }
     let sink_value = (sink.finish)(current_state)
     @bench.Bench::keep(bench, sink_value)
     { elapsed_us: elapsed, valid, cached_prepared: None }
   } else {
+    let batch_timestamp = if included {
+      (implementation.synchronize)()
+      Some(@bench.monotonic_clock_start())
+    } else {
+      None
+    }
     let prepared = match prepared_cache {
       Some(prepared) => prepared
       None => {
@@ -555,8 +574,9 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] run_batch(
       }
     }
     let operation_timestamp = if included {
-      timestamp
+      None
     } else {
+      (implementation.synchronize)()
       Some(@bench.monotonic_clock_start())
     }
     for _ in 0..<iterations {
@@ -573,12 +593,20 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] run_batch(
         }
       }
     }
-    let elapsed = @bench.monotonic_clock_end(operation_timestamp.unwrap())
+    let mut elapsed = 0.0
+    if !included {
+      (implementation.synchronize)()
+      elapsed = @bench.monotonic_clock_end(operation_timestamp.unwrap())
+    }
     if !is_long_lived(frequency) {
       (fixture.reset)(
         prepared,
         @fixture.ResetContext::new(sample_id, implementation.id),
       )
+    }
+    if included {
+      (implementation.synchronize)()
+      elapsed = @bench.monotonic_clock_end(batch_timestamp.unwrap())
     }
     let sink_value = (sink.finish)(current_state)
     @bench.Bench::keep(bench, sink_value)
@@ -679,7 +707,6 @@ pub async fn[
   sink : @event.ObservationSink,
   seed : UInt64,
 ) -> @model.RunSummary {
-  ignore(environment)
   let bench = @bench.Bench()
   let mut observation_count = 0
   let mut calibration_count = 0
@@ -1005,10 +1032,11 @@ pub async fn[
     for repetition_id = 0
         repetition_id < protocol.confirmatory_samples
         repetition_id = repetition_id + 1 {
+      let block_id = protocol.exploratory_samples + repetition_id
       let order = measurement_order(
         protocol.order_policy,
         case.implementations.length(),
-        repetition_id,
+        block_id,
         seed,
       )
       for position = 0; position < order.length(); position = position + 1 {
@@ -1033,7 +1061,7 @@ pub async fn[
             implementation.version,
             scale_index,
             repetition_id,
-            repetition_id,
+            block_id,
             "confirmatory",
             batch.elapsed_us / iterations.to_double(),
             iterations,
@@ -1072,6 +1100,7 @@ pub async fn[
     failed_count=failed_count.val,
     unsupported_count=unsupported_count.val,
     expected_difference_count=expected_difference_count.val,
+    environment~,
   )
   let location = (sink.finish)(summary)
   @model.RunSummary::new(
@@ -1085,6 +1114,7 @@ pub async fn[
     failed_count=summary.failed_count,
     unsupported_count=summary.unsupported_count,
     expected_difference_count=summary.expected_difference_count,
+    environment~,
   )
 }
 

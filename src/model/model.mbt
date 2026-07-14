@@ -233,6 +233,8 @@ pub struct PerformanceEnvironment {
   gc : String
   concurrency : Int
   clock : String
+  device : String
+  frequency_policy : String
 }
 
 ///|
@@ -242,8 +244,10 @@ pub fn PerformanceEnvironment::new(
   gc : String,
   concurrency : Int,
   clock : String,
+  device? : String = "host",
+  frequency_policy? : String = "uncontrolled",
 ) -> PerformanceEnvironment {
-  { runtime, cpu, gc, concurrency, clock }
+  { runtime, cpu, gc, concurrency, clock, device, frequency_policy }
 }
 
 ///|
@@ -586,6 +590,7 @@ pub struct RunSummary {
   failed_count : Int
   unsupported_count : Int
   expected_difference_count : Int
+  environment : EnvironmentSnapshot?
 }
 
 ///|
@@ -600,6 +605,7 @@ pub fn RunSummary::new(
   failed_count? : Int = 0,
   unsupported_count? : Int = 0,
   expected_difference_count? : Int = 0,
+  environment? : EnvironmentSnapshot,
 ) -> RunSummary {
   {
     run_id,
@@ -612,6 +618,7 @@ pub fn RunSummary::new(
     failed_count,
     unsupported_count,
     expected_difference_count,
+    environment,
   }
 }
 
@@ -754,5 +761,7 @@ pub fn environment_compatible(
   a.performance.cpu == b.performance.cpu &&
   a.performance.gc == b.performance.gc &&
   a.performance.concurrency == b.performance.concurrency &&
-  a.performance.clock == b.performance.clock
+  a.performance.clock == b.performance.clock &&
+  a.performance.device == b.performance.device &&
+  a.performance.frequency_policy == b.performance.frequency_policy
 }
