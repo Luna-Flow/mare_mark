@@ -1,0 +1,5 @@
+{"type":"observation","case":"vector-add","implementation":"baseline","dataset_id":0,"elapsed_us":12.5,"iterations":32}
+{"type":"observation","case":"vector-add","implementation":"candidate","dataset_id":0,"elapsed_us":10.2,"iterations":32}
+{"type":"observation","case":"vector-add","implementation":"baseline","dataset_id":1,"elapsed_us":28.4,"iterations":16}
+{"type":"observation","case":"vector-add","implementation":"candidate","dataset_id":1,"elapsed_us":21.8,"iterations":16}
+{"type":"summary","run_id":"sample-run","observation_count":4}

@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/ir_sink"
+
+import {
+  "Luna-Flow/mare_mark/event",
+}
+
+// Values
+pub fn in_memory() -> @event.InMemorySink
+
+pub fn jsonl() -> @event.JsonlSink
+
+pub fn jsonl_stream((String) -> Unit, String) -> @event.ObservationSink
+
+pub fn tee(@event.ObservationSink, @event.ObservationSink) -> @event.ObservationSink
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

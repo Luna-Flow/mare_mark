@@ -1,0 +1,44 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/fixture"
+
+import {
+  "Luna-Flow/mare_mark/model",
+}
+
+// Values
+pub fn[Scale, Input, Prepared] materialize(Fixture[Scale, Input, Prepared], @model.GenerationContext[Scale]) -> Input
+
+pub fn[Scale, Input, Prepared] prepare(Fixture[Scale, Input, Prepared], Input, String, SampleContext) -> Prepared
+
+// Errors
+
+// Types and methods
+pub struct Fixture[Scale, Input, Prepared] {
+  id : String
+  version : String
+  materialize : (@model.GenerationContext[Scale]) -> Input
+  fingerprint : (Input) -> String
+  clone_input : (Input) -> Input
+  prepare : (Input, String, SampleContext) -> Prepared
+  reset : (Prepared, ResetContext) -> Unit
+  setup_policy : @model.SetupPolicy
+}
+pub fn[Scale, Input, Prepared] Fixture::new(String, String, (@model.GenerationContext[Scale]) -> Input, (Input) -> String, (Input) -> Input, (Input, String, SampleContext) -> Prepared, (Prepared, ResetContext) -> Unit, @model.SetupPolicy) -> Self[Scale, Input, Prepared]
+
+pub struct ResetContext {
+  sample_id : Int
+  implementation_id : String
+}
+pub fn ResetContext::new(Int, String) -> Self
+
+pub struct SampleContext {
+  sample_id : Int
+  implementation_id : String
+  repetition_id : Int
+}
+pub fn SampleContext::new(Int, String, Int) -> Self
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,96 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/tune_gemm"
+
+// Values
+pub fn boundary_shapes(GemmScale) -> Array[GemmScale]
+
+pub fn candidate_id(GemmCandidate) -> String
+
+pub fn column_major() -> Layout
+
+pub fn compute_only() -> TimingScope
+
+pub fn config_json(GemmTuningConfig) -> String
+
+pub fn pack_ab() -> Packing
+
+pub fn reusable_workspace() -> AllocationMode
+
+pub fn row_major() -> Layout
+
+pub fn valid_candidate(GemmCandidate, UInt64) -> Bool
+
+pub fn workspace_bytes(GemmCandidate) -> UInt64
+
+// Errors
+
+// Types and methods
+pub(all) enum AllocationMode {
+  FreshPerOperation
+  ReuseOutput
+  ReusableWorkspace
+  PrepackedA
+  PrepackedB
+  PrepackedAB
+}
+
+pub struct GemmCandidate {
+  mc : Int
+  nc : Int
+  kc : Int
+  mr : Int
+  nr : Int
+  packing : Packing
+  loop_order : String
+  microkernel_id : String
+  allocation_mode : AllocationMode
+  timing_scope : TimingScope
+}
+pub fn GemmCandidate::new(Int, Int, Int, Int, Int, Packing, String, String, AllocationMode, TimingScope) -> Self
+
+pub struct GemmScale {
+  m : Int
+  n : Int
+  k : Int
+  batch : Int
+  reuse_count : Int
+  layout_a : Layout
+  layout_b : Layout
+  layout_c : Layout
+}
+pub fn GemmScale::new(Int, Int, Int, Int, Int, Layout, Layout, Layout) -> Self
+
+pub struct GemmTuningConfig {
+  schema_version : String
+  seed : UInt64
+  shapes : Array[GemmScale]
+  candidates : Array[GemmCandidate]
+  max_workspace_bytes : UInt64
+  exploration_samples : Int
+  confirmation_samples : Int
+}
+pub fn GemmTuningConfig::new(UInt64, Array[GemmScale], Array[GemmCandidate], UInt64, Int, Int) -> Self
+
+pub(all) enum Layout {
+  RowMajor
+  ColumnMajor
+}
+
+pub(all) enum Packing {
+  None
+  A
+  B
+  AB
+}
+
+pub(all) enum TimingScope {
+  ComputeOnly
+  EndToEnd
+  Amortized(Int)
+  SteadyState
+}
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,7 @@
+import {
+  "Luna-Flow/mare_mark/model",
+}
+
+import {
+  "moonbitlang/core/test",
+} for "test"

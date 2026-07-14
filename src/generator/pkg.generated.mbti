@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/generator"
+
+import {
+  "Luna-Flow/mare_mark/model",
+}
+
+// Values
+pub fn[Scale] context(UInt64, String, String, @model.DatasetKey[Scale], String, String) -> @model.GenerationContext[Scale]
+
+pub fn derive_seed(UInt64, String, Int) -> UInt64
+
+pub fn measurement_seed(UInt64, Int, Int, Int) -> UInt64
+
+pub fn stable_fingerprint(String) -> String
+
+// Errors
+
+// Types and methods
+pub struct Generator[Scale, Input] {
+  id : String
+  version : String
+  generate : (@model.GenerationContext[Scale]) -> Input
+  fingerprint : (Input) -> String
+}
+pub fn[Scale, Input] Generator::new(String, String, (@model.GenerationContext[Scale]) -> Input, (Input) -> String) -> Self[Scale, Input]
+
+// Type aliases
+
+// Traits
+

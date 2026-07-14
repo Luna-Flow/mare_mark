@@ -1,0 +1,22 @@
+import {
+  "moonbitlang/core/bench",
+  "moonbitlang/core/debug",
+  "moonbitlang/async",
+  "moonbitlang/async/io",
+  "moonbitlang/async/process",
+  "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/fixture",
+  "Luna-Flow/mare_mark/event",
+  "Luna-Flow/mare_mark/experiment",
+}
+
+import {
+  "moonbitlang/core/test",
+} for "wbtest"
+
+options(
+  targets: {
+    "worker_native.mbt": [ "native" ],
+    "worker_unimplemented.mbt": [ "js", "wasm", "wasm-gc", "llvm" ],
+  },
+)

@@ -1,0 +1,15 @@
+.DS_Store
+_build/
+.mooncakes/
+.moonagent/
+bin/
+.venv-mmk-plot-build/
+PLAN.md
+
+# runtime artifacts
+bench_data/raw/*
+bench_data/csv/*
+bench_data/reports/*
+!bench_data/raw/.gitkeep
+!bench_data/csv/.gitkeep
+!bench_data/reports/.gitkeep

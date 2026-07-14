@@ -1,0 +1,40 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/cli"
+
+import {
+  "Luna-Flow/mare_mark/ir_model",
+  "Luna-Flow/mare_mark/model",
+}
+
+// Values
+pub fn load_replay_spec(String) -> Result[@model.ReplaySpec, String]
+
+pub fn parse_args(Array[String]) -> CliRequest
+
+pub fn render_jsonl_report(String, String, target? : String) -> Result[String, String]
+
+pub fn replay_spec_from_jsonl(String) -> Result[@model.ReplaySpec, String]
+
+pub fn report_html(@ir_model.PlotDocument) -> String
+
+pub fn usage() -> String
+
+// Errors
+
+// Types and methods
+pub struct CliRequest {
+  command : Command
+  input : String?
+  output : String?
+}
+
+pub enum Command {
+  Replay
+  Report
+  Help
+}
+
+// Type aliases
+
+// Traits
+

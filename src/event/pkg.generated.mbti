@@ -1,0 +1,44 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/event"
+
+import {
+  "Luna-Flow/mare_mark/model",
+}
+
+// Values
+pub fn streaming_jsonl((String) -> Unit, String) -> ObservationSink
+
+pub fn tee(ObservationSink, ObservationSink) -> ObservationSink
+
+// Errors
+
+// Types and methods
+pub struct InMemorySink {
+  observations : Array[@model.Observation]
+  validations : Array[@model.Validation]
+  failures : Array[@model.ValidationFailure]
+  calibrations : Array[@model.CalibrationEvent]
+}
+pub fn InMemorySink::as_sink(Self) -> ObservationSink
+pub fn InMemorySink::new() -> Self
+
+pub struct JsonlSink {
+  lines : Array[String]
+}
+pub fn JsonlSink::as_sink(Self) -> ObservationSink
+pub fn JsonlSink::new() -> Self
+pub fn JsonlSink::to_jsonl(Self) -> String
+
+pub struct ObservationSink {
+  emit_observation : (@model.Observation) -> Unit
+  emit_validation : (@model.Validation) -> Unit
+  emit_failure : (@model.ValidationFailure) -> Unit
+  emit_calibration : (@model.CalibrationEvent) -> Unit
+  finish : (@model.RunSummary) -> String
+}
+pub fn ObservationSink::new((@model.Observation) -> Unit, (@model.Validation) -> Unit, (@model.CalibrationEvent) -> Unit, (@model.RunSummary) -> String, emit_failure? : (@model.ValidationFailure) -> Unit) -> Self
+
+// Type aliases
+
+// Traits
+

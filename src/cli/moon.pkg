@@ -1,0 +1,20 @@
+import {
+  "Luna-Flow/mare_mark/ir_model" @ir,
+  "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/report",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/x/fs",
+  "moonbitlang/async",
+  "moonbitlang/async/process",
+  "moonbitlang/core/debug",
+}
+
+options(
+  "is-main": true,
+  targets: {
+    "main.mbt": [ "native" ],
+    "main_unimplemented.mbt": [ "js", "wasm", "wasm-gc", "llvm" ],
+    "replay_native.mbt": [ "native" ],
+  },
+)

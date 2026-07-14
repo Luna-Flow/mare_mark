@@ -1,0 +1,62 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/stats"
+
+import {
+  "Luna-Flow/mare_mark/model",
+}
+
+// Values
+pub fn compare_paired(String, String, Array[Double], Array[Double], Double, @model.IntervalMode) -> Comparison
+
+pub fn filter_outliers(Array[Double], @model.OutlierPolicy) -> Array[Double]
+
+pub fn is_faster(Comparison) -> Bool
+
+pub fn paired_deltas(Array[Double], Array[Double]) -> Array[Double]
+
+pub fn summarize(Array[Double]) -> SummaryStats
+
+// Errors
+
+// Types and methods
+pub struct Comparison {
+  baseline_id : String
+  candidate_id : String
+  relative_delta_pct : Double
+  speedup : Double
+  interval : Interval
+  decision : Decision
+  valid_samples : Int
+}
+
+pub enum Decision {
+  Faster
+  Slower
+  Equivalent
+  Invalid
+  Unknown
+}
+
+pub struct Interval {
+  low : Double
+  high : Double
+  mode : @model.IntervalMode
+}
+
+pub struct SummaryStats {
+  count : Int
+  min : Double
+  max : Double
+  mean : Double
+  median : Double
+  mad : Double
+  q1 : Double
+  q3 : Double
+  iqr : Double
+  std_dev : Double
+}
+
+// Type aliases
+
+// Traits
+

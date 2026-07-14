@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/report"
+
+import {
+  "Luna-Flow/mare_mark/ir_model",
+}
+
+// Values
+pub fn document_from_jsonl(String, target? : String) -> Result[@ir_model.PlotDocument, String]
+
+pub fn html(@ir_model.PlotDocument) -> String
+
+pub fn plot_json(@ir_model.PlotDocument) -> String
+
+pub fn plot_svg(@ir_model.Plot) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

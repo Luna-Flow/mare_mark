@@ -1,0 +1,95 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/ir_model"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct CapabilityCell {
+  implementation : String
+  outcome_kind : String
+  count : Int
+}
+pub fn CapabilityCell::new(String, String, Int) -> Self
+
+pub struct CorpusSummary {
+  total : Int
+  passed : Int
+  failed : Int
+  unsupported : Int
+  expected_difference : Int
+}
+pub fn CorpusSummary::new(Int, Int, Int, Int, Int) -> Self
+
+pub struct Counterexample {
+  implementation : String
+  minimal_input : String
+  fingerprint : String
+  shrink_path : Array[String]
+  replay_command : String
+}
+pub fn Counterexample::new(String, String, String, Array[String], String) -> Self
+
+pub struct DifferentialReport {
+  mismatches : Array[MismatchRow]
+  capabilities : Array[CapabilityCell]
+  counterexamples : Array[Counterexample]
+  corpus : CorpusSummary
+}
+pub fn DifferentialReport::empty() -> Self
+pub fn DifferentialReport::new(Array[MismatchRow], Array[CapabilityCell], Array[Counterexample], CorpusSummary) -> Self
+
+pub struct MismatchRow {
+  implementation : String
+  operation : String
+  operands : Array[String]
+  expected : String
+  actual : String
+  flags_diff : String
+  trap : String
+  fingerprint : String
+  replay_command : String
+}
+pub fn MismatchRow::new(String, String, Array[String], String, String, String, String, String, String) -> Self
+
+pub struct Plot {
+  kind : PlotKind
+  title : String
+  unit : String
+  interval_kind : String
+  points : Array[PlotPoint]
+}
+pub fn Plot::new(PlotKind, String, String, String, Array[PlotPoint]) -> Self
+
+pub struct PlotDocument {
+  schema_version : String
+  run_id : String
+  target : String
+  plots : Array[Plot]
+  differential : DifferentialReport
+}
+pub fn PlotDocument::new(String, String, Array[Plot], differential? : DifferentialReport) -> Self
+
+pub(all) enum PlotKind {
+  Scaling
+  RawDistribution
+  BlockOrder
+  Interval
+  Outlier
+  ChangePoint
+  Heatmap
+  Pareto
+}
+
+pub struct PlotPoint {
+  x : String
+  y : Double
+  series : String
+}
+pub fn PlotPoint::new(String, Double, String) -> Self
+
+// Type aliases
+
+// Traits
+

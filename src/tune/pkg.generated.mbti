@@ -1,0 +1,81 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/tune"
+
+import {
+  "Luna-Flow/mare_mark/runner",
+}
+
+// Values
+pub fn[Candidate] exhaustive_scores(CandidateSpace[Candidate], Int, (Candidate) -> CandidateScore) -> TuningResult
+
+pub fn pareto_frontier(Array[CandidateScore]) -> Array[CandidateScore]
+
+// Errors
+
+// Types and methods
+pub struct BuildEvent {
+  candidate_id : String
+  kernel_id : String
+  accepted : Bool
+  reason : String
+}
+
+pub struct BuiltCandidate[Prepared, Output, Context] {
+  candidate_id : String
+  implementation : @runner.Implementation[Prepared, Output, Context]
+  kernel_id : String
+}
+pub fn[Prepared, Output, Context] BuiltCandidate::new(String, @runner.Implementation[Prepared, Output, Context], String) -> Self[Prepared, Output, Context]
+
+pub struct CandidateScore {
+  candidate_id : String
+  primary : Double
+  secondary : Double
+  valid : Bool
+}
+pub fn CandidateScore::new(String, Double, Double, Bool) -> Self
+
+pub struct CandidateSpace[Candidate] {
+  enumerate : () -> Array[Candidate]
+  candidate_id : (Candidate) -> String
+  valid : (Candidate) -> Bool
+  neighbors : (Candidate) -> Array[Candidate]
+}
+pub fn[Candidate] CandidateSpace::new(() -> Array[Candidate], (Candidate) -> String, (Candidate) -> Bool, (Candidate) -> Array[Candidate]) -> Self[Candidate]
+
+pub(all) enum HoldoutPlan[Scale] {
+  MeasurementHoldout(Int)
+  DatasetHoldout(Array[Int])
+  ShapeHoldout(Array[Scale])
+  WorkloadHoldout(String)
+  Combined(Array[HoldoutPlan[Scale]])
+}
+
+pub struct TuningBudget[Scale] {
+  max_candidates : Int
+  max_measurements : Int
+  max_elapsed_us : Double?
+  exploration_samples : Int
+  confirmation_samples : Int
+  finalists : Int
+  holdout : HoldoutPlan[Scale]
+}
+pub fn[Scale] TuningBudget::new(Int, Int, Double?, Int, Int, Int, HoldoutPlan[Scale]) -> Self[Scale]
+
+pub struct TuningObjective {
+  practical_delta_pct : Double
+  max_workspace_bytes : UInt64?
+  minimize_secondary : Bool
+}
+pub fn TuningObjective::new(Double, UInt64?, Bool) -> Self
+
+pub struct TuningResult {
+  scores : Array[CandidateScore]
+  build_events : Array[BuildEvent]
+  policy : String
+}
+
+// Type aliases
+
+// Traits
+

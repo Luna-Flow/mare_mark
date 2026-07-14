@@ -1,0 +1,59 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/experiment"
+
+import {
+  "Luna-Flow/mare_mark/model",
+}
+
+// Values
+pub fn comparator_label(Double, Double) -> String
+
+pub fn[Scale] crossover_from_labels(ScaleDomain[Scale], Array[String]) -> @model.CrossoverResult[Scale]
+
+pub fn[Input] shrink(Input, Shrinker[Input], (Input) -> Bool) -> (Input, Array[String])
+
+pub fn[Input, Expected, Output, Context] validate_reference(ReferenceOracle[Input, Expected, Output, Context], Input, Int, @model.ExecutionOutcome[Expected], @model.ExecutionOutcome[Output], String, String) -> @model.Validation
+
+// Errors
+
+// Types and methods
+pub(all) enum OracleSpec[Input, Expected, Output, Context] {
+  Reference(ReferenceOracle[Input, Expected, Output, Context])
+  Relational(RelationalOracle[Input, Output])
+  ReferenceAndRelational(ReferenceOracle[Input, Expected, Output, Context], RelationalOracle[Input, Output])
+}
+
+pub struct ReferenceOracle[Input, Expected, Output, Context] {
+  id : String
+  initial_context : () -> Context
+  sequence_length : (Input) -> Int
+  compute_expected : (Input, Int, Context) -> @model.OperationResult[Expected, Context]
+  validate : (Input, Int, @model.ExecutionOutcome[Expected], @model.ExecutionOutcome[Output]) -> @model.ValidationStatus
+  expected_text : (Expected) -> String
+}
+pub fn[Input, Expected, Output, Context] ReferenceOracle::new(String, () -> Context, (Input) -> Int, (Input, Int, Context) -> @model.OperationResult[Expected, Context], (Input, Int, @model.ExecutionOutcome[Expected], @model.ExecutionOutcome[Output]) -> @model.ValidationStatus, (Expected) -> String) -> Self[Input, Expected, Output, Context]
+
+pub struct RelationalOracle[Input, Output] {
+  id : String
+  validate_pair : (Input, Int, String, @model.ExecutionOutcome[Output], String, @model.ExecutionOutcome[Output]) -> @model.ValidationStatus
+}
+pub fn[Input, Output] RelationalOracle::new(String, (Input, Int, String, @model.ExecutionOutcome[Output], String, @model.ExecutionOutcome[Output]) -> @model.ValidationStatus) -> Self[Input, Output]
+
+pub struct ScaleDomain[Scale] {
+  values : Array[Scale]
+  compare : (Scale, Scale) -> Int
+  text : (Scale) -> String
+}
+pub fn[Scale] ScaleDomain::new(Array[Scale], (Scale, Scale) -> Int, (Scale) -> String) -> Self[Scale]
+
+pub struct Shrinker[Input] {
+  candidates : (Input) -> Array[Input]
+  text : (Input) -> String
+  max_steps : Int
+}
+pub fn[Input] Shrinker::new((Input) -> Array[Input], (Input) -> String, max_steps? : Int) -> Self[Input]
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,1 @@
+{"type":"validation_failure","status":"invalid","implementation":"sample","replay_command":"printf","replay_arguments":["replayed"],"replay_timeout_ms":1000,"minimal_input":"sample","minimal_fingerprint":"sha256:sample","shrink_path":[]}

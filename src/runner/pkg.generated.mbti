@@ -1,0 +1,74 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/runner"
+
+import {
+  "Luna-Flow/mare_mark/event",
+  "Luna-Flow/mare_mark/experiment",
+  "Luna-Flow/mare_mark/fixture",
+  "Luna-Flow/mare_mark/model",
+}
+
+// Values
+pub fn balanced_order(Int, Int) -> Array[Int]
+
+pub async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] bench_oracle(DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], @model.RunProtocol, @model.EnvironmentSnapshot, @event.ObservationSink, UInt64) -> @model.RunSummary
+
+pub async fn[Prepared, Output, Context] execute_operation(Implementation[Prepared, Output, Context], Prepared, Context) -> @model.OperationResult[Output, Context]
+
+pub async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] run_case(DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], @model.RunProtocol, @model.EnvironmentSnapshot, @event.ObservationSink, UInt64) -> @model.RunSummary
+
+// Errors
+
+// Types and methods
+pub struct DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] {
+  id : String
+  fixture : @fixture.Fixture[Scale, Input, Prepared]
+  implementations : Array[Implementation[Prepared, Output, Context]]
+  output_sink : OutputSink[Output, State, SinkValue]
+  oracle : @experiment.OracleSpec[Input, Expected, Output, Context]
+  scales : Array[Scale]
+  scale_text : (Scale) -> String
+  sequence_length : (Input) -> Int
+  describe : (Input, Int) -> @model.CaseDescriptor
+  input_text : (Input) -> String
+  output_text : (Output) -> String
+  context_text : (Context) -> String
+  shrinker : @experiment.Shrinker[Input]?
+  replay : (Input, String) -> @model.ReplaySpec
+}
+pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] DifferentialCase::new(String, @fixture.Fixture[Scale, Input, Prepared], Array[Implementation[Prepared, Output, Context]], OutputSink[Output, State, SinkValue], @experiment.OracleSpec[Input, Expected, Output, Context], Array[Scale], (Scale) -> String, (Input) -> Int, (Input, Int) -> @model.CaseDescriptor, (Input) -> String, (Output) -> String, (Context) -> String, (Input, String) -> @model.ReplaySpec, shrinker? : @experiment.Shrinker[Input]) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
+
+pub enum ExecutionMode[Prepared, Output, Context] {
+  InProcess((Prepared, Context) -> @model.OperationResult[Output, Context])
+  Subprocess(WorkerSpec[Prepared, Output, Context])
+}
+
+pub struct Implementation[Prepared, Output, Context] {
+  id : String
+  version : String
+  initial_context : () -> Context
+  execution : ExecutionMode[Prepared, Output, Context]
+}
+pub fn[Prepared, Output, Context] Implementation::in_process(String, String, () -> Context, (Prepared, Context) -> @model.OperationResult[Output, Context]) -> Self[Prepared, Output, Context]
+pub fn[Prepared, Output, Context] Implementation::worker(String, String, () -> Context, WorkerSpec[Prepared, Output, Context]) -> Self[Prepared, Output, Context]
+
+pub struct OutputSink[Output, State, SinkValue] {
+  initial : () -> State
+  fold : (State, Output) -> State
+  finish : (State) -> SinkValue
+}
+pub fn[Output, State, SinkValue] OutputSink::new(() -> State, (State, Output) -> State, (State) -> SinkValue) -> Self[Output, State, SinkValue]
+
+pub struct WorkerSpec[Prepared, Output, Context] {
+  command : String
+  build_arguments : (Prepared, Context) -> Array[String]
+  decode : (String) -> @model.OperationResult[Output, Context]
+  timeout_ms : Int
+  cwd : String?
+}
+pub fn[Prepared, Output, Context] WorkerSpec::new(String, (Prepared, Context) -> Array[String], (String) -> @model.OperationResult[Output, Context], timeout_ms? : Int, cwd? : String) -> Self[Prepared, Output, Context]
+
+// Type aliases
+
+// Traits
+

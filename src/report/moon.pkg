@@ -1,0 +1,19 @@
+import {
+  "Luna-Flow/mare_mark/ir_model" @ir,
+  "moonbitlang/core/json",
+}
+
+import {
+  "moonbitlang/core/string",
+} for "wbtest"
+
+import {
+  "Luna-Flow/mare_mark/experiment",
+  "Luna-Flow/mare_mark/fixture",
+  "Luna-Flow/mare_mark/generator",
+  "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/runner",
+  "Luna-Flow/mare_mark/tune",
+  "Luna-Flow/mare_mark/tune_gemm",
+  "moonbitlang/core/test",
+} for "test"
