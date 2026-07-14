@@ -1,3 +1,8 @@
 import {
   "Luna-Flow/mare_mark/runner",
 }
+
+import {
+  "moonbitlang/core/double",
+  "moonbitlang/core/test",
+} for "test"
