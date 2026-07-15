@@ -3,8 +3,8 @@
 本文档描述 `0.3.0` 当前实现；公开名称与签名以各包的
 `pkg.generated.mbti` 为准。
 
-建议先阅读[快速上手](./getting_started.md)、[架构](./architecture.md)和
-[验证](./verification.md)。
+建议先阅读[快速上手](./getting_started.md)、[架构](./architecture.md)、
+[包参考](./package_reference.md)和[验证](./verification.md)。
 
 ## 核心包指南
 
@@ -12,11 +12,21 @@
 - 统计：[API](./stats/api.md)、[教程](./stats/tutorial.md)、[设计](./stats/design.md)
 - 报告：[API](./report/api.md)、[教程](./report/tutorial.md)、[设计](./report/design.md)
 
+## 包职责地图
+
+| 边界 | 包 |
+| --- | --- |
+| 协议与事件 | `model`、`event`、`ir_sink` |
+| 输入与生命周期 | `generator`、`fixture` |
+| 校验与测量 | `experiment`、`runner` |
+| 分析与呈现 | `stats`、`ir_model`、`report` |
+| 搜索策略 | `tune`、`tune_gemm` |
+| 原生文件/进程副作用 | `cli` |
+
 ## 其他包
 
-`model`、`generator`、`fixture`、`event`、`ir_sink`、`experiment`、
-`ir_model`、`tune`、`tune_gemm` 和 `cli` 的职责已汇总在架构文档中；后续包级
-文档仍需与其真实实现和生成接口同步扩展。
+所有包的职责、测量边界和稳定性说明见[包参考](./package_reference.md)。
+精确的公开名称与签名仍以各包的 `pkg.generated.mbti` 为准。
 
 ## 稳定性
 

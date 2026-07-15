@@ -1,27 +1,65 @@
 # Verification
 
-Run narrow checks first, then the full matrix:
+Verification is layered: compile the public surface, run focused package tests,
+then execute the cross-target suite and smoke artifacts.
+
+## Fast loop
 
 ```sh
-moon test src/report
-moon test src/cli --target native
-moon test --target js
-moon test --target native
-moon check --target js
 moon check --target native
-moon test
-moon coverage analyze
-moon info
-moon fmt
+moon test src/model --target native
+moon test src/runner --target native
+moon test src/report --target native
+moon fmt --check
 ```
 
-The report tests cover structured JSON escaping, XML/HTML escaping, line and
-heatmap rendering, and JSONL-to-Plot-IR conversion. The checked-in JSONL fixture
-also supports end-to-end native report and replay dry-run smoke tests. Event
-tests verify the `mmka_1` marker, sink fan-out, and replayable minimized failures.
+## Cross-target matrix
 
-The stats tests verify deterministic percentile bootstrap bounds and invalid
-configuration handling. They do not prove BCa correction, hierarchical
-resampling, filesystem streaming during a benchmark, or every PlotKind-specific
-semantic. CI caps uncovered executable lines at 360 to prevent silent coverage
-regression; the budget is not a percentage or a substitute for risk-based tests.
+```sh
+moon test --target native
+moon test --target js
+moon check --target native
+moon check --target js
+moon info
+```
+
+Native covers process workers, monotonic timing, and replay. JS catches
+serialization and pure-policy portability regressions.
+
+## Artifact smoke tests
+
+```sh
+tmpdir=$(mktemp -d)
+moon run src/cli --target native -- report \
+  testdata/report/sample.jsonl "$tmpdir/report.html"
+moon run src/cli --target native -- replay \
+  testdata/replay/sample.jsonl --dry-run
+test -s "$tmpdir/report.html"
+```
+
+The report fixture verifies JSONL parsing, scaling projection, escaping, and
+self-contained output. The replay fixture verifies artifact-version checks,
+command restoration, and timeout display without executing a process.
+
+## Evidence boundaries
+
+- `stats` tests prove deterministic percentile bootstrap bounds and reject
+  invalid configuration; they do not claim BCa or hierarchical resampling.
+- `runner` tests prove setup/timing ordering, balanced blocks, worker timeout,
+  and typed failure preservation; they do not prove a machine's timer quality.
+- `report` tests prove Plot IR and escaping invariants; they do not guarantee
+  browser-specific typography or CSS rendering.
+- `tune_gemm` tests prove candidate validity and numerical checks; they do not
+  prove that a candidate is fastest on every CPU or target.
+
+## Coverage and generated interfaces
+
+```sh
+moon coverage analyze
+moon info
+```
+
+`pkg.generated.mbti` snapshots are the public-interface evidence. If a public
+signature changes, update the generated snapshot through MoonBit tooling and
+then update the matching package reference and localized index. Do not hand
+edit generated files.
