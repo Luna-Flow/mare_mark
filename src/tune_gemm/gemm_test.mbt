@@ -127,7 +127,11 @@ test "candidate enumeration and config serialization are deterministic" {
   )
   let encoded = config_json(config)
   ignore(@json.parse(encoded))
-  @test.assert_eq(encoded.contains("\"schema_version\":\"2.0\""), true)
+  @test.assert_eq(encoded.contains("\"schema_version\":\"mmkts_1\""), true)
+  @test.assert_eq(
+    config.schema_version.lifecycle() is @model.VersionLifecycle::Supported,
+    true,
+  )
   @test.assert_eq(encoded.contains("\"seed\":\"18446744073709551615\""), true)
   @test.assert_eq(encoded.contains("m_\\n_n_k"), true)
 }
@@ -145,4 +149,51 @@ test "environment compatibility checks performance fields" {
   )
   @test.assert_eq(environment_compatible(baseline, same), true)
   @test.assert_eq(environment_compatible(baseline, different), false)
+}
+
+///|
+test "gemm validation rejects non-finite and tolerance errors" {
+  let invalid_tolerance = validate_gemm([1.0], [1.0], -1.0)
+  @test.assert_eq(invalid_tolerance.valid, false)
+  @test.assert_eq(invalid_tolerance.mismatches, 1)
+  let mismatch = validate_gemm([1.0, 2.0], [1.0], 0.0)
+  @test.assert_eq(mismatch.valid, false)
+  @test.assert_eq(mismatch.mismatches, 1)
+  let non_finite = validate_gemm([1.0 / 0.0], [1.0], 0.1)
+  @test.assert_eq(non_finite.valid, false)
+  @test.assert_eq(non_finite.mismatches, 1)
+}
+
+///|
+test "gemm supports unpacked operands and rejects invalid candidates" {
+  let shape = GemmScale::new(
+    2,
+    2,
+    2,
+    1,
+    1,
+    row_major(),
+    row_major(),
+    row_major(),
+  )
+  let candidate = GemmCandidate::new(
+    2,
+    2,
+    1,
+    1,
+    1,
+    Packing::None,
+    "m_n_k",
+    "scalar",
+    reusable_workspace(),
+    compute_only(),
+  )
+  let a = reproducible_matrix(1UL, 2, 2, row_major())
+  let b = reproducible_matrix(2UL, 2, 2, row_major())
+  @test.assert_eq(
+    gemm_is_correct(shape, a, b, candidate, 0.0000001, 4096UL),
+    true,
+  )
+  let invalid = execute_candidate(shape, a, [0.0], candidate, 4096UL)
+  @test.assert_eq(invalid, None)
 }

@@ -38,87 +38,22 @@ test "consumer can construct public configuration models" {
 }
 
 ///|
-test "consumer can construct a complete differential case" {
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::new(
-    "integers",
-    "1",
-    context => context.dataset_key.scale,
-    value => value.to_string(),
-    value => value,
-    (value, _, _) => value,
-    (_, _) => (),
-    @model.SetupPolicy::new(
-      @model.SetupFrequency::PerSample,
-      @model.SetupTiming::ExcludedFromMeasurement,
-      @model.WorkspaceScope::SampleWorkspace,
-    ),
-  )
-  let implementation : @runner.Implementation[Int, Int, Int] = @runner.Implementation::in_process(
+test "consumer can compile an immutable benchmark description" {
+  let implementation : @runner.Implementation[Int, Int, Unit] = @runner.Implementation::stateless(
     "candidate",
     "1",
-    () => 0,
-    (value, context) => {
-      @model.OperationResult::completed(value + context, context + 1)
-    },
+    value => @model.OperationResult::completed(value, ()),
   )
-  let oracle : @experiment.ReferenceOracle[Int, Int, Int, Int] = @experiment.ReferenceOracle::new(
-    "reference",
-    () => 0,
-    _ => 1,
-    (value, _, context) => {
-      @model.OperationResult::completed(value + context, context + 1)
-    },
-    (_, _, expected, actual) => {
-      match (expected, actual) {
-        (
-          @model.ExecutionOutcome::Value(left),
-          @model.ExecutionOutcome::Value(right),
-        ) =>
-          if left == right {
-            @model.ValidationStatus::Valid
-          } else {
-            @model.ValidationStatus::Invalid("value mismatch")
-          }
-        _ => @model.ValidationStatus::Invalid("outcome mismatch")
-      }
-    },
-    value => value.to_string(),
-  )
-  let differential_case : @runner.DifferentialCase[
-    Int,
-    Int,
-    Int,
-    Int,
-    Int,
-    Int,
-    Int,
-    Int,
-  ] = @runner.DifferentialCase::new(
-    "public-case",
-    fixture,
-    [implementation],
-    @runner.OutputSink::new(() => 0, (sum, value) => sum + value, value => value),
-    @experiment.OracleSpec::Reference(oracle),
-    [4],
-    value => value.to_string(),
-    _ => 1,
-    (value, _) => {
-      @model.CaseDescriptor::new("identity", [value.to_string()], "", "")
-    },
-    value => value.to_string(),
-    value => value.to_string(),
-    value => value.to_string(),
-    (value, implementation_id) => {
-      @model.ReplaySpec::new("mare-mark", [
-        "replay",
-        implementation_id,
-        value.to_string(),
-      ])
-    },
-  )
+  let plan = @runner.single_step("public-case", [4])
+    .with_immutable_input(context => context.dataset_key.scale, value => {
+      value.to_string()
+    })
+    .compare([implementation])
+    .against_equal(value => value, (expected, actual) => expected == actual)
+    .compile()
   let built = @tune.BuiltCandidate::new(
     "scalar", implementation, "scalar-kernel",
   )
-  @test.assert_eq(differential_case.id, "public-case")
+  assert_true(plan is Ok(_))
   @test.assert_eq(built.kernel_id, "scalar-kernel")
 }

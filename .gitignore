@@ -3,7 +3,7 @@ _build/
 .mooncakes/
 .moonagent/
 bin/
-.venv-mmk-plot-build/
+.venv_mmk_plot_build/
 PLAN.md
 
 # runtime artifacts

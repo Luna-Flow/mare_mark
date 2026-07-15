@@ -1,17 +1,18 @@
-# Mare Mark
+# mare_mark
 
-Mare Mark is a reproducible experiment toolkit for MoonBit payloads. It keeps
+mare_mark is a reproducible experiment toolkit for MoonBit payloads. It keeps
 dataset generation, fixture setup, timed execution, raw observations,
 statistical comparison, tuning policy, and report rendering in separate
 packages so measurement code stays small and reviewable.
 
 ## Current Baseline
 
-Version `0.2.0` provides a stateful differential runner with shared warmup,
+Version `0.3.0` provides a stateful differential runner with shared warmup,
 seeded balanced execution order, asynchronous synchronization hooks, typed
 execution outcomes, reference and relational oracles, native subprocess
 isolation, failure shrinking/replay artifacts, streaming JSONL adapters,
-median-based statistics, environment compatibility checks, tuning data models,
+median-based statistics with deterministic paired bootstrap intervals,
+environment compatibility checks, tuning data models, artifact-versioned JSONL,
 and self-contained differential HTML reports.
 
 The CLI is an artifact-edge tool and deliberately stays outside benchmark
@@ -30,7 +31,7 @@ never enter a timed payload.
 ## Installation
 
 ```sh
-moon add Luna-Flow/mare_mark@0.2.0
+moon add Luna-Flow/mare_mark@0.3.0
 ```
 
 ## Package Map

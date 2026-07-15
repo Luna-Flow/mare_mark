@@ -21,7 +21,8 @@ import {
 }
 ```
 
-`runner.run_case` で raw measurement を生成し、event stream を保存してから配列を
+`runner.single_step` で immutable description を作って `compile` し、plan と
+`RunContext` を `runner.run` に渡します。event stream を保存してから配列を
 `stats.compare_paired` に渡します。レポートは Plot IR を構築して
 `report.plot_svg` または `report.html` に渡します。
 

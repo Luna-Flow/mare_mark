@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Luna-Flow/mare_mark/ir_model"
 
+import {
+  "Luna-Flow/mare_mark/model",
+}
+
 // Values
 
 // Errors
@@ -63,7 +67,7 @@ pub struct Plot {
 pub fn Plot::new(PlotKind, String, String, String, Array[PlotPoint]) -> Self
 
 pub struct PlotDocument {
-  schema_version : String
+  schema_version : @model.SchemaVersion
   run_id : String
   target : String
   plots : Array[Plot]

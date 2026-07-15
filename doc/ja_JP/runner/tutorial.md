@@ -1,11 +1,27 @@
 # `runner` チュートリアル
 
-1. materialize、fingerprint、clone、prepare、reset callback を持つ `Fixture` を作ります。
-2. 一つ以上の `Implementation` を登録します。
-3. 結果消去を防ぐ `OutputSink` を定義します。
-4. ordered scale を持つ `DifferentialCase` を作ります。
-5. `RunProtocol`、`EnvironmentSnapshot`、`ObservationSink` を `run_case` に渡します。
-6. summary の前に raw observation を保存します。
+一般的な single-step benchmark は immutable description として構築し、
+measurement effect の前に compile します。
+
+```moonbit nocheck
+let baseline = @runner.Implementation::stateless(
+  "baseline", "1", input => @model.OperationResult::completed(add(input), ()),
+)
+let candidate = @runner.Implementation::stateless(
+  "candidate", "1", input => @model.OperationResult::completed(add_fast(input), ()),
+)
+let plan = @runner.single_step("vector_add", scales)
+  .with_immutable_input(generate, fingerprint)
+  .compare([baseline, candidate])
+  .against_equal(reference, (expected, actual) => expected == actual)
+  .compile()
+  .unwrap()
+let protocol = @runner.ProtocolPreset::Development.validated()
+let context = @runner.RunContext::new(environment, sink, seed, protocol)
+let summary = @runner.run(plan, context)
+```
+
+stateful または multi-step case では fixture、implementation、oracle、sink
+の明示的な combinator を使います。summary の前に raw observation を保存します。
 
 JS と native は別 run とし、elapsed value を同じ母集団として比較しません。
-

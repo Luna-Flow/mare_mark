@@ -354,7 +354,7 @@ pub fn plot_json(document : @ir.PlotDocument) -> String {
   })
   let corpus = document.differential.corpus
   Json::object({
-    "schema_version": Json::string(document.schema_version),
+    "schema_version": Json::string(document.schema_version.identifier()),
     "run_id": Json::string(document.run_id),
     "target": Json::string(document.target),
     "plots": Json::array(plot_values),
@@ -426,11 +426,39 @@ fn add_capability(
 }
 
 ///|
+priv struct ReportObservation {
+  case_id : String
+  implementation : String
+  dataset_id : Int
+  elapsed_us : Double
+}
+
+///|
+priv struct FailedBenchmarkKey {
+  case_id : String
+  implementation : String
+  dataset_id : Int
+}
+
+///|
+fn observation_failed(
+  observation : ReportObservation,
+  failures : Array[FailedBenchmarkKey],
+) -> Bool {
+  failures.any(failure => {
+    failure.case_id == observation.case_id &&
+    failure.implementation == observation.implementation &&
+    failure.dataset_id == observation.dataset_id
+  })
+}
+
+///|
 pub fn document_from_jsonl(
   source : String,
   target? : String = "unknown",
 ) -> Result[@ir.PlotDocument, String] {
-  let points = []
+  let observations : Array[ReportObservation] = []
+  let failed_benchmarks : Array[FailedBenchmarkKey] = []
   let mismatches = []
   let capabilities = []
   let counterexamples = []
@@ -454,6 +482,21 @@ pub fn document_from_jsonl(
     guard value is Object(object) else {
       return Err("expected JSON object at line " + line_number.to_string())
     }
+    match object.get("artifact_version") {
+      Some(String(version)) if version !=
+        @model.ArtifactVersion::V1.identifier() =>
+        return Err(
+          "unsupported artifact version '" +
+          version +
+          "' at line " +
+          line_number.to_string(),
+        )
+      Some(String(_)) | None => ()
+      Some(_) =>
+        return Err(
+          "invalid artifact version at line " + line_number.to_string(),
+        )
+    }
     match object.get("type") {
       Some(String("observation")) => {
         guard object.get("implementation") is Some(String(implementation)) else {
@@ -467,13 +510,23 @@ pub fn document_from_jsonl(
         guard object.get("elapsed_us") is Some(Number(elapsed_us, ..)) else {
           return Err("missing elapsed_us at line " + line_number.to_string())
         }
-        points.push(
-          @ir.PlotPoint::new(
-            dataset_id.to_int().to_string(),
-            elapsed_us,
+        let valid = match object.get("valid") {
+          Some(True) => true
+          Some(False) => false
+          _ => true
+        }
+        let kept = match object.get("batch_sink") {
+          Some(String(value)) => value == "kept"
+          _ => true
+        }
+        if valid && kept {
+          observations.push({
+            case_id: json_string(object, "case"),
             implementation,
-          ),
-        )
+            dataset_id: dataset_id.to_int(),
+            elapsed_us,
+          })
+        }
       }
       Some(String("validation")) => {
         let implementation = json_string(object, "implementation")
@@ -489,6 +542,16 @@ pub fn document_from_jsonl(
         )
         let status = json_string(object, "status")
         if status == "invalid" || status == "infrastructure_failure" {
+          let case_id = json_string(object, "case")
+          match object.get("dataset_id") {
+            Some(Number(dataset_id, ..)) if !case_id.is_empty() =>
+              failed_benchmarks.push({
+                case_id,
+                implementation,
+                dataset_id: dataset_id.to_int(),
+              })
+            _ => ()
+          }
           let expected_flags = json_strings(object, "expected_flags")
           let actual_flags = json_strings(object, "actual_flags")
           mismatches.push(
@@ -528,6 +591,19 @@ pub fn document_from_jsonl(
       _ => ()
     }
   }
+  let points = observations.filter_map(observation => {
+    if observation_failed(observation, failed_benchmarks) {
+      None
+    } else {
+      Some(
+        @ir.PlotPoint::new(
+          observation.dataset_id.to_string(),
+          observation.elapsed_us,
+          observation.implementation,
+        ),
+      )
+    }
+  })
   if points.is_empty() && mismatches.is_empty() && counterexamples.is_empty() {
     Err("JSONL contains no observation or differential events")
   } else {
@@ -675,14 +751,14 @@ pub fn html(document : @ir.PlotDocument) -> String {
       "</figure>"
     })
     .join("\n")
-  "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Mare Mark · " +
+  "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>mare_mark · " +
   escape_xml(document.run_id) +
-  "</title><style>:root{color-scheme:light;background:#f1f5f9;color:#0f172a;font-family:Inter,ui-sans-serif,system-ui,sans-serif}*{box-sizing:border-box}body{margin:0}.shell{width:min(1200px,calc(100% - 32px));margin:0 auto;padding:48px 0 72px}header{margin-bottom:28px}h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.04em;margin:0 0 10px}h2{margin:0 0 14px;font-size:1.2rem}.meta{display:flex;gap:10px;flex-wrap:wrap}.tag{background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:6px 11px;font-size:.8rem;font-weight:700}.panel,figure{margin:0 0 24px;background:#fff;border:1px solid #dbe3ee;border-radius:18px;padding:18px;box-shadow:0 14px 35px rgba(15,23,42,.07)}figcaption{display:flex;justify-content:space-between;gap:16px;align-items:baseline;font-weight:750;padding:2px 8px 12px}figcaption small{color:#64748b;font-weight:600}svg{display:block;width:100%;height:auto}.denominator{margin:0;color:#334155}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:.84rem}th,td{text-align:left;vertical-align:top;padding:9px;border-bottom:1px solid #e2e8f0}th{color:#475569;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}code{font-size:.78rem;overflow-wrap:anywhere}@media(max-width:640px){.shell{width:min(100% - 16px,1200px);padding-top:24px}.panel,figure{padding:8px;border-radius:12px}figcaption{align-items:flex-start;flex-direction:column}}</style></head><body><main class=\"shell\"><header><h1>Mare Mark report</h1><div class=\"meta\"><span class=\"tag\">Run " +
+  "</title><style>:root{color-scheme:light;background:#f1f5f9;color:#0f172a;font-family:Inter,ui-sans-serif,system-ui,sans-serif}*{box-sizing:border-box}body{margin:0}.shell{width:min(1200px,calc(100% - 32px));margin:0 auto;padding:48px 0 72px}header{margin-bottom:28px}h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.04em;margin:0 0 10px}h2{margin:0 0 14px;font-size:1.2rem}.meta{display:flex;gap:10px;flex-wrap:wrap}.tag{background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:6px 11px;font-size:.8rem;font-weight:700}.panel,figure{margin:0 0 24px;background:#fff;border:1px solid #dbe3ee;border-radius:18px;padding:18px;box-shadow:0 14px 35px rgba(15,23,42,.07)}figcaption{display:flex;justify-content:space-between;gap:16px;align-items:baseline;font-weight:750;padding:2px 8px 12px}figcaption small{color:#64748b;font-weight:600}svg{display:block;width:100%;height:auto}.denominator{margin:0;color:#334155}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:.84rem}th,td{text-align:left;vertical-align:top;padding:9px;border-bottom:1px solid #e2e8f0}th{color:#475569;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}code{font-size:.78rem;overflow-wrap:anywhere}@media(max-width:640px){.shell{width:min(100% - 16px,1200px);padding-top:24px}.panel,figure{padding:8px;border-radius:12px}figcaption{align-items:flex-start;flex-direction:column}}</style></head><body><main class=\"shell\"><header><h1>mare_mark report</h1><div class=\"meta\"><span class=\"tag\">Run " +
   escape_xml(document.run_id) +
   "</span><span class=\"tag\">Target " +
   escape_xml(document.target) +
   "</span><span class=\"tag\">Schema " +
-  escape_xml(document.schema_version) +
+  escape_xml(document.schema_version.identifier()) +
   "</span></div></header>" +
   differential_html(document.differential) +
   figures +

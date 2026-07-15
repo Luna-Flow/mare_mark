@@ -23,7 +23,8 @@ import {
 }
 ```
 
-用 `runner.run_case` 产生原始测量，保留事件流，再把配对数组交给
+用 `runner.single_step` 构造不可变描述并调用 `compile`，然后把 plan 与
+`RunContext` 交给 `runner.run`。保留事件流，再把配对数组交给
 `stats.compare_paired`；报告端先构造 Plot IR，再调用 `report.plot_svg` 或
 `report.html`。
 

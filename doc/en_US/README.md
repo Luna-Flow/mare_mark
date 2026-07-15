@@ -1,6 +1,6 @@
-# Mare Mark Documentation
+# mare_mark Documentation
 
-This documentation describes the `0.2.0` implementation baseline. Generated
+This documentation describes the `0.3.0` implementation baseline. Generated
 `pkg.generated.mbti` files are authoritative for public names and signatures.
 
 Start with [Getting started](./getting_started.md), then read
@@ -20,7 +20,7 @@ Package-local guides will be added only as their documented surfaces mature.
 
 ## Stability
 
-Mare Mark is pre-1.0. Plot schema `mmk-plot-v2` and emitted JSONL fields are
-versioned artifacts, but this version does not promise long-term compatibility
-for every package type. Current limitations are stated explicitly in each
-design page.
+mare_mark is pre-1.0. Plot schema `mmks_1` and JSONL artifact version `mmka_1`
+are explicit compatibility markers, but this version does not promise long-term
+compatibility for every package type. Current limitations are stated explicitly
+in each design page.

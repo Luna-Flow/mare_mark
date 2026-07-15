@@ -64,6 +64,29 @@ pub fn[Scale, Input, Prepared] Fixture::new(
 }
 
 ///|
+pub fn[Scale, Input] Fixture::immutable(
+  id : String,
+  version : String,
+  materialize : (@model.GenerationContext[Scale]) -> Input,
+  fingerprint : (Input) -> String,
+) -> Fixture[Scale, Input, Input] {
+  Fixture::new(
+    id,
+    version,
+    materialize,
+    fingerprint,
+    input => input,
+    (input, _, _) => input,
+    (_, _) => (),
+    @model.SetupPolicy::new(
+      @model.SetupFrequency::PerDataset,
+      @model.SetupTiming::ExcludedFromMeasurement,
+      @model.WorkspaceScope::DatasetWorkspace,
+    ),
+  )
+}
+
+///|
 pub fn[Scale, Input, Prepared] materialize(
   fixture : Fixture[Scale, Input, Prepared],
   context : @model.GenerationContext[Scale],

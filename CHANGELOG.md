@@ -1,6 +1,19 @@
 # Changelog
 
-All notable changes to Mare Mark are documented in this file.
+All notable changes to mare_mark are documented in this file.
+
+## 0.3.0 - 2026-07-15
+
+- Add deterministic percentile bootstrap intervals for paired measurements,
+  with explicit seeds and structured validation errors.
+- Add artifact-version metadata to every emitted JSONL event while preserving
+  the existing `mmka_1` additive compatibility contract.
+- Add regression coverage for event fan-out, JSONL contracts, CLI error paths,
+  and minimized replayable runner failures.
+- Expand CI with JS and native test matrices, native CLI smoke tests, and an
+  executable-line coverage budget.
+- Refresh generated interfaces and synchronized English, Chinese, and Japanese
+  release documentation.
 
 ## 0.2.0 - 2026-07-14
 

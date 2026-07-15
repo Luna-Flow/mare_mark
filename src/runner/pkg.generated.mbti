@@ -11,15 +11,50 @@ import {
 // Values
 pub fn balanced_order(Int, Int) -> Array[Int]
 
-pub async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] bench_oracle(DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], @model.RunProtocol, @model.EnvironmentSnapshot, @event.ObservationSink, UInt64) -> @model.RunSummary
-
 pub async fn[Prepared, Output, Context] execute_operation(Implementation[Prepared, Output, Context], Prepared, Context) -> @model.OperationResult[Output, Context]
 
-pub async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] run_case(DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], @model.RunProtocol, @model.EnvironmentSnapshot, @event.ObservationSink, UInt64) -> @model.RunSummary
+pub async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] run(ValidatedBenchPlan[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], RunContext) -> @model.RunSummary
+
+pub fn[Scale] single_step(String, Array[Scale]) -> SingleStepCase[Scale]
+
+pub fn validate_protocol(@model.RunProtocol) -> Result[ValidatedProtocol, Array[ProtocolConfigError]]
 
 // Errors
 
 // Types and methods
+pub(all) enum BenchConfigError {
+  MissingFixture
+  MissingOracle
+  MissingOutputSink
+  MissingSerializer(String)
+  EmptyCaseId
+  EmptyImplementations
+  EmptyScales
+  EmptyImplementationId(Int)
+  DuplicateImplementationId(String)
+  InvalidSequenceLength(Int)
+}
+
+pub struct BenchSpec[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] {
+  case : DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
+}
+pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::advanced(String, @fixture.Fixture[Scale, Input, Prepared], Array[Implementation[Prepared, Output, Context]], OutputSink[Output, State, SinkValue], @experiment.OracleSpec[Input, Expected, Output, Context], Array[Scale], (Scale) -> String, Int, (Input, Int) -> @model.CaseDescriptor, (Input) -> String, (Output) -> String, (Context) -> String, (Input, String) -> @model.ReplaySpec, shrinker? : @experiment.Shrinker[Input]) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
+pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::compile(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]) -> Result[ValidatedBenchPlan[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Array[BenchConfigError]]
+pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::with_sequence_length(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Int) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
+
+pub(all) enum Case {
+  Case
+}
+pub fn[Scale] Case::single_step(String, Array[Scale]) -> SingleStepCase[Scale]
+
+pub struct ComparedSingleStepCase[Scale, Input, Output] {
+  id : String
+  scales : Array[Scale]
+  fixture : @fixture.Fixture[Scale, Input, Input]
+  implementations : Array[Implementation[Input, Output, Unit]]
+}
+pub fn[Scale, Input, Expected, Output] ComparedSingleStepCase::against_equal(Self[Scale, Input, Output], (Input) -> Expected, (Expected, Output) -> Bool) -> BenchSpec[Scale, Input, Input, Expected, Output, Unit, Output?, Output?]
+
 pub struct DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] {
   id : String
   fixture : @fixture.Fixture[Scale, Input, Prepared]
@@ -28,7 +63,7 @@ pub struct DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, S
   oracle : @experiment.OracleSpec[Input, Expected, Output, Context]
   scales : Array[Scale]
   scale_text : (Scale) -> String
-  sequence_length : (Input) -> Int
+  sequence_length : Int
   describe : (Input, Int) -> @model.CaseDescriptor
   input_text : (Input) -> String
   output_text : (Output) -> String
@@ -36,12 +71,18 @@ pub struct DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, S
   shrinker : @experiment.Shrinker[Input]?
   replay : (Input, String) -> @model.ReplaySpec
 }
-pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] DifferentialCase::new(String, @fixture.Fixture[Scale, Input, Prepared], Array[Implementation[Prepared, Output, Context]], OutputSink[Output, State, SinkValue], @experiment.OracleSpec[Input, Expected, Output, Context], Array[Scale], (Scale) -> String, (Input) -> Int, (Input, Int) -> @model.CaseDescriptor, (Input) -> String, (Output) -> String, (Context) -> String, (Input, String) -> @model.ReplaySpec, shrinker? : @experiment.Shrinker[Input]) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
 
 pub enum ExecutionMode[Prepared, Output, Context] {
   InProcess((Prepared, Context) -> @model.OperationResult[Output, Context])
   Subprocess(WorkerSpec[Prepared, Output, Context])
 }
+
+pub struct ImmutableSingleStepCase[Scale, Input] {
+  id : String
+  scales : Array[Scale]
+  fixture : @fixture.Fixture[Scale, Input, Input]
+}
+pub fn[Scale, Input, Output] ImmutableSingleStepCase::compare(Self[Scale, Input], Array[Implementation[Input, Output, Unit]]) -> ComparedSingleStepCase[Scale, Input, Output]
 
 pub struct Implementation[Prepared, Output, Context] {
   id : String
@@ -51,6 +92,7 @@ pub struct Implementation[Prepared, Output, Context] {
   synchronize : () -> Unit
 }
 pub fn[Prepared, Output, Context] Implementation::in_process(String, String, () -> Context, (Prepared, Context) -> @model.OperationResult[Output, Context], synchronize? : () -> Unit) -> Self[Prepared, Output, Context]
+pub fn[Prepared, Output] Implementation::stateless(String, String, (Prepared) -> @model.OperationResult[Output, Unit]) -> Self[Prepared, Output, Unit]
 pub fn[Prepared, Output, Context] Implementation::worker(String, String, () -> Context, WorkerSpec[Prepared, Output, Context], synchronize? : () -> Unit) -> Self[Prepared, Output, Context]
 
 pub struct OutputSink[Output, State, SinkValue] {
@@ -58,7 +100,46 @@ pub struct OutputSink[Output, State, SinkValue] {
   fold : (State, Output) -> State
   finish : (State) -> SinkValue
 }
+pub fn[Output] OutputSink::keep_last() -> Self[Output, Output?, Output?]
 pub fn[Output, State, SinkValue] OutputSink::new(() -> State, (State, Output) -> State, (State) -> SinkValue) -> Self[Output, State, SinkValue]
+
+pub(all) enum ProtocolConfigError {
+  InvalidInteger(String, Int)
+  InvalidDuration(String, Double)
+  InvalidIterationRange(Int, Int)
+  InvalidPracticalDelta(Double)
+}
+
+pub(all) enum ProtocolPreset {
+  QuickCheck
+  Development
+  RegressionGate
+  Custom(ValidatedProtocol)
+}
+pub fn ProtocolPreset::validated(Self) -> ValidatedProtocol
+
+pub struct RunContext {
+  seed : UInt64
+  environment : @model.EnvironmentSnapshot
+  sink : @event.ObservationSink
+  protocol : ValidatedProtocol
+}
+pub fn RunContext::new(@model.EnvironmentSnapshot, @event.ObservationSink, UInt64, ValidatedProtocol) -> Self
+
+pub struct SingleStepCase[Scale] {
+  id : String
+  scales : Array[Scale]
+}
+pub fn[Scale] SingleStepCase::compile(Self[Scale]) -> Result[Unit, Array[BenchConfigError]]
+pub fn[Scale, Input] SingleStepCase::with_immutable_input(Self[Scale], (@model.GenerationContext[Scale]) -> Input, (Input) -> String) -> ImmutableSingleStepCase[Scale, Input]
+
+pub struct ValidatedBenchPlan[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] {
+  case : DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
+}
+
+pub struct ValidatedProtocol {
+  protocol : @model.RunProtocol
+}
 
 pub struct WorkerSpec[Prepared, Output, Context] {
   command : String

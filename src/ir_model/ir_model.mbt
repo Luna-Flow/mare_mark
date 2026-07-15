@@ -161,7 +161,7 @@ pub fn Plot::new(
 
 ///|
 pub struct PlotDocument {
-  schema_version : String
+  schema_version : @model.SchemaVersion
   run_id : String
   target : String
   plots : Array[Plot]
@@ -175,5 +175,11 @@ pub fn PlotDocument::new(
   plots : Array[Plot],
   differential? : DifferentialReport = DifferentialReport::empty(),
 ) -> PlotDocument {
-  { schema_version: "mmk-plot-v2", run_id, target, plots, differential }
+  {
+    schema_version: @model.SchemaVersion::V1,
+    run_id,
+    target,
+    plots,
+    differential,
+  }
 }

@@ -31,6 +31,7 @@ pub struct ReferenceOracle[Input, Expected, Output, Context] {
   validate : (Input, Int, @model.ExecutionOutcome[Expected], @model.ExecutionOutcome[Output]) -> @model.ValidationStatus
   expected_text : (Expected) -> String
 }
+pub fn[Input, Expected, Output] ReferenceOracle::equal(String, (Input) -> Expected, (Expected, Output) -> Bool) -> Self[Input, Expected, Output, Unit]
 pub fn[Input, Expected, Output, Context] ReferenceOracle::new(String, () -> Context, (Input) -> Int, (Input, Int, Context) -> @model.OperationResult[Expected, Context], (Input, Int, @model.ExecutionOutcome[Expected], @model.ExecutionOutcome[Output]) -> @model.ValidationStatus, (Expected) -> String) -> Self[Input, Expected, Output, Context]
 
 pub struct RelationalOracle[Input, Output] {

@@ -25,7 +25,8 @@ import {
 }
 ```
 
-Use `runner.run_case` for raw measurements, preserve the event stream, pass
+Build an immutable `runner.single_step` description, call `compile`, and pass
+the resulting plan with a `RunContext` to `runner.run`. Preserve the event stream, pass
 paired arrays to `stats.compare_paired`, and construct Plot IR before calling
 `report.plot_svg` or `report.html`.
 

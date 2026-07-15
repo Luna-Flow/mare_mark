@@ -44,6 +44,35 @@ pub fn[Input, Expected, Output, Context] ReferenceOracle::new(
 }
 
 ///|
+pub fn[Input, Expected, Output] ReferenceOracle::equal(
+  id : String,
+  reference : (Input) -> Expected,
+  comparator : (Expected, Output) -> Bool,
+) -> ReferenceOracle[Input, Expected, Output, Unit] {
+  ReferenceOracle::new(
+    id,
+    () => (),
+    _ => 1,
+    (input, _, _) => @model.OperationResult::completed(reference(input), ()),
+    (_, _, expected, actual) => {
+      match (expected, actual) {
+        (
+          @model.ExecutionOutcome::Value(expected),
+          @model.ExecutionOutcome::Value(actual),
+        ) =>
+          if comparator(expected, actual) {
+            @model.ValidationStatus::Valid
+          } else {
+            @model.ValidationStatus::Invalid("value mismatch")
+          }
+        _ => @model.ValidationStatus::Invalid("outcome mismatch")
+      }
+    },
+    _ => "<expected>",
+  )
+}
+
+///|
 pub struct RelationalOracle[Input, Output] {
   id : String
   validate_pair : (

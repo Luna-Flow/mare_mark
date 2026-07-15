@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Luna-Flow/mare_mark/tune_gemm"
 
+import {
+  "Luna-Flow/mare_mark/model",
+}
+
 // Values
 pub fn boundary_shapes(GemmScale) -> Array[GemmScale]
 
@@ -107,7 +111,7 @@ pub struct GemmScale {
 pub fn GemmScale::new(Int, Int, Int, Int, Int, Layout, Layout, Layout) -> Self
 
 pub struct GemmTuningConfig {
-  schema_version : String
+  schema_version : TuningSchemaVersion
   seed : UInt64
   shapes : Array[GemmScale]
   candidates : Array[GemmCandidate]
@@ -141,6 +145,14 @@ pub(all) enum TimingScope {
   Amortized(Int)
   SteadyState
 }
+
+pub(all) enum TuningSchemaVersion {
+  V1
+}
+pub fn TuningSchemaVersion::identifier(Self) -> String
+pub fn TuningSchemaVersion::implementation(Self) -> String
+pub fn TuningSchemaVersion::lifecycle(Self) -> @model.VersionLifecycle
+pub fn TuningSchemaVersion::version(Self) -> Int
 
 // Type aliases
 

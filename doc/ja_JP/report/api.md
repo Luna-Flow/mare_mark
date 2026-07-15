@@ -1,7 +1,8 @@
 # `report` API
 
 - `document_from_jsonl`: observation、validation、failure artifact、summary を plot/differential IR に変換します。
-- `plot_json`: escape 済み `mmk-plot-v2` JSON を生成します。
+- plot projection は invalid/infrastructure failure の `(case, implementation, dataset)`、invalid observation、discarded batch を除外します。
+- `plot_json`: escape 済み `mmks_1` JSON を生成します。
 - `plot_svg`: dynamic scale、axis、label、legend、tooltip、series color を持つ SVG。
 - `html`: mismatch、flags diff、capability coverage、corpus denominator、minimal counterexample、inline CSS/SVG を含む report。
 

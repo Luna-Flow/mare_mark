@@ -8,6 +8,11 @@ import {
   "moonbitlang/async",
   "moonbitlang/async/process",
   "moonbitlang/core/debug",
+  "moonbitlang/core/bench",
+  "moonbitlang/x/path",
+  "moonbitlang/x/sys",
+  "moonbitlang/async/stdio",
+  "moonbitlang/async/io",
 }
 
 options(

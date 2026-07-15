@@ -23,6 +23,7 @@ pub struct Fixture[Scale, Input, Prepared] {
   reset : (Prepared, ResetContext) -> Unit
   setup_policy : @model.SetupPolicy
 }
+pub fn[Scale, Input] Fixture::immutable(String, String, (@model.GenerationContext[Scale]) -> Input, (Input) -> String) -> Self[Scale, Input, Input]
 pub fn[Scale, Input, Prepared] Fixture::new(String, String, (@model.GenerationContext[Scale]) -> Input, (Input) -> String, (Input) -> Input, (Input, String, SampleContext) -> Prepared, (Prepared, ResetContext) -> Unit, @model.SetupPolicy) -> Self[Scale, Input, Prepared]
 
 pub struct ResetContext {

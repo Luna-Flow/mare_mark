@@ -68,5 +68,5 @@ jobs:
         run: |
           gh release create "v${{ inputs.release_version }}" \
             --target "$GITHUB_SHA" \
-            --title "Mare Mark ${{ inputs.release_version }}" \
+            --title "mare_mark ${{ inputs.release_version }}" \
             --generate-notes

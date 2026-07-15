@@ -6,7 +6,11 @@ import {
 }
 
 // Values
+pub fn bootstrap_interval(Array[Double], UInt64, Int, Double, @model.IntervalMode) -> Result[Interval, BootstrapError]
+
 pub fn compare_paired(String, String, Array[Double], Array[Double], Double, @model.IntervalMode) -> Comparison
+
+pub fn compare_paired_with_bootstrap(String, String, Array[Double], Array[Double], Double, @model.IntervalMode, UInt64, Int, Double) -> Result[Comparison, BootstrapError]
 
 pub fn filter_outliers(Array[Double], @model.OutlierPolicy) -> Array[Double]
 
@@ -19,6 +23,14 @@ pub fn summarize(Array[Double]) -> SummaryStats
 // Errors
 
 // Types and methods
+pub(all) enum BootstrapError {
+  EmptySamples
+  MismatchedPairs(Int, Int)
+  InvalidResamples(Int)
+  InvalidConfidence(Double)
+  NonFiniteSample(Int)
+}
+
 pub struct Comparison {
   baseline_id : String
   candidate_id : String

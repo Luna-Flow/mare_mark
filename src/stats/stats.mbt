@@ -40,6 +40,15 @@ pub struct Comparison {
 }
 
 ///|
+pub(all) enum BootstrapError {
+  EmptySamples
+  MismatchedPairs(Int, Int)
+  InvalidResamples(Int)
+  InvalidConfidence(Double)
+  NonFiniteSample(Int)
+}
+
+///|
 pub fn is_faster(comparison : Comparison) -> Bool {
   match comparison.decision {
     Faster => true
@@ -165,6 +174,103 @@ pub fn compare_paired(
     decision,
     valid_samples: deltas.length(),
   }
+}
+
+///|
+fn bootstrap_next(state : UInt64) -> UInt64 {
+  let mut value = if state == 0UL { 88172645463393265UL } else { state }
+  value = value ^ (value >> 12)
+  value = value ^ (value << 25)
+  value = value ^ (value >> 27)
+  value * 2685821657736338717UL
+}
+
+///|
+pub fn bootstrap_interval(
+  values : Array[Double],
+  seed : UInt64,
+  resamples : Int,
+  confidence_pct : Double,
+  mode : @model.IntervalMode,
+) -> Result[Interval, BootstrapError] {
+  if values.is_empty() {
+    return Err(EmptySamples)
+  }
+  if resamples <= 0 {
+    return Err(InvalidResamples(resamples))
+  }
+  if confidence_pct.is_nan() ||
+    confidence_pct.is_inf() ||
+    confidence_pct <= 0.0 ||
+    confidence_pct >= 100.0 {
+    return Err(InvalidConfidence(confidence_pct))
+  }
+  for index = 0; index < values.length(); index = index + 1 {
+    if values[index].is_nan() || values[index].is_inf() {
+      return Err(NonFiniteSample(index))
+    }
+  }
+  let count = resamples.max(1)
+  let mut state = if seed == 0UL { 88172645463393265UL } else { seed }
+  let estimates : Array[Double] = []
+  for resample = 0; resample < count; resample = resample + 1 {
+    let sample = Array::makei(values.length(), _ => {
+      state = bootstrap_next(state)
+      values[(state % values.length().to_uint64()).to_int()]
+    })
+    sample.sort()
+    estimates.push(quantile(sample, 0.5))
+  }
+  estimates.sort()
+  let alpha = (100.0 - confidence_pct) / 100.0 / 2.0
+  Ok({
+    low: quantile(estimates, alpha),
+    high: quantile(estimates, 1.0 - alpha),
+    mode,
+  })
+}
+
+///|
+pub fn compare_paired_with_bootstrap(
+  baseline_id : String,
+  candidate_id : String,
+  baseline : Array[Double],
+  candidate : Array[Double],
+  practical_delta_pct : Double,
+  mode : @model.IntervalMode,
+  seed : UInt64,
+  resamples : Int,
+  confidence_pct : Double,
+) -> Result[Comparison, BootstrapError] {
+  if baseline.length() != candidate.length() {
+    return Err(MismatchedPairs(baseline.length(), candidate.length()))
+  }
+  if baseline.is_empty() {
+    return Err(EmptySamples)
+  }
+  let comparison = compare_paired(
+    baseline_id, candidate_id, baseline, candidate, practical_delta_pct, mode,
+  )
+  let interval = match
+    bootstrap_interval(
+      paired_deltas(baseline, candidate),
+      seed,
+      resamples,
+      confidence_pct,
+      mode,
+    ) {
+    Ok(interval) => interval
+    Err(error) => return Err(error)
+  }
+  Ok({
+    baseline_id: comparison.baseline_id,
+    candidate_id: comparison.candidate_id,
+    relative_delta_pct: comparison.relative_delta_pct,
+    speedup: comparison.speedup,
+    interval,
+    decision: comparison.decision,
+    valid_samples: comparison.valid_samples,
+  })
 }
 
 ///|

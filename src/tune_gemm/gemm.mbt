@@ -256,7 +256,7 @@ pub fn supported_microkernels() -> Array[String] {
 
 ///|
 pub struct GemmTuningConfig {
-  schema_version : String
+  schema_version : TuningSchemaVersion
   seed : UInt64
   shapes : Array[GemmScale]
   candidates : Array[GemmCandidate]
@@ -368,7 +368,7 @@ pub fn GemmTuningConfig::new(
   confirmation_samples : Int,
 ) -> GemmTuningConfig {
   {
-    schema_version: "2.0",
+    schema_version: TuningSchemaVersion::V1,
     seed,
     shapes,
     candidates,
@@ -786,7 +786,7 @@ pub fn config_json(config : GemmTuningConfig) -> String {
     })
   })
   Json::object({
-    "schema_version": Json::string(config.schema_version),
+    "schema_version": Json::string(config.schema_version.identifier()),
     "seed": Json::string(config.seed.to_string()),
     "shapes": Json::array(shapes),
     "candidates": Json::array(candidates),

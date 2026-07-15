@@ -39,8 +39,25 @@ jobs:
       - name: test default target
         run: moon test
 
-      - name: test native isolation
-        run: moon test src/runner --target native
+      - name: test JavaScript target
+        run: moon test --target js
+
+      - name: test native target
+        run: moon test --target native
+
+      - name: smoke test native CLI
+        run: |
+          moon run src/cli --target native -- report testdata/report/sample.jsonl /tmp/mare-mark-report.html
+          test -s /tmp/mare-mark-report.html
+          moon run src/cli --target native -- replay --dry-run testdata/replay/sample.jsonl
+
+      - name: enforce coverage budget
+        run: |
+          moon coverage analyze > /tmp/mare-mark-coverage.txt
+          uncovered="$(sed -n 's/^Total: \([0-9][0-9]*\) uncovered.*/\1/p' /tmp/mare-mark-coverage.txt | tail -1)"
+          test -n "$uncovered"
+          echo "uncovered executable lines: $uncovered"
+          test "$uncovered" -le 360
 
       - name: verify public interfaces
         run: |

@@ -7,8 +7,14 @@ let comparison = @stats.compare_paired(
   5.0, @model.confirmatory_interval(),
 )
 let candidate_is_faster = @stats.is_faster(comparison)
+
+let bootstrap = @stats.compare_paired_with_bootstrap(
+  "baseline", "candidate",
+  [100.0, 101.0, 99.0], [92.0, 91.0, 93.0],
+  5.0, @model.confirmatory_interval(), 42UL, 2000, 95.0,
+).unwrap()
 ```
 
 baseline 与 candidate 数组必须保持相同 block/repetition 顺序。outlier policy 只应用
 于派生分析视图，不应删除原始 observation。
-
+应将 bootstrap seed 与重采样数一并记录到实验配置中。

@@ -209,8 +209,43 @@ pub fn RunProtocol::new(
 }
 
 ///|
+pub(all) enum ExecutionTarget {
+  Native
+  Js
+  Wasm
+  WasmGc
+  Llvm
+  Custom(String)
+}
+
+///|
+pub fn ExecutionTarget::text(self : ExecutionTarget) -> String {
+  match self {
+    Native => "native"
+    Js => "js"
+    Wasm => "wasm"
+    WasmGc => "wasm-gc"
+    Llvm => "llvm"
+    Custom(target) => target
+  }
+}
+
+///|
+fn execution_target_equal(a : ExecutionTarget, b : ExecutionTarget) -> Bool {
+  match (a, b) {
+    (Native, Native)
+    | (Js, Js)
+    | (Wasm, Wasm)
+    | (WasmGc, WasmGc)
+    | (Llvm, Llvm) => true
+    (Custom(left), Custom(right)) => left == right
+    _ => false
+  }
+}
+
+///|
 pub struct SemanticEnvironment {
-  target : String
+  target : ExecutionTarget
   toolchain : String
   compiler_flags : String
   dtype_abi : String
@@ -218,7 +253,7 @@ pub struct SemanticEnvironment {
 
 ///|
 pub fn SemanticEnvironment::new(
-  target : String,
+  target : ExecutionTarget,
   toolchain : String,
   compiler_flags : String,
   dtype_abi : String,
@@ -510,12 +545,40 @@ pub struct Observation {
   dataset_id : Int
   repetition_id : Int
   block_id : Int
-  phase : String
+  phase : ObservationPhase
   raw_elapsed_us : Double
   iterations : Int
-  batch_sink : String
+  batch_sink : BatchSinkStatus
   setup_timing : SetupTiming
   valid : Bool
+}
+
+///|
+pub(all) enum ObservationPhase {
+  Exploratory
+  Confirmatory
+}
+
+///|
+pub fn ObservationPhase::text(self : ObservationPhase) -> String {
+  match self {
+    Exploratory => "exploratory"
+    Confirmatory => "confirmatory"
+  }
+}
+
+///|
+pub(all) enum BatchSinkStatus {
+  Kept
+  Discarded(String)
+}
+
+///|
+pub fn BatchSinkStatus::text(self : BatchSinkStatus) -> String {
+  match self {
+    Kept => "kept"
+    Discarded(reason) => "discarded:" + reason
+  }
 }
 
 ///|
@@ -526,10 +589,10 @@ pub fn Observation::new(
   dataset_id : Int,
   repetition_id : Int,
   block_id : Int,
-  phase : String,
+  phase : ObservationPhase,
   raw_elapsed_us : Double,
   iterations : Int,
-  batch_sink : String,
+  batch_sink : BatchSinkStatus,
   setup_timing : SetupTiming,
   valid : Bool,
 ) -> Observation {
@@ -723,7 +786,8 @@ pub fn[Scale] CrossoverResult::inconclusive(
 
 ///|
 pub fn protocol_identity(protocol : RunProtocol) -> String {
-  "mmk-protocol-v1:" +
+  ProtocolVersion::V1.identifier() +
+  ":" +
   protocol.warmup_iterations.to_string() +
   ":" +
   protocol.confirmatory_samples.to_string() +
@@ -738,7 +802,8 @@ pub fn artifact_identity(
   dataset_id : Int,
   protocol : RunProtocol,
 ) -> String {
-  "mmk-artifact-v1:" +
+  ArtifactVersion::V1.identifier() +
+  ":" +
   case_id +
   ":" +
   implementation_id +
@@ -753,7 +818,7 @@ pub fn environment_compatible(
   a : EnvironmentSnapshot,
   b : EnvironmentSnapshot,
 ) -> Bool {
-  a.semantic.target == b.semantic.target &&
+  execution_target_equal(a.semantic.target, b.semantic.target) &&
   a.semantic.toolchain == b.semantic.toolchain &&
   a.semantic.compiler_flags == b.semantic.compiler_flags &&
   a.semantic.dtype_abi == b.semantic.dtype_abi &&

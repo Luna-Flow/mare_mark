@@ -15,10 +15,24 @@ pub fn protocol_identity(RunProtocol) -> String
 // Errors
 
 // Types and methods
+pub(all) enum ArtifactVersion {
+  V1
+}
+pub fn ArtifactVersion::identifier(Self) -> String
+pub fn ArtifactVersion::implementation(Self) -> String
+pub fn ArtifactVersion::lifecycle(Self) -> VersionLifecycle
+pub fn ArtifactVersion::version(Self) -> Int
+
 pub(all) enum BatchPolicy {
   PerImplementation
   SharedBatchSize
 }
+
+pub(all) enum BatchSinkStatus {
+  Kept
+  Discarded(String)
+}
+pub fn BatchSinkStatus::text(Self) -> String
 
 pub struct CalibrationEvent {
   implementation_id : String
@@ -95,6 +109,16 @@ pub fn[Value] ExecutionOutcome::raised_flags(Value, Array[String]) -> Self[Value
 pub fn[Value] ExecutionOutcome::value(Value) -> Self[Value]
 pub fn[Value] ExecutionOutcome::value_option(Self[Value]) -> Value?
 
+pub(all) enum ExecutionTarget {
+  Native
+  Js
+  Wasm
+  WasmGc
+  Llvm
+  Custom(String)
+}
+pub fn ExecutionTarget::text(Self) -> String
+
 pub(all) enum ExperimentDesign {
   FixedDatasetRepeatedMeasurements
   MultipleDatasetsSingleMeasurement
@@ -130,14 +154,20 @@ pub struct Observation {
   dataset_id : Int
   repetition_id : Int
   block_id : Int
-  phase : String
+  phase : ObservationPhase
   raw_elapsed_us : Double
   iterations : Int
-  batch_sink : String
+  batch_sink : BatchSinkStatus
   setup_timing : SetupTiming
   valid : Bool
 }
-pub fn Observation::new(String, String, String, Int, Int, Int, String, Double, Int, String, SetupTiming, Bool) -> Self
+pub fn Observation::new(String, String, String, Int, Int, Int, ObservationPhase, Double, Int, BatchSinkStatus, SetupTiming, Bool) -> Self
+
+pub(all) enum ObservationPhase {
+  Exploratory
+  Confirmatory
+}
+pub fn ObservationPhase::text(Self) -> String
 
 pub struct OperationResult[Value, Context] {
   outcome : ExecutionOutcome[Value]
@@ -178,6 +208,14 @@ pub struct PerformanceEnvironment {
   frequency_policy : String
 }
 pub fn PerformanceEnvironment::new(String, String, String, Int, String, device? : String, frequency_policy? : String) -> Self
+
+pub(all) enum ProtocolVersion {
+  V1
+}
+pub fn ProtocolVersion::identifier(Self) -> String
+pub fn ProtocolVersion::implementation(Self) -> String
+pub fn ProtocolVersion::lifecycle(Self) -> VersionLifecycle
+pub fn ProtocolVersion::version(Self) -> Int
 
 pub struct ProvenanceEnvironment {
   os : String
@@ -238,13 +276,21 @@ pub struct ScaleBoundary[Scale] {
 }
 pub fn[Scale] ScaleBoundary::new(Scale, Scale) -> Self[Scale]
 
+pub(all) enum SchemaVersion {
+  V1
+}
+pub fn SchemaVersion::identifier(Self) -> String
+pub fn SchemaVersion::implementation(Self) -> String
+pub fn SchemaVersion::lifecycle(Self) -> VersionLifecycle
+pub fn SchemaVersion::version(Self) -> Int
+
 pub struct SemanticEnvironment {
-  target : String
+  target : ExecutionTarget
   toolchain : String
   compiler_flags : String
   dtype_abi : String
 }
-pub fn SemanticEnvironment::new(String, String, String, String) -> Self
+pub fn SemanticEnvironment::new(ExecutionTarget, String, String, String) -> Self
 
 pub(all) enum SetupFrequency {
   PerRun
@@ -323,6 +369,11 @@ pub(all) enum ValidationStatus {
   ExpectedDifference(String)
   Unsupported(String)
   InfrastructureFailure(String)
+}
+
+pub(all) enum VersionLifecycle {
+  Supported
+  Deprecated
 }
 
 pub(all) enum WorkspaceScope {

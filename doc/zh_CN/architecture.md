@@ -1,6 +1,6 @@
 # 架构
 
-Mare Mark 把纯实验描述与报告投影同计时、文件系统副作用分开。
+mare_mark 把纯实验描述与报告投影同计时、文件系统副作用分开。
 
 | 层 | Package | 职责 |
 | --- | --- | --- |
@@ -18,6 +18,6 @@ GenerationContext -> Fixture -> Oracle/Worker -> ValidationFailure
 payload 闭包不执行报告渲染或文件 IO。`report` 保持纯
 `PlotDocument -> String` 边界，只有 `cli` 读写文件。
 
-`run_case` 在 measurement phase 外校准 batch，并分别写入 exploratory 与
+`run(plan, context)` 是薄 effect boundary；它在 measurement phase 外校准 batch，并分别写入 exploratory 与
 confirmatory observation。调优包提供搜索与策略数据模型；领域专用 microkernel
 由应用负责注册和执行。

@@ -1,6 +1,6 @@
-# Mare Mark ドキュメント
+# mare_mark ドキュメント
 
-このドキュメントは `0.2.0` の実装状況を説明します。公開名とシグネチャの基準は
+このドキュメントは `0.3.0` の実装状況を説明します。公開名とシグネチャの基準は
 各 package の `pkg.generated.mbti` です。
 
 [はじめに](./getting_started.md)、[アーキテクチャ](./architecture.md)、
@@ -18,5 +18,5 @@
 `ir_model`、`tune`、`tune_gemm`、`cli` はアーキテクチャ文書で概説します。
 今後の package 文書も実装と生成インターフェースに合わせて拡張します。
 
-Mare Mark は 1.0 未満です。`mmk-plot-v2` と JSONL フィールドはバージョン付き
-artifact ですが、全 package の長期互換性はまだ保証しません。
+mare_mark は 1.0 未満です。Plot schema `mmks_1` と JSONL artifact version
+`mmka_1` は明示的な互換性マーカーですが、全 package の長期互換性はまだ保証しません。

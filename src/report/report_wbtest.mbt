@@ -18,6 +18,8 @@ test "report escapes structured output" {
   assert_true(svg.contains("<polyline"))
   assert_true(json.contains("base\\\"line"))
   assert_true(page.contains("run&lt;&amp;"))
+  assert_true(json.contains("\"schema_version\":\"mmks_1\""))
+  assert_true(page.contains("<h1>mare_mark report</h1>"))
 }
 
 ///|
@@ -36,10 +38,46 @@ test "report parses observation JSONL into plot IR" {
 }
 
 ///|
+test "report excludes observations for failed benchmark keys" {
+  let source = "{\"type\":\"observation\",\"case\":\"vector_add\",\"implementation\":\"candidate\",\"dataset_id\":1,\"elapsed_us\":1.0,\"valid\":true,\"batch_sink\":\"kept\"}\n" +
+    "{\"type\":\"observation\",\"case\":\"vector_add\",\"implementation\":\"candidate\",\"dataset_id\":2,\"elapsed_us\":2.0,\"valid\":true,\"batch_sink\":\"kept\"}\n" +
+    "{\"type\":\"observation\",\"case\":\"vector_add\",\"implementation\":\"baseline\",\"dataset_id\":1,\"elapsed_us\":3.0,\"valid\":true,\"batch_sink\":\"kept\"}\n" +
+    "{\"type\":\"observation\",\"case\":\"vector_add\",\"implementation\":\"candidate\",\"dataset_id\":3,\"elapsed_us\":4.0,\"valid\":false,\"batch_sink\":\"kept\"}\n" +
+    "{\"type\":\"observation\",\"case\":\"vector_add\",\"implementation\":\"candidate\",\"dataset_id\":4,\"elapsed_us\":5.0,\"valid\":true,\"batch_sink\":\"discarded:outlier\"}\n" +
+    "{\"type\":\"validation\",\"status\":\"invalid\",\"case\":\"vector_add\",\"implementation\":\"candidate\",\"dataset_id\":1}"
+  match document_from_jsonl(source) {
+    Ok(document) => {
+      let points = document.plots[0].points
+      assert_eq(points.length(), 2)
+      assert_true(
+        points.any(point => {
+          point.series == "candidate" && point.x == "2" && point.y == 2.0
+        }),
+      )
+      assert_true(
+        points.any(point => {
+          point.series == "baseline" && point.x == "1" && point.y == 3.0
+        }),
+      )
+      assert_true(
+        !points.any(point => point.series == "candidate" && point.x == "1"),
+      )
+    }
+    Err(message) => abort(message)
+  }
+}
+
+///|
 test "report rejects invalid or empty event streams" {
   assert_true(document_from_jsonl("not-json") is Err(_))
   assert_true(
     document_from_jsonl("{\"type\":\"summary\",\"run_id\":\"empty\"}") is Err(_),
+  )
+  assert_true(
+    document_from_jsonl(
+      "{\"artifact_version\":\"mmka_99\",\"type\":\"observation\"}",
+    )
+    is Err("unsupported artifact version 'mmka_99' at line 1"),
   )
 }
 
@@ -75,5 +113,26 @@ test "differential report includes mismatches capabilities and counterexamples" 
       assert_true(page.contains("Minimal counterexamples"))
     }
     Err(message) => abort(message)
+  }
+}
+
+///|
+test "every plot kind renders a non-empty SVG" {
+  let kinds = [
+    @ir.PlotKind::Scaling,
+    @ir.PlotKind::RawDistribution,
+    @ir.PlotKind::BlockOrder,
+    @ir.PlotKind::Interval,
+    @ir.PlotKind::Outlier,
+    @ir.PlotKind::ChangePoint,
+    @ir.PlotKind::Heatmap,
+    @ir.PlotKind::Pareto,
+  ]
+  for kind in kinds {
+    let plot = @ir.Plot::new(kind, "plot", "unit", "interval", [
+      @ir.PlotPoint::new("1", 1.0, "a"),
+      @ir.PlotPoint::new("2", 2.0, "b"),
+    ])
+    assert_true(plot_svg(plot).length() > 0)
   }
 }

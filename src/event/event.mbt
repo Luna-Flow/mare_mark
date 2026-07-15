@@ -67,6 +67,7 @@ fn status_name(status : @model.ValidationStatus) -> String {
 ///|
 fn validation_json(validation : @model.Validation) -> Json {
   let base : Map[String, Json] = {
+    "artifact_version": Json::string(@model.ArtifactVersion::V1.identifier()),
     "type": Json::string("validation"),
     "status": Json::string(status_name(validation.status)),
     "implementation": Json::string(validation.implementation_id),
@@ -132,6 +133,7 @@ fn failure_json(failure : @model.ValidationFailure) -> Json {
 ///|
 fn observation_json(observation : @model.Observation) -> Json {
   Json::object({
+    "artifact_version": Json::string(@model.ArtifactVersion::V1.identifier()),
     "type": Json::string("observation"),
     "case": Json::string(observation.case_id),
     "implementation": Json::string(observation.implementation_id),
@@ -139,9 +141,10 @@ fn observation_json(observation : @model.Observation) -> Json {
     "dataset_id": Json::number(observation.dataset_id.to_double()),
     "repetition_id": Json::number(observation.repetition_id.to_double()),
     "block_id": Json::number(observation.block_id.to_double()),
-    "phase": Json::string(observation.phase),
+    "phase": Json::string(observation.phase.text()),
     "elapsed_us": Json::number(observation.raw_elapsed_us),
     "iterations": Json::number(observation.iterations.to_double()),
+    "batch_sink": Json::string(observation.batch_sink.text()),
     "valid": Json::boolean(observation.valid),
   })
 }
@@ -149,6 +152,7 @@ fn observation_json(observation : @model.Observation) -> Json {
 ///|
 fn calibration_json(calibration : @model.CalibrationEvent) -> Json {
   Json::object({
+    "artifact_version": Json::string(@model.ArtifactVersion::V1.identifier()),
     "type": Json::string("calibration"),
     "implementation": Json::string(calibration.implementation_id),
     "dataset_id": Json::number(calibration.dataset_id.to_double()),
@@ -163,7 +167,7 @@ fn calibration_json(calibration : @model.CalibrationEvent) -> Json {
 fn environment_json(environment : @model.EnvironmentSnapshot) -> Json {
   Json::object({
     "semantic": Json::object({
-      "target": Json::string(environment.semantic.target),
+      "target": Json::string(environment.semantic.target.text()),
       "toolchain": Json::string(environment.semantic.toolchain),
       "compiler_flags": Json::string(environment.semantic.compiler_flags),
       "dtype_abi": Json::string(environment.semantic.dtype_abi),
@@ -192,6 +196,7 @@ fn environment_json(environment : @model.EnvironmentSnapshot) -> Json {
 ///|
 fn summary_json(summary : @model.RunSummary) -> Json {
   let fields : Map[String, Json] = {
+    "artifact_version": Json::string(@model.ArtifactVersion::V1.identifier()),
     "type": Json::string("summary"),
     "run_id": Json::string(summary.run_id),
     "observation_count": Json::number(summary.observation_count.to_double()),

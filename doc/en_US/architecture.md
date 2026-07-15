@@ -1,6 +1,6 @@
 # Architecture
 
-Mare Mark separates pure experiment description and report projection from
+mare_mark separates pure experiment description and report projection from
 timing and file-system effects.
 
 | Layer | Packages | Responsibility |
@@ -13,7 +13,8 @@ timing and file-system effects.
 ## Measurement flow
 
 ```text
-GenerationContext -> Fixture -> Oracle/Worker -> ValidationFailure
+BenchSpec -> compile -> ValidatedBenchPlan
+          -> GenerationContext -> Fixture -> Oracle/Worker -> ValidationFailure
                   -> balanced timed blocks -> streaming ObservationSink
                   -> JSONL -> DifferentialReport + PlotDocument -> HTML
 ```
@@ -24,7 +25,8 @@ files.
 
 ## Explicit boundaries
 
-`run_case` calibrates batches outside the measurement phase and emits separate
+`run(plan, context)` is the thin effect boundary. It calibrates batches outside
+the measurement phase and emits separate
 exploratory and confirmatory observations. The tuning packages provide search
 and policy data models; applications own domain-specific microkernel
 registration and execution.

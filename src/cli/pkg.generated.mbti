@@ -7,6 +7,8 @@ import {
 }
 
 // Values
+pub fn command_help(Command) -> String
+
 pub fn load_replay_spec(String) -> Result[@model.ReplaySpec, String]
 
 pub fn parse_args(Array[String]) -> CliRequest
@@ -26,12 +28,20 @@ pub struct CliRequest {
   command : Command
   input : String?
   output : String?
+  dry_run : Bool
+  yes : Bool
+  quiet : Bool
+  open : Bool
+  show_help : Bool
+  error : String?
 }
 
 pub enum Command {
   Replay
   Report
   Help
+  Version
+  Unknown(String)
 }
 
 // Type aliases

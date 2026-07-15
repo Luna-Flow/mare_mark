@@ -80,7 +80,7 @@ pub struct DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, S
   oracle : @experiment.OracleSpec[Input, Expected, Output, Context]
   scales : Array[Scale]
   scale_text : (Scale) -> String
-  sequence_length : (Input) -> Int
+  sequence_length : Int
   describe : (Input, Int) -> @model.CaseDescriptor
   input_text : (Input) -> String
   output_text : (Output) -> String
@@ -90,7 +90,7 @@ pub struct DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, S
 }
 
 ///|
-pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] DifferentialCase::new(
+fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] differential_case(
   id : String,
   fixture : @fixture.Fixture[Scale, Input, Prepared],
   implementations : Array[Implementation[Prepared, Output, Context]],
@@ -98,7 +98,7 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Diff
   oracle : @experiment.OracleSpec[Input, Expected, Output, Context],
   scales : Array[Scale],
   scale_text : (Scale) -> String,
-  sequence_length : (Input) -> Int,
+  sequence_length : Int,
   describe : (Input, Int) -> @model.CaseDescriptor,
   input_text : (Input) -> String,
   output_text : (Output) -> String,
@@ -682,16 +682,7 @@ fn measurement_order(
 }
 
 ///|
-pub async fn[
-  Scale,
-  Input,
-  Prepared,
-  Expected,
-  Output,
-  Context,
-  State,
-  SinkValue,
-] run_case(
+async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] run_case_internal(
   case : DifferentialCase[
     Scale,
     Input,
@@ -731,7 +722,7 @@ pub async fn[
     )
     let input = (case.fixture.materialize)(generation_context)
     let fingerprint = (case.fixture.fingerprint)(input)
-    let steps = (case.sequence_length)(input).max(1)
+    let steps = case.sequence_length
     let actual_sequences = []
     for implementation in case.implementations {
       actual_sequences.push(
@@ -1018,10 +1009,10 @@ pub async fn[
             scale_index,
             repetition_id,
             repetition_id,
-            "exploratory",
+            @model.ObservationPhase::Exploratory,
             batch.elapsed_us / iterations.to_double(),
             iterations,
-            "kept",
+            @model.BatchSinkStatus::Kept,
             case.fixture.setup_policy.timing,
             batch.valid,
           ),
@@ -1062,10 +1053,10 @@ pub async fn[
             scale_index,
             repetition_id,
             block_id,
-            "confirmatory",
+            @model.ObservationPhase::Confirmatory,
             batch.elapsed_us / iterations.to_double(),
             iterations,
-            "kept",
+            @model.BatchSinkStatus::Kept,
             case.fixture.setup_policy.timing,
             batch.valid,
           ),
@@ -1128,8 +1119,8 @@ pub async fn[
   Context,
   State,
   SinkValue,
-] bench_oracle(
-  case : DifferentialCase[
+] run(
+  plan : ValidatedBenchPlan[
     Scale,
     Input,
     Prepared,
@@ -1139,10 +1130,13 @@ pub async fn[
     State,
     SinkValue,
   ],
-  protocol : @model.RunProtocol,
-  environment : @model.EnvironmentSnapshot,
-  sink : @event.ObservationSink,
-  seed : UInt64,
+  context : RunContext,
 ) -> @model.RunSummary {
-  run_case(case, protocol, environment, sink, seed)
+  run_case_internal(
+    plan.case,
+    context.protocol.protocol,
+    context.environment,
+    context.sink,
+    context.seed,
+  )
 }
