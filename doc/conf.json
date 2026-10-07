@@ -1,0 +1,8 @@
+{
+  "title": "mare_mark",
+  "summary": "Reproducible benchmarking, statistical comparison, tuning, and self-contained reports for MoonBit payloads.",
+  "locales": [
+    "zh_CN",
+    "ja_JP"
+  ]
+}

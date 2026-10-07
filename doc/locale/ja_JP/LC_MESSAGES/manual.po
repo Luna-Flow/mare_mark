@@ -1,0 +1,1037 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Luna-Flow documentation\n"
+"Report-Msgid-Bugs-To: https://github.com/Luna-Flow\n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: conf.json:summary
+msgid "Reproducible benchmarking, statistical comparison, tuning, and self-contained reports for MoonBit payloads."
+msgstr "MoonBit のペイロードを対象とした、再現可能なベンチマーク、統計的比較、チューニング、自己完結型レポート。"
+
+#: manual/api/report.md:1
+msgid "`report` API"
+msgstr ""
+
+#: manual/api/report.md:3
+msgid "`report` projects Plot IR and JSONL events into portable artifacts."
+msgstr ""
+
+#: manual/api/report.md:5
+msgid "`document_from_jsonl` parses observations, validations, failure artifacts, and summaries into plot and differential IR."
+msgstr "`document_from_jsonl`: observation、validation、failure artifact、summary を plot/differential IR に変換します。"
+
+#: manual/api/report.md:6
+msgid "Plot projection excludes invalid or infrastructure-failed `(case, implementation, dataset)` keys, invalid observations, and discarded batches."
+msgstr "plot projection は invalid/infrastructure failure の `(case, implementation, dataset)`、invalid observation、discarded batch を除外します。"
+
+#: manual/api/report.md:7
+msgid "`plot_json` emits valid escaped `mmks_1` JSON."
+msgstr "`plot_json`: escape 済み `mmks_1` JSON を生成します。"
+
+#: manual/api/report.md:8
+msgid "`plot_svg` emits accessible SVG with dynamic scales, axes, labels, legends, tooltips, and series colors."
+msgstr "`plot_svg`: dynamic scale、axis、label、legend、tooltip、series color を持つ SVG。"
+
+#: manual/api/report.md:9
+msgid "`html` emits a report with mismatch rows, flags diffs, capability coverage, corpus denominators, minimal counterexamples, inline CSS, and SVG."
+msgstr "`html`: mismatch、flags diff、capability coverage、corpus denominator、minimal counterexample、inline CSS/SVG を含む report。"
+
+#: manual/api/report.md:11
+msgid "Scaling, interval, and change-point plots connect per-series category averages. Raw distribution, block order, outlier, and Pareto plots use points. Heatmap plots use colored cells. Exact signatures are in `src/report/pkg.generated.mbti`."
+msgstr "Scaling、interval、change-point は series average を線で結びます。raw distribution、 block order、outlier、Pareto は point、heatmap は cell を使います。正確な signature は `src/report/pkg.generated.mbti` を参照してください。"
+
+#: manual/api/report.md:15
+msgid "Projection boundary"
+msgstr ""
+
+#: manual/api/report.md:17
+msgid "`document_from_jsonl` is a pure projection from the event stream to `ir_model.PlotDocument`. It does not read files, inspect the host, rerun a worker, or recompute a validation oracle. The CLI owns stdin/filesystem paths; library callers can provide a JSONL string directly."
+msgstr ""
+
+#: manual/api/report.md:22
+msgid "The projection keeps protocol metadata, environment and capability coverage, corpus denominators, flags, validation mismatches, and minimal counterexamples. It drops only observations that cannot support a valid plot: invalid outcomes, infrastructure failures, and discarded batches. A rejected candidate remains visible in the differential section so the report cannot imply “faster and correct” from timing rows alone."
+msgstr ""
+
+#: manual/api/report.md:29
+msgid "Artifact choices"
+msgstr ""
+
+#: manual/api/report.md:31
+msgid "Function"
+msgstr ""
+
+#: manual/api/report.md:31
+msgid "Output"
+msgstr ""
+
+#: manual/api/report.md:31
+msgid "Use"
+msgstr ""
+
+#: manual/api/report.md:33
+msgid "escaped `mmks_1` JSON"
+msgstr ""
+
+#: manual/api/report.md:33
+msgid "interchange, snapshots, downstream tools"
+msgstr ""
+
+#: manual/api/report.md:34
+msgid "accessible SVG"
+msgstr ""
+
+#: manual/api/report.md:34
+msgid "embedding in docs or review comments"
+msgstr ""
+
+#: manual/api/report.md:35
+msgid "self-contained HTML"
+msgstr ""
+
+#: manual/api/report.md:35
+msgid "sharing without a server or network"
+msgstr ""
+
+#: manual/api/report.md:37
+msgid "`plot_svg` derives scales, axes, labels, legends, tooltips, and series colors from IR. It does not embed external fonts or scripts. `html` inlines CSS and SVG, then adds mismatch rows, flags diffs, capability tables, corpus denominators, and counterexample details."
+msgstr ""
+
+#: manual/api/report.md:42
+msgid "Minimal conversion"
+msgstr ""
+
+#: manual/api/report.md:58
+msgid "Keep the original JSONL next to generated artifacts. JSON/SVG/HTML are views; the event stream is the audit record used to explain missing points and failed validation."
+msgstr ""
+
+#: manual/api/runner.md:1
+msgid "`runner` API"
+msgstr ""
+
+#: manual/api/runner.md:3
+msgid "`runner` owns executable benchmark cases and monotonic timed batches."
+msgstr ""
+
+#: manual/api/runner.md:5
+msgid "`Implementation::in_process` registers a stateful callback; `Implementation::worker` registers a native isolated subprocess. Both accept an optional blocking `synchronize` hook for asynchronous backends."
+msgstr "`Implementation::in_process`: stateful callback、`Implementation::worker`: native isolated subprocess を登録します。どちらも async backend 用の blocking `synchronize` hook を設定できます。"
+
+#: manual/api/runner.md:6
+msgid "`WorkerSpec::new` defines argument encoding, output decoding, timeout, and working directory."
+msgstr "`WorkerSpec::new`: argument encode、output decode、timeout、working directory を定義します。"
+
+#: manual/api/runner.md:7
+msgid "`OutputSink::new` folds outputs during the timed batch, then retains the finished value with `Bench::keep` after the clock stops."
+msgstr "`OutputSink::new`: output を fold し、`Bench::keep` で値を保持します。"
+
+#: manual/api/runner.md:8
+msgid "`single_step` builds an immutable common-case description; its combinators return new values and `compile` aggregates configuration errors."
+msgstr "`single_step`: immutable な common-case description を作り、combinator は新しい値を返し、`compile` は configuration error を集約します。"
+
+#: manual/api/runner.md:9
+msgid "`ValidatedBenchPlan` and `ValidatedProtocol` are the only inputs accepted by the runtime boundary."
+msgstr "`ValidatedBenchPlan` と `ValidatedProtocol`: runtime boundary が受け取る唯一の configuration type です。"
+
+#: manual/api/runner.md:10
+msgid "`ProtocolPreset` provides `QuickCheck`, `Development`, `RegressionGate`, and validated custom protocols."
+msgstr "`ProtocolPreset`: `QuickCheck`、`Development`、`RegressionGate`、validated custom protocol を提供します。"
+
+#: manual/api/runner.md:11
+msgid "`RunContext` groups protocol, environment, observation sink, and seed."
+msgstr "`RunContext`: protocol、environment、observation sink、seed をまとめます。"
+
+#: manual/api/runner.md:12
+msgid "`balanced_order` rotates implementation order by block id."
+msgstr "`balanced_order`: block id ごとに実行順を回転します。"
+
+#: manual/api/runner.md:13
+msgid "`run(plan, context)` fingerprints input, validates every sequence step outside timing, shrinks failures, emits replay artifacts, then measures balanced batches and returns `RunSummary`."
+msgstr "`run(plan, context)`: fingerprint、計時外 validation/shrink、balanced measurement、event 発行、reset を行い `RunSummary` を返します。"
+
+#: manual/api/runner.md:15
+msgid "`run` calibrates each implementation toward the configured target batch time, caps work at the iteration and sample-time bounds, and applies a common batch size only when `SharedBatchSize` is selected. Exploratory and confirmatory observations remain separate phases."
+msgstr "`run` は implementation ごとに target batch time へ calibration し、iteration と sample-time の上限を適用します。`SharedBatchSize` の場合だけ共通 batch size を使い、 exploratory と confirmatory observation は別 phase として保存します。"
+
+#: manual/api/runner.md:20
+msgid "The JSONL summary records the complete `EnvironmentSnapshot`, including device, thread/concurrency count, and frequency policy. Use `stats.summarize` over repeated valid observations for median-based reporting."
+msgstr "JSONL summary は device、thread/concurrency count、frequency policy を含む完全な `EnvironmentSnapshot` を記録します。繰り返した valid observation は `stats.summarize` で median に集約できます。"
+
+#: manual/api/runner.md:24
+msgid "See `src/runner/pkg.generated.mbti` for exact generic signatures."
+msgstr "正確な generic signature は `src/runner/pkg.generated.mbti` を参照してください。"
+
+#: manual/api/runner.md:26
+#: manual/index.md:12
+msgid "Boundary"
+msgstr "境界"
+
+#: manual/api/runner.md:28
+msgid "Only `runner` owns the timed loop. Generators, fixtures, validation oracles, output conversion, report rendering, and file sinks must remain outside the payload clock unless the selected `SetupPolicy` explicitly says otherwise."
+msgstr ""
+
+#: manual/api/runner.md:37
+msgid "The order matters: a faster implementation that returns a different value is a validation failure, not a speedup. A timeout, worker exit, or synchronization failure is also retained as a typed outcome and excluded from performance statistics."
+msgstr ""
+
+#: manual/api/runner.md:42
+msgid "Minimal setup"
+msgstr ""
+
+#: manual/api/runner.md:56
+msgid "Construct `RunContext` with an explicit `ValidatedProtocol`, an `EnvironmentSnapshot`, a seed, and an observation sink. Treat the seed and environment as part of the result identity; changing either starts a new measurement series."
+msgstr ""
+
+#: manual/api/runner.md:61
+msgid "Choosing an implementation"
+msgstr ""
+
+#: manual/api/runner.md:63
+msgid "Constructor"
+msgstr ""
+
+#: manual/api/runner.md:63
+msgid "Use when"
+msgstr ""
+
+#: manual/api/runner.md:63
+msgid "Timing notes"
+msgstr ""
+
+#: manual/api/runner.md:65
+msgid "output depends only on the input"
+msgstr ""
+
+#: manual/api/runner.md:65
+msgid "no mutable context is carried"
+msgstr ""
+
+#: manual/api/runner.md:66
+msgid "setup/reset or device state is required"
+msgstr ""
+
+#: manual/api/runner.md:66
+msgid "provide `synchronize` for queued work"
+msgstr ""
+
+#: manual/api/runner.md:67
+msgid "native isolation or crash containment is required"
+msgstr ""
+
+#: manual/api/runner.md:67
+msgid "stdout/stderr/exit are artifacts"
+msgstr ""
+
+#: manual/api/runner.md:69
+msgid "`WorkerSpec::new` owns argument encoding, output decoding, timeout, and working directory. Do not hide a shell command in a stateless callback: it makes the clock, failure model, and replay story ambiguous."
+msgstr ""
+
+#: manual/api/runner.md:73
+msgid "Protocol and phases"
+msgstr ""
+
+#: manual/api/runner.md:75
+msgid "`ProtocolPreset::QuickCheck` is for fast feedback; `Development` keeps enough warmup and repetitions to inspect variance; `RegressionGate` is the strictest built-in preset. Custom protocols must be validated before `run`."
+msgstr ""
+
+#: manual/api/runner.md:79
+msgid "Warmup, calibration, exploratory, confirmatory, and holdout observations are separate phases. Calibration adjusts batch size toward the target batch time, then applies iteration and sample-time caps. `SharedBatchSize` is useful when paired implementations must execute the same number of operations; otherwise each implementation may use its own calibrated batch size."
+msgstr ""
+
+#: manual/api/runner.md:85
+msgid "Failure evidence"
+msgstr ""
+
+#: manual/api/runner.md:87
+msgid "When validation fails, `run` shrinks the input when a `Shrinker` is configured, records the minimal counterexample and shrink path, and emits a replayable `validation_failure` event. Keep that JSONL event with the report; it explains why a candidate was rejected even when the remaining observations look good."
+msgstr ""
+
+#: manual/api/stats.md:1
+msgid "`stats` API"
+msgstr ""
+
+#: manual/api/stats.md:3
+msgid "`stats` provides descriptive summaries and practical paired decisions."
+msgstr ""
+
+#: manual/api/stats.md:5
+msgid "`summarize` returns count, extrema, mean, median, MAD, quartiles, IQR, and population standard deviation."
+msgstr "`summarize`: count、extrema、mean、median、MAD、quartile、IQR、population standard deviation。"
+
+#: manual/api/stats.md:6
+msgid "`paired_deltas` subtracts paired baseline values from candidate values."
+msgstr "`paired_deltas`: candidate から baseline を引いた paired delta。"
+
+#: manual/api/stats.md:7
+msgid "`compare_paired` returns relative median delta, speedup, an interquartile interval, decision, and valid sample count."
+msgstr "`compare_paired`: relative median delta、speedup、quartile interval、decision、sample count。"
+
+#: manual/api/stats.md:8
+msgid "`bootstrap_interval` returns a deterministic percentile interval for an explicit seed, resample count, confidence level, and interval mode."
+msgstr "`bootstrap_interval`: 明示的な seed、resample count、confidence level、interval mode から決定的な percentile bootstrap interval を返します。"
+
+#: manual/api/stats.md:9
+msgid "`compare_paired_with_bootstrap` applies that interval to paired baseline/candidate measurements."
+msgstr "`compare_paired_with_bootstrap`: paired baseline/candidate measurement にその interval を適用します。"
+
+#: manual/api/stats.md:10
+msgid "`filter_outliers` applies report-only, Tukey-fence, or MAD-trim policy."
+msgstr "`filter_outliers`: report-only、Tukey fence、MAD trim。"
+
+#: manual/api/stats.md:11
+msgid "`is_faster` recognizes the `Faster` decision."
+msgstr "`is_faster`: `Faster` decision の判定。"
+
+#: manual/api/stats.md:13
+msgid "Bootstrap functions return `Result`; `BootstrapError` distinguishes empty samples, mismatched pairs, invalid configuration, and non-finite values."
+msgstr "Bootstrap 関数は `Result` を返し、`BootstrapError` が空 sample、pair 数の不一致、不正な設定、非有限値を区別します。"
+
+#: manual/api/stats.md:16
+msgid "See `src/stats/pkg.generated.mbti` for exact signatures."
+msgstr "正確な signature は `src/stats/pkg.generated.mbti` を参照してください。"
+
+#: manual/api/stats.md:18
+msgid "Data contract"
+msgstr ""
+
+#: manual/api/stats.md:20
+msgid "Statistics consume finite numeric observations that already passed protocol validation. Pairing is positional: baseline[i] and candidate[i] must represent the same dataset, repetition, block, and phase. Align keys before calling the functions; do not sort two vectors independently."
+msgstr ""
+
+#: manual/api/stats.md:37
+msgid "`SummaryStats` is descriptive rather than inferential. It includes count, extrema, mean, median, MAD, quartiles, IQR, and population standard deviation. The median is the default center for skewed benchmark data; mean remains useful for diagnosing long tails."
+msgstr ""
+
+#: manual/api/stats.md:42
+msgid "Paired decisions"
+msgstr ""
+
+#: manual/api/stats.md:44
+msgid "`paired_deltas` computes candidate minus baseline for each aligned pair. `compare_paired` reports relative median delta, speedup, an interquartile interval, a decision, and valid sample count. The practical threshold is an explicit policy input; it is not inferred from noise."
+msgstr ""
+
+#: manual/api/stats.md:49
+msgid "`Decision::Faster` is positive only when the direction and threshold agree. `is_faster` is a convenience predicate for dashboards, not a replacement for recording the complete decision and sample count in an artifact."
+msgstr ""
+
+#: manual/api/stats.md:53
+msgid "Bootstrap"
+msgstr ""
+
+#: manual/api/stats.md:55
+msgid "`bootstrap_interval` uses deterministic percentile resampling. Callers provide the seed, number of resamples, confidence level, and interval mode so a report can be reproduced byte-for-byte. `compare_paired_with_bootstrap` applies the same interval to paired deltas."
+msgstr ""
+
+#: manual/api/stats.md:60
+msgid "This implementation is intentionally not BCa, studentized, or hierarchical bootstrap. Empty input, mismatched pair lengths, invalid confidence or resample settings, and non-finite values return `BootstrapError`; callers should surface the error instead of emitting an empty interval."
+msgstr ""
+
+#: manual/api/stats.md:65
+msgid "Outliers"
+msgstr ""
+
+#: manual/api/stats.md:67
+msgid "`filter_outliers` is a report-only transform. Tukey fences use IQR; MAD trim uses the median absolute deviation. Preserve the raw observations and record the selected policy, bounds, and retained count alongside any filtered plot. Filtering must never change the runner's pass/fail result or rewrite JSONL."
+msgstr ""
+
+#: manual/architecture.md:1
+msgid "Architecture"
+msgstr "アーキテクチャ"
+
+#: manual/architecture.md:3
+#, fuzzy
+msgid "`mare_mark` keeps experiment semantics, effects, and presentation separate. That separation lets a report be regenerated, a failure be replayed, and a statistical decision be audited from raw observations."
+msgstr "mare_mark は純粋な実験記述・レポート投影と、計時・ファイル IO を分離します。"
+
+#: manual/architecture.md:7
+msgid "Layer"
+msgstr "層"
+
+#: manual/architecture.md:7
+#: manual/index.md:12
+msgid "Packages"
+msgstr "Package"
+
+#: manual/architecture.md:7
+msgid "Owns"
+msgstr "責務"
+
+#: manual/architecture.md:9
+msgid "Domain model"
+msgstr ""
+
+#: manual/architecture.md:9
+#, fuzzy
+msgid "Versioned protocol, events, plots, candidate data"
+msgstr "protocol、event、plot、tuning data"
+
+#: manual/architecture.md:10
+#, fuzzy
+msgid "Pure policy"
+msgstr "Pure transform"
+
+#: manual/architecture.md:10
+#, fuzzy
+msgid "Seeds, oracles, summaries, decisions, rendering"
+msgstr "seed、summary、decision、policy、rendering"
+
+#: manual/architecture.md:11
+#, fuzzy
+msgid "Runtime effects"
+msgstr "Controlled runtime"
+
+#: manual/architecture.md:11
+#, fuzzy
+msgid "Setup, workers, clocks, synchronization"
+msgstr "materialize、prepare、単調時計、reset"
+
+#: manual/architecture.md:12
+#, fuzzy
+msgid "Adapters"
+msgstr "Effect adapter"
+
+#: manual/architecture.md:12
+#, fuzzy
+msgid "JSONL sinks, file IO, command-line effects"
+msgstr "event accumulation、native file IO"
+
+#: manual/architecture.md:14
+msgid "Data flow"
+msgstr ""
+
+#: manual/architecture.md:31
+#, fuzzy
+msgid "The only broad effect boundary is `runner.run`. Everything before it is a description or validation step; everything after it consumes preserved events. `cli` is the place where file paths, stdin/stdout, `open`, and replayed process execution are allowed."
+msgstr "payload closure はレポート生成やファイル IO を行いません。`report` は純粋な `PlotDocument -> String`、`cli` は IO adapter です。"
+
+#: manual/architecture.md:36
+msgid "Timing boundary"
+msgstr ""
+
+#: manual/architecture.md:38
+#, fuzzy
+msgid "The timed closure includes payload execution and the configured output fold. It excludes fixture materialization, validation, calibration, final sink conversion, report rendering, and file IO. A fixture may opt into setup timing, but that choice must be represented by `SetupPolicy` and reported with the result."
+msgstr "`run(plan, context)` は薄い effect boundary です。measurement phase の外で batch を calibration し、exploratory と confirmatory observation を分けて生成します。tuning package は search/policy の data model を提供し、domain 固有 microkernel の登録・実行は application が担います。"
+
+#: manual/architecture.md:44
+msgid "Each balanced block rotates implementation order. This controls systematic position effects; it does not make unrelated machines comparable. Pair values by dataset, repetition, and block before computing deltas."
+msgstr ""
+
+#: manual/architecture.md:48
+msgid "Failure boundary"
+msgstr ""
+
+#: manual/architecture.md:50
+msgid "The runner preserves a typed `ExecutionOutcome` and optional next context. A validation failure carries enough information for a replay artifact: input text/fingerprint, implementation version, command/arguments, timeout, and shrinker path. A timeout or process abort is infrastructure evidence, not a slow numeric observation."
+msgstr ""
+
+#: manual/architecture.md:56
+msgid "Report boundary"
+msgstr ""
+
+#: manual/architecture.md:58
+msgid "`event` JSONL is append-only. `report.document_from_jsonl` maps it to `ir_model` and applies projection rules: valid observations feed plots, while failures, discarded batches, capability notes, and corpus counters remain visible in the differential report. `report.html` is pure and deterministic for one `PlotDocument`."
+msgstr ""
+
+#: manual/architecture.md:64
+msgid "Tuning boundary"
+msgstr ""
+
+#: manual/architecture.md:66
+msgid "`tune` and `tune_gemm` model candidate search, score, holdout, and Pareto policy. They do not hide candidate execution, build configuration, correctness validation, or environment capture. The application chooses those effects and emits the same events as a hand-written benchmark."
+msgstr ""
+
+#: manual/conventions.md:1
+msgid "Repository conventions"
+msgstr "リポジトリ規約"
+
+#: manual/conventions.md:3
+msgid "These rules add to the Luna-Flow documentation standard for `mare_mark`."
+msgstr "以下は、Luna-Flow のドキュメント標準に加えて `mare_mark` が定めるルールです。"
+
+#: manual/conventions.md:5
+msgid "Claims"
+msgstr "機能の記述"
+
+#: manual/conventions.md:7
+msgid "Documentation describes capabilities implemented on the current branch. A capability must not be documented as complete until code and focused tests exercise it. Design pages state current limitations explicitly."
+msgstr "ドキュメントには現在の branch で実装済みの機能だけを記載します。コードと対象テストが存在しない機能を完成済みとして記載してはいけません。設計ページには現在の制限を明記します。"
+
+#: manual/conventions.md:11
+msgid "Package entry points"
+msgstr "Package の入口"
+
+#: manual/conventions.md:13
+msgid "Each documented package keeps a short `README.mbt.md` beside its source as a package-local entry point. The manual pages carry the full API reference, design note, and tutorial."
+msgstr "ドキュメント化された各 package は、ソースの隣に package 内の短い入口として `README.mbt.md` を置きます。完全な API リファレンス、設計ノート、チュートリアルはマニュアルのページに記載します。"
+
+#: manual/conventions.md:17
+#: manual/verification.md:1
+msgid "Verification"
+msgstr "検証"
+
+#: manual/conventions.md:19
+msgid "[Verification](verification.md) records reproducible evidence without overstating coverage."
+msgstr "[検証](verification.md)には、カバレッジを誇張せずに再現可能な証拠を記録します。"
+
+#: manual/conventions.md:22
+msgid "Translation"
+msgstr "翻訳"
+
+#: manual/conventions.md:24
+msgid "Commands, identifiers, package paths, schema names such as `mmks_1`, and version numbers stay unchanged in every translation."
+msgstr "コマンド、識別子、package path、`mmks_1` などの schema 名、version はどの翻訳でも変更しません。"
+
+#: manual/design/report.md:1
+msgid "`report` Design"
+msgstr "`report` 設計"
+
+#: manual/design/report.md:3
+msgid "The report backend is a pure projection. JSON uses the core structured encoder; SVG and HTML escape text and attributes before interpolation. No report function touches the filesystem."
+msgstr "レポート backend は純粋な projection です。JSON は core encoder、SVG/HTML は interpolation 前の text/attribute escape を使用し、filesystem には触れません。"
+
+#: manual/design/report.md:7
+msgid "The renderer derives categories and series from points, computes padded dynamic Y bounds, averages repeated category values only for connecting lines, and retains every raw point as a tooltip-bearing mark. The HTML wrapper is responsive and contains no remote assets."
+msgstr "renderer は point から category と series を抽出し、padding 付き Y range を計算します。 line は重複 category の平均を結びますが、raw point は tooltip 付き mark として残します。 HTML は remote asset を必要としません。"
+
+#: manual/design/report.md:12
+msgid "Plot IR `x` remains categorical. Consequently, Pareto rendering is currently a categorical scatter view rather than a numeric two-axis frontier. JSONL projection currently creates one scaling plot and receives target as an explicit argument."
+msgstr "Plot IR の `x` は categorical なので、Pareto は現時点で numeric two-axis frontier ではなく categorical scatter です。JSONL projection は scaling plot 一枚を生成します。"
+
+#: manual/design/runner.md:1
+msgid "`runner` Design"
+msgstr "`runner` 設計"
+
+#: manual/design/runner.md:3
+msgid "The runner keeps mutation local to prepared inputs and sink accumulation. Each scale is materialized once, cloned and prepared per implementation, executed in balanced order, then reset after the complete block."
+msgstr "可変状態は prepared input と sink accumulation の内部に限定します。各 scale は一度 materialize し、implementation ごとに clone/prepare して balanced order で実行し、 block 完了後に reset します。"
+
+#: manual/design/runner.md:7
+msgid "Timing encloses payload execution and output folding. The clock stops before `finish` and `Bench::keep`, so final retention cost is excluded. Report rendering and file IO never enter the measured closure."
+msgstr "計時は payload と output fold を含み、`finish` と `Bench::keep` の前に停止します。レポート生成と file IO は measurement closure に入りません。"
+
+#: manual/design/runner.md:11
+msgid "Every implementation receives the same configured warmup protocol before calibration. Timed blocks continue one seeded balanced order across exploratory and confirmatory phases, so each implementation occupies every execution position once per complete cycle. Repeated raw observations remain available; robust summaries use their median rather than their mean."
+msgstr "すべての implementation に同じ warmup protocol を適用してから calibration を行います。 timed block は exploratory と confirmatory phase をまたいで一つの seeded balanced order を継続し、完全な cycle ごとに各 implementation が各実行位置を一度ずつ占めます。複数回の raw observation を保持し、robust summary には mean ではなく median を使います。"
+
+#: manual/design/runner.md:17
+msgid "An implementation may provide a blocking `synchronize` hook for asynchronous devices. The runner invokes it immediately before and after every timed region, so queued work completes inside the measured boundary. Fixture allocation and reset follow `SetupTiming`; validation, event emission, final sink conversion, and report logging remain outside timing."
+msgstr "非同期 device 向けには、blocking `synchronize` hook を implementation に設定できます。各 timed region の直前と直後に明示的に呼び出すため、queue 済み work の完了までを計測できます。fixture allocation と reset は `SetupTiming` に従い、validation、event emit、 final sink conversion、report logging は常に計時外です。"
+
+#: manual/design/runner.md:23
+#, fuzzy
+msgid "Oracle and relational validation execute before timing. `OperationResult` threads `next_context` across every sequence, while fixture setup/reset follows the configured lifecycle. Unsafe implementations use native subprocess workers with hard cancellation, timeout, exit status, stdout, and stderr capture. Calibration searches between the configured iteration bounds outside the measurement phase and records elapsed time, target time, and retry count. Exploratory observations are emitted separately from fixed-budget confirmatory observations."
+msgstr "Oracle/relational validation は計時外で実行します。`OperationResult.next_context` を sequence 全体で引き継ぎ、setup frequency に従って prepare/reset します。危険な実装は native subprocess で隔離し、timeout、exit status、stdout、stderr を保存します。 calibration は measurement phase の外で iteration bounds 内の target time を探索し、 elapsed time、target time、retry count を記録します。exploratory observation と固定予算の confirmatory observation は別 phase です。"
+
+#: manual/design/runner.md:32
+#, fuzzy
+msgid "Run summaries retain the semantic, performance, and provenance environment. Performance metadata includes CPU, device, concurrency, clock, GC, and frequency policy; comparisons should reject snapshots for which `environment_compatible` returns `false`."
+msgstr "run summary は semantic、performance、provenance environment を保持します。 performance metadata は CPU、device、concurrency、clock、GC、frequency policy を含み、比較前に `environment_compatible` が `true` であることを確認します。"
+
+#: manual/design/stats.md:1
+msgid "`stats` Design"
+msgstr "`stats` 設計"
+
+#: manual/design/stats.md:3
+msgid "Statistics are pure transformations over explicit arrays. Raw event storage is owned by sinks, so filtering cannot rewrite historical observations."
+msgstr "統計処理は明示的な配列に対する純粋な変換です。raw event は sink が所有するため、 filtering が履歴を書き換えることはありません。"
+
+#: manual/design/stats.md:6
+msgid "`compare_paired` currently uses median paired delta and a practical percentage threshold. Its default `Interval` continues to store delta quartiles for backward-compatible descriptive analysis. `compare_paired_with_bootstrap` resamples paired deltas with replacement and reports a deterministic percentile interval; callers must provide the seed, resample count, and confidence level."
+msgstr "`compare_paired` は paired median delta と practical percentage threshold を使います。既定の `Interval` は互換性のため delta の quartile range を保持します。 `compare_paired_with_bootstrap` は paired delta を復元抽出し、明示的な seed、 resample count、confidence level に基づく percentile interval を返します。"
+
+#: manual/design/stats.md:12
+msgid "Invalid bootstrap input is represented by `BootstrapError`. The implementation is a percentile bootstrap, not bias-corrected accelerated (BCa), studentized, or hierarchical bootstrap. Empty inputs to `summarize` remain neutral, while empty bootstrap samples are rejected."
+msgstr "不正な bootstrap 入力は `BootstrapError` で表現します。現在の実装は BCa、 studentized、hierarchical bootstrap ではありません。`summarize` の空入力は neutral summary のままですが、bootstrap の空 sample は拒否されます。"
+
+#: manual/getting_started.md:1
+msgid "Getting Started"
+msgstr "はじめに"
+
+#: manual/getting_started.md:3
+msgid "This guide takes a small case from a checked-in JSONL artifact to a typed benchmark plan and back to a report. For package ownership, see the [package reference](./package_reference.md)."
+msgstr ""
+
+#: manual/getting_started.md:7
+msgid "1. Check the toolchain"
+msgstr ""
+
+#: manual/getting_started.md:15
+msgid "`mare_mark` is a MoonBit module. Native is required for subprocess workers and replay; the pure model, stats, report, and most runner paths are also tested on JS."
+msgstr ""
+
+#: manual/getting_started.md:19
+msgid "2. Render the fixture"
+msgstr ""
+
+#: manual/getting_started.md:26
+msgid "Open `report.html` locally. The renderer emits inline SVG/CSS, so the artifact is portable and reviewable without a running service. To stream a report to stdout:"
+msgstr ""
+
+#: manual/getting_started.md:34
+msgid "3. Inspect a replay artifact"
+msgstr ""
+
+#: manual/getting_started.md:41
+msgid "Dry-run prints the recorded command, arguments, and timeout. Only run an artifact you trust, and make execution explicit:"
+msgstr ""
+
+#: manual/getting_started.md:49
+msgid "4. Define a case"
+msgstr ""
+
+#: manual/getting_started.md:51
+msgid "Use a deterministic input callback. The single-step builder creates an immutable fixture; advanced cases can use `Fixture::new` when cloning, preparation, reset, or setup timing must be explicit. Keep the payload closure small; validation and output conversion are runner responsibilities."
+msgstr ""
+
+#: manual/getting_started.md:65
+msgid "5. Add an oracle and compile"
+msgstr ""
+
+#: manual/getting_started.md:67
+msgid "Reference or relational checks should be attached before timing. Compilation rejects empty cases, duplicate ids, missing sinks/oracles, invalid scales, and invalid sequence lengths."
+msgstr ""
+
+#: manual/getting_started.md:83
+msgid "6. Run, analyze, publish"
+msgstr ""
+
+#: manual/getting_started.md:99
+msgid "Keep the JSONL beside the HTML. The JSONL is the audit record; HTML is a projection that can be regenerated after renderer changes."
+msgstr ""
+
+#: manual/getting_started.md:102
+msgid "Common first mistakes"
+msgstr ""
+
+#: manual/getting_started.md:104
+msgid "Timing fixture allocation or report rendering by placing them inside the payload closure."
+msgstr ""
+
+#: manual/getting_started.md:106
+msgid "Comparing arrays with different block/repetition alignment."
+msgstr ""
+
+#: manual/getting_started.md:107
+#, fuzzy
+msgid "Treating `Unsupported`, timeout, or validation failure as a numeric zero."
+msgstr "`runner.single_step` で immutable description を作って `compile` し、plan と `RunContext` を `runner.run` に渡します。event stream を保存してから配列を `stats.compare_paired` に渡します。レポートは Plot IR を構築して `report.plot_svg` または `report.html` に渡します。"
+
+#: manual/getting_started.md:108
+#, fuzzy
+msgid "Running a native replay without inspecting it with `--dry-run` first."
+msgstr "CLI は artifact のみを扱います。`replay` は native target で `validation_failure` JSONL に記録された worker command を実行し、typed case の構築と実行は MoonBit API から行います。これにより引数解析、filesystem access、 report rendering は benchmark の計時経路に入りません。"
+
+#: manual/getting_started.md:109
+msgid "Mixing native and JS observations in one statistical population."
+msgstr ""
+
+#: manual/index.md:1
+msgid "mare_mark"
+msgstr "mare_mark"
+
+#: manual/index.md:3
+msgid "This documentation describes the `0.3.0` implementation baseline. Generated `pkg.generated.mbti` files are authoritative for public names and signatures."
+msgstr "このドキュメントは `0.3.0` の実装状況を説明します。公開名とシグネチャの基準は各 package の `pkg.generated.mbti` です。"
+
+#: manual/index.md:6
+msgid "Start with [Getting started](getting_started.md), then read [Architecture](architecture.md), [Package reference](package_reference.md), and [Verification](verification.md)."
+msgstr "[はじめに](getting_started.md)、[アーキテクチャ](architecture.md)、 [Package reference](package_reference.md)、[検証](verification.md)の順に読むことを推奨します。"
+
+#: manual/index.md:10
+msgid "Package map"
+msgstr "Package map"
+
+#: manual/index.md:14
+msgid "Protocol and events"
+msgstr "Protocol と event"
+
+#: manual/index.md:15
+msgid "Inputs and lifecycle"
+msgstr "入力と lifecycle"
+
+#: manual/index.md:16
+msgid "Validation and measurement"
+msgstr "検証と測定"
+
+#: manual/index.md:17
+msgid "Analysis and presentation"
+msgstr "分析と表示"
+
+#: manual/index.md:18
+msgid "Search policies"
+msgstr "探索 policy"
+
+#: manual/index.md:19
+msgid "Native file/process effects"
+msgstr "Native の file/process effect"
+
+#: manual/index.md:21
+msgid "The primary packages `runner`, `stats`, and `report` each have an API reference, a design note, and a tutorial. The [Package reference](package_reference.md) documents the public role, timing boundary, and stability notes for every package. Generated `pkg.generated.mbti` snapshots remain the source of exact signatures."
+msgstr "主要 package である `runner`、`stats`、`report` には、それぞれ API リファレンス、設計ノート、チュートリアルがあります。各 package の責務、測定境界、安定性は [Package reference](package_reference.md) にまとめています。正確な公開名とシグネチャは各 package の `pkg.generated.mbti` を基準にします。"
+
+#: manual/index.md:27
+msgid "Stability"
+msgstr "安定性"
+
+#: manual/index.md:29
+msgid "mare_mark is pre-1.0. Plot schema `mmks_1` and JSONL artifact version `mmka_1` are explicit compatibility markers, but this version does not promise long-term compatibility for every package type. Current limitations are stated explicitly in each design page."
+msgstr "mare_mark は 1.0 未満です。Plot schema `mmks_1` と JSONL artifact version `mmka_1` は明示的な互換性マーカーですが、全 package の長期互換性はまだ保証しません。各設計ページに現在の制限を明記しています。"
+
+#: manual/package_reference.md:1
+msgid "Package Reference"
+msgstr ""
+
+#: manual/package_reference.md:3
+msgid "This page is the maintainer-oriented map of the `0.3.0` public surface. Exact generic signatures live in each `src/<package>/pkg.generated.mbti`; this page explains which boundary owns a decision, what is measured, and what must stay out of a timed region."
+msgstr "このページは `0.3.0` の package 責務、測定境界、安定性を説明します。正確な generic signature は各 `src/<package>/pkg.generated.mbti` を基準にします。"
+
+#: manual/package_reference.md:10
+msgid "`model` is the protocol vocabulary shared by every other package. It contains version identifiers (`mmkp_1`, `mmka_1`, `mmks_1`), dataset and measurement keys, execution outcomes, environment snapshots, run protocols, observations, validation events, replay specifications, and tuning/report metadata."
+msgstr "`model` は dataset/measurement key、run protocol、environment、execution outcome、observation、validation failure、replay spec、version marker を共有する語彙です。`mmkp_1`、`mmka_1`、`mmks_1` はそれぞれ protocol、artifact、Plot schema を識別します。失敗を数値ゼロに変換せず、`ExecutionOutcome` の分類を保持します。"
+
+#: manual/package_reference.md:15
+msgid "Use `ExecutionOutcome` instead of overloading strings: `Value`, `RaisedFlags`, `Unsupported`, `ParseFailure`, `Trapped`, `Aborted`, `Timeout`, and `ExpectedDifference` remain distinguishable in JSONL and reports. Use `OperationResult` when a stateful operation returns both an outcome and a next context."
+msgstr ""
+
+#: manual/package_reference.md:21
+msgid "The protocol fields are deliberately explicit:"
+msgstr ""
+
+#: manual/package_reference.md:23
+msgid "Field"
+msgstr ""
+
+#: manual/package_reference.md:23
+msgid "Controls"
+msgstr ""
+
+#: manual/package_reference.md:25
+msgid "Dataset/repetition structure"
+msgstr ""
+
+#: manual/package_reference.md:26
+msgid "Target batch time and iteration bounds"
+msgstr ""
+
+#: manual/package_reference.md:27
+msgid "Frequency, timing inclusion, and workspace scope"
+msgstr ""
+
+#: manual/package_reference.md:28
+msgid "Balanced or fixed implementation order"
+msgstr ""
+
+#: manual/package_reference.md:29
+msgid "Every measurement, dataset, or confirmatory phase"
+msgstr ""
+
+#: manual/package_reference.md:30
+msgid "Report-only, Tukey fence, or MAD trim"
+msgstr ""
+
+#: manual/package_reference.md:32
+msgid "Use `protocol_identity` and `artifact_identity` in cache keys. Environment compatibility checks semantic and performance fields, but intentionally ignores run-specific provenance such as hostname, timestamp, revision, and run id."
+msgstr ""
+
+#: manual/package_reference.md:38
+#, fuzzy
+msgid "`generator` owns deterministic input creation. `derive_seed` separates suite, case, and dataset identities; `measurement_seed` separates repetition and block identities. `context` creates the immutable `GenerationContext` passed to the generator, and `stable_fingerprint` records a compact provenance token."
+msgstr "`generator` は suite、case、dataset、repetition、block ごとに seed を分離し、再現可能な入力を作ります。fingerprint は provenance 用であり暗号学的 hash ではありません。"
+
+#: manual/package_reference.md:53
+msgid "The fingerprint is stable across runs for the same serialized input. It is not an authentication hash; do not use it to protect untrusted data."
+msgstr ""
+
+#: manual/package_reference.md:58
+#, fuzzy
+msgid "`fixture` is the lifecycle boundary between generated input and prepared input. `Fixture::immutable` is the common case where a generated value can be reused; `Fixture::new` supplies explicit clone, prepare, and reset callbacks."
+msgstr "`fixture` は materialize、clone、prepare、reset と setup policy を所有します。 allocation を毎回行う実験と workspace を再利用する実験は別の protocol として記録します。"
+
+#: manual/package_reference.md:62
+msgid "`SampleContext` identifies a sample and implementation. `ResetContext` identifies the reset after a measured block. `SetupPolicy` states whether setup happens per run, dataset, implementation, sample, batch, or iteration and whether the cost is included in measurement. Keep the policy aligned with the question being asked: a reusable workspace is a different experiment from fresh allocation per operation."
+msgstr ""
+
+#: manual/package_reference.md:71
+#, fuzzy
+msgid "`experiment` supplies validation and shrinking policies. A `ReferenceOracle` computes an expected sequence from an initial context; `RelationalOracle` compares implementation pairs; `OracleSpec::ReferenceAndRelational` composes both without flattening their diagnostics."
+msgstr "`experiment` は reference/relational oracle、shrinker、crossover 判定を提供します。縮小された反例には shrink path を残します。"
+
+#: manual/package_reference.md:76
+msgid "`Shrinker` receives candidate inputs and a predicate that must remain true. The result is the smallest accepted input plus a textual shrink path. Keep the path in the failure artifact so replay can explain how minimization arrived at the counterexample."
+msgstr ""
+
+#: manual/package_reference.md:81
+msgid "`ScaleDomain` and `crossover_from_labels` support threshold policies. A `NonMonotonic` result is not a crossover; callers must not turn it into a piecewise deployment rule without an explicit policy."
+msgstr ""
+
+#: manual/package_reference.md:87
+#, fuzzy
+msgid "`runner` is the only package that owns the measurement loop. Build a `BenchSpec`, call `compile`, and pass the resulting `ValidatedBenchPlan` to `run` with a `RunContext`."
+msgstr "`runner` は唯一の measurement loop です。"
+
+#: manual/package_reference.md:91
+#, fuzzy
+msgid "`Implementation::stateless` is convenient for pure payloads; `Implementation::in_process` carries a context; `Implementation::worker` executes a native command through `WorkerSpec`, recording timeout, exit code, stdout, and stderr. Use `synchronize` for asynchronous devices so queued work is complete at both timing boundaries."
+msgstr "`stateless`、context 付き `in_process`、native subprocess の `worker` を選べます。 timeout、exit code、stdout、stderr は typed failure として保存します。exploratory と confirmatory observation は別の母集団として扱います。"
+
+#: manual/package_reference.md:97
+msgid "The runtime sequence is:"
+msgstr ""
+
+#: manual/package_reference.md:104
+msgid "Calibration and validation happen outside timed blocks. Each complete balanced cycle rotates implementation order using `balanced_order`. Exploratory and confirmatory observations are emitted as separate phases; summaries should not mix them accidentally."
+msgstr ""
+
+#: manual/package_reference.md:109
+msgid "`OutputSink::keep_last` is appropriate when the output only needs to stay alive until the block ends. Use `OutputSink::new` when a checksum, digest, or reduced state must be retained without timing the final conversion."
+msgstr ""
+
+#: manual/package_reference.md:113
+msgid "`event` and `ir_sink`"
+msgstr ""
+
+#: manual/package_reference.md:115
+#, fuzzy
+msgid "`event` defines `ObservationSink`. `InMemorySink` is useful in tests and local analysis; `JsonlSink` preserves one-line event records; `streaming_jsonl` emits each record immediately; `tee` fans out to two sinks. `ir_sink` contains the named constructors used by applications and examples."
+msgstr "`event` は in-memory、JSONL、stream、tee sink を提供します。raw JSONL は append-only の audit record であり、outlier policy で書き換えません。"
+
+#: manual/package_reference.md:120
+#, fuzzy
+msgid "Treat JSONL as an append-only audit stream. Never rewrite raw observations to apply an outlier policy. A report can discard an invalid point while the event stream still retains the original reason and artifact."
+msgstr "`stats` は summary、paired median delta、deterministic percentile bootstrap を提供します。 paired array の同じ index は同じ dataset/repetition/block でなければなりません。現在の bootstrap は BCa、studentized、hierarchical resampling ではありません。"
+
+#: manual/package_reference.md:126
+#, fuzzy
+msgid "`summarize` returns count, extrema, mean, median, MAD, quartiles, IQR, and population standard deviation. `paired_deltas` requires equal-length arrays; the i-th baseline and candidate values must refer to the same block and repetition."
+msgstr "`report` は JSONL を `ir_model.PlotDocument` に変換し、JSON/SVG/HTML を純粋に生成します。 invalid observation と discarded batch は plot から除外し、validation failure は differential section に残します。filesystem effect は `cli` の責務です。"
+
+#: manual/package_reference.md:131
+msgid "`compare_paired` uses median paired delta and a practical threshold. The bootstrap variant uses an explicit seed, resample count, confidence, and interval mode. It is a percentile bootstrap, not BCa, studentized, or hierarchical resampling. Invalid inputs return `BootstrapError` rather than a plausible-looking interval."
+msgstr ""
+
+#: manual/package_reference.md:147
+msgid "Keep the seed and resample count beside the experiment configuration. Apply `filter_outliers` only to a derived report view; never mutate the original paired arrays."
+msgstr ""
+
+#: manual/package_reference.md:151
+#, fuzzy
+msgid "`ir_model` and `report`"
+msgstr "`tune` と `tune_gemm`"
+
+#: manual/package_reference.md:153
+msgid "`ir_model` is the portable report vocabulary: `PlotDocument` contains a schema version, run id, target, plots, and a `DifferentialReport`. Plot kinds distinguish scaling, raw distribution, block order, intervals, outliers, change points, heatmaps, and Pareto views. `x` is categorical; a Pareto plot is therefore a categorical scatter view, not a numeric frontier renderer."
+msgstr ""
+
+#: manual/package_reference.md:159
+msgid "`report.document_from_jsonl` parses the event stream into Plot IR. `plot_json` is the machine-readable `mmks_1` representation; `plot_svg` renders one plot; `html` wraps plots, mismatch rows, flags, capabilities, corpus counters, and counterexamples in a self-contained document. All report functions are pure: the CLI owns filesystem access."
+msgstr ""
+
+#: manual/package_reference.md:165
+msgid "Invalid observations, discarded batches, and infrastructure failures are excluded from plotted series. Validation failures remain visible in the differential section so a fast-but-wrong implementation cannot look like a speedup."
+msgstr ""
+
+#: manual/package_reference.md:172
+msgid "`tune` provides candidate-space and budget primitives. `CandidateSpace` owns enumeration, ids, validity, and neighbors. `TuningBudget` separates exploration from confirmation and names a holdout (`MeasurementHoldout`, `DatasetHoldout`, `ShapeHoldout`, `WorkloadHoldout`, or `Combined`)."
+msgstr ""
+
+#: manual/package_reference.md:177
+msgid "`score_samples` converts paired samples into a primary/secondary score; `select_best` applies a practical threshold and optional secondary minimization; `pareto_frontier` retains non-dominated candidates; `seeded_order` makes candidate evaluation reproducible. `exhaustive_scores` is intentionally a pure policy helper: applications still own building, running, correctness validation, and event emission."
+msgstr ""
+
+#: manual/package_reference.md:186
+msgid "`tune_gemm` is a concrete GEMM policy layer. A `GemmScale` records dimensions, batch/reuse count, and operand layouts. A `GemmCandidate` records blocking, microkernel, loop order, packing, allocation mode, and timing scope."
+msgstr ""
+
+#: manual/package_reference.md:190
+msgid "The safe tuning order is:"
+msgstr ""
+
+#: manual/package_reference.md:192
+msgid "Generate reproducible matrices with `reproducible_matrix`."
+msgstr ""
+
+#: manual/package_reference.md:193
+msgid "Reject candidates with `valid_candidate` and workspace limits."
+msgstr ""
+
+#: manual/package_reference.md:194
+msgid "Validate numerical output with `gemm_is_correct`."
+msgstr ""
+
+#: manual/package_reference.md:195
+msgid "Measure only the configured `TimingScope`."
+msgstr ""
+
+#: manual/package_reference.md:196
+msgid "Score candidates with `tune`, preserving holdout shapes."
+msgstr "`tune` は candidate space、budget、holdout、score、Pareto frontier をモデル化します。 build、実行、正しさの検証、environment capture は application が明示的に行います。"
+
+#: manual/package_reference.md:197
+#, fuzzy
+msgid "Serialize the exact configuration with `config_json`."
+msgstr "`tune_gemm` は shape、layout、packing、workspace、microkernel、timing scope を持つ具体例です。 reference で候補を検証してから測定し、holdout shape を confirmation に使用します。"
+
+#: manual/package_reference.md:199
+msgid "`gemm_reference` is the correctness oracle. `gemm_blocked` is the portable baseline. `execute_candidate` returns `None` for invalid shapes or buffers; it does not convert an invalid candidate into a zero-valued result."
+msgstr ""
+
+#: manual/package_reference.md:205
+msgid "The native CLI has two commands:"
+msgstr ""
+
+#: manual/package_reference.md:214
+#, fuzzy
+msgid "`report` accepts `-` for stdin/stdout. `replay` currently requires a file artifact because executing a captured external command is an explicit native effect. `--dry-run` prints command, arguments, and timeout; execution requires `--yes`. Unknown options and extra positional arguments are errors."
+msgstr "replay は native の外部 process effect です。信頼できる artifact だけを dry-run で確認し、実行時は `--yes` を明示します。"
+
+#: manual/package_reference.md:219
+msgid "Stability Notes"
+msgstr "Stability"
+
+#: manual/package_reference.md:221
+msgid "Generated interfaces are authoritative for names and signatures. The following are intentionally not stable contracts: benchmark timing thresholds, candidate enumeration order beyond seeded policies, private fixture storage, HTML/CSS styling, and implementation-specific allocation or algorithm choices."
+msgstr "公開名と signature は生成 interface が authoritative です。benchmark threshold、private storage、renderer styling、内部 algorithm は compatibility promise ではありません。"
+
+#: manual/tutorial/report.md:1
+msgid "`report` Tutorial"
+msgstr "`report` チュートリアル"
+
+#: manual/tutorial/report.md:3
+msgid "From JSONL"
+msgstr ""
+
+#: manual/tutorial/report.md:9
+msgid "Observation events require `implementation`, `dataset_id`, and `elapsed_us`. A summary event supplies `run_id`. Calibration and validation events are safely ignored by the default scaling projection."
+msgstr "Observation event には `implementation`、`dataset_id`、`elapsed_us` が必要で、 summary event が `run_id` を提供します。default scaling projection は calibration と validation event を無視します。"
+
+#: manual/tutorial/report.md:13
+msgid "From Plot IR"
+msgstr ""
+
+#: manual/tutorial/report.md:15
+msgid "Construct `PlotPoint`, `Plot`, and `PlotDocument`, then call `plot_json`, `plot_svg`, or `html`. Keep plot titles, units, series names, and category labels as unescaped domain text; the renderer escapes output contexts."
+msgstr "Plot IR を直接使う場合は `PlotPoint`、`Plot`、`PlotDocument` を作り、`plot_json`、 `plot_svg`、`html` を呼びます。renderer が output context ごとに escape します。"
+
+#: manual/tutorial/runner.md:1
+msgid "`runner` Tutorial"
+msgstr "`runner` チュートリアル"
+
+#: manual/tutorial/runner.md:3
+msgid "The common single-step path is an immutable description compiled before any measurement effects occur:"
+msgstr "一般的な single-step benchmark は immutable description として構築し、 measurement effect の前に compile します。"
+
+#: manual/tutorial/runner.md:24
+msgid "Use explicit fixture, implementation, oracle, and sink combinators for stateful or multi-step cases. Preserve emitted observations before computing summaries."
+msgstr "stateful または multi-step case では fixture、implementation、oracle、sink の明示的な combinator を使います。summary の前に raw observation を保存します。"
+
+#: manual/tutorial/runner.md:27
+msgid "Use distinct runs for JS and native targets. Their elapsed values are not a single comparable population."
+msgstr "JS と native は別 run とし、elapsed value を同じ母集団として比較しません。"
+
+#: manual/tutorial/stats.md:1
+msgid "`stats` Tutorial"
+msgstr "`stats` チュートリアル"
+
+#: manual/tutorial/stats.md:27
+msgid "Keep baseline and candidate arrays in the same block/repetition order. Apply an outlier policy to a derived analysis view; do not erase raw observations. Record the bootstrap seed and resample count with the experiment configuration."
+msgstr "baseline と candidate の配列は同じ block/repetition 順序を保ちます。outlier policy は派生ビューに適用し、raw observation は削除しません。 bootstrap seed と resample count は実験設定とともに記録してください。"
+
+#: manual/verification.md:3
+#, fuzzy
+msgid "Verification is layered: compile the public surface, run focused package tests, then execute the cross-target suite and smoke artifacts."
+msgstr "レポートテストは structured JSON、XML/HTML escape、line/heatmap rendering、 JSONL から Plot IR への変換を確認します。同梱 fixture で native report と replay dry-run の end-to-end smoke test も実行できます。event test は `mmka_1` marker、 sink fan-out、replay 可能な最小化 failure を検証します。"
+
+#: manual/verification.md:6
+msgid "Fast loop"
+msgstr ""
+
+#: manual/verification.md:16
+msgid "Cross-target matrix"
+msgstr ""
+
+#: manual/verification.md:26
+#, fuzzy
+msgid "Native covers process workers, monotonic timing, and replay. JS catches serialization and pure-policy portability regressions."
+msgstr "stats test は決定的な percentile bootstrap interval と不正設定の処理を検証しますが、 BCa correction、hierarchical resampling、benchmark 中の filesystem streaming、全 PlotKind の domain semantics は保証しません。CI は未カバーの実行可能行を 360 以下に制限しますが、この budget は percentage でも risk-based test の代替でもありません。"
+
+#: manual/verification.md:29
+msgid "Artifact smoke tests"
+msgstr ""
+
+#: manual/verification.md:40
+msgid "The report fixture verifies JSONL parsing, scaling projection, escaping, and self-contained output. The replay fixture verifies artifact-version checks, command restoration, and timeout display without executing a process."
+msgstr ""
+
+#: manual/verification.md:44
+msgid "Evidence boundaries"
+msgstr ""
+
+#: manual/verification.md:46
+msgid "`stats` tests prove deterministic percentile bootstrap bounds and reject invalid configuration; they do not claim BCa or hierarchical resampling."
+msgstr ""
+
+#: manual/verification.md:48
+msgid "`runner` tests prove setup/timing ordering, balanced blocks, worker timeout, and typed failure preservation; they do not prove a machine's timer quality."
+msgstr ""
+
+#: manual/verification.md:50
+msgid "`report` tests prove Plot IR and escaping invariants; they do not guarantee browser-specific typography or CSS rendering."
+msgstr ""
+
+#: manual/verification.md:52
+msgid "`tune_gemm` tests prove candidate validity and numerical checks; they do not prove that a candidate is fastest on every CPU or target."
+msgstr ""
+
+#: manual/verification.md:55
+msgid "Coverage and generated interfaces"
+msgstr ""
+
+#: manual/verification.md:62
+msgid "`pkg.generated.mbti` snapshots are the public-interface evidence. If a public signature changes, update the generated snapshot through MoonBit tooling and then update the matching package reference and localized index. Do not hand edit generated files."
+msgstr ""
+
+#~ msgid "Documentation Standard"
+#~ msgstr "ドキュメント標準"
+
+#~ msgid "Documentation must describe the current branch rather than planned APIs."
+#~ msgstr "ドキュメントには現在の branch で実装済みの機能だけを記載します。"
+
+#~ msgid "Localized documentation lives under `doc/en_US`, `doc/zh_CN`, and `doc/ja_JP`."
+#~ msgstr "locale 文書は `doc/en_US`、`doc/zh_CN`、`doc/ja_JP` に置きます。"
+
+#~ msgid "English is the structural baseline; translations keep matching relative paths."
+#~ msgstr "英語を構造上の基準とし、翻訳は同じ相対パスを保ちます。"
+
+#~ msgid "Each documented package uses `api.md`, `design.md`, and `tutorial.md`."
+#~ msgstr "各 package は `api.md`、`design.md`、`tutorial.md` を使用します。"
+
+#~ msgid "`README.mbt.md` gives a short package-local entry point."
+#~ msgstr "`README.mbt.md` は package 内の短い入口です。"
+
+#~ msgid "`pkg.generated.mbti` is authoritative for MoonBit public signatures."
+#~ msgstr "MoonBit の公開シグネチャは `pkg.generated.mbti` を基準とします。"
+
+#, fuzzy
+#~ msgid "`api.md` lists callable behavior and observable results."
+#~ msgstr "`api.md` は呼び出し可能な動作、`tutorial.md` は最短の実用フロー、`design.md` は責務・不変条件・effect・制限、`verification.md` は再現可能な証拠を扱います。"
+
+#~ msgid "Commands, identifiers, package paths, schema names, and version numbers remain unchanged across translations. A capability must not be documented as complete until code and focused tests exercise it."
+#~ msgstr "コマンド、識別子、package path、schema 名、version は翻訳しません。コードと対象テストが存在しない機能を完成済みとして記載してはいけません。"
+
+#~ msgid "Primary Package Guides"
+#~ msgstr "主要 package"
+
+#~ msgid "Runner: [API](./api/runner.md), [tutorial](./tutorial/runner.md), [design](./design/runner.md)"
+#~ msgstr "Runner: [API](./api/runner.md)、[チュートリアル](./tutorial/runner.md)、[設計](./design/runner.md)"
+
+#~ msgid "Statistics: [API](./api/stats.md), [tutorial](./tutorial/stats.md), [design](./design/stats.md)"
+#~ msgstr "統計: [API](./api/stats.md)、[チュートリアル](./tutorial/stats.md)、[設計](./design/stats.md)"
+
+#~ msgid "Reports: [API](./api/report.md), [tutorial](./tutorial/report.md), [design](./design/report.md)"
+#~ msgstr "レポート: [API](./api/report.md)、[チュートリアル](./tutorial/report.md)、[設計](./design/report.md)"
+
+#~ msgid "Other Packages"
+#~ msgstr "その他の package"

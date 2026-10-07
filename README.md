@@ -40,17 +40,17 @@ moon add Luna-Flow/mare_mark@0.3.0
 
 | Need | Start here | Why |
 | --- | --- | --- |
-| Describe scales, inputs, outcomes, and protocol | [`model`](./doc/en_US/package_reference.md#model) | Shared versioned vocabulary and event payloads |
-| Generate deterministic inputs | [`generator`](./doc/en_US/package_reference.md#generator) | Seed derivation and stable fingerprints |
-| Clone, prepare, reset, and time setup | [`fixture`](./doc/en_US/package_reference.md#fixture) | Lifecycle and setup-timing policy |
-| Compare implementations | [`runner`](./doc/en_US/package_reference.md#runner) | Validation-before-timing, calibration, balanced blocks |
-| Build reference or relational checks | [`experiment`](./doc/en_US/package_reference.md#experiment) | Oracles, shrinkers, and crossover decisions |
-| Store or stream JSONL events | [`event`](./doc/en_US/package_reference.md#event) | In-memory, JSONL, and tee sinks |
-| Summarize paired measurements | [`stats`](./doc/en_US/package_reference.md#stats) | Median deltas and deterministic bootstrap intervals |
-| Render artifacts | [`report`](./doc/en_US/package_reference.md#report) | JSONL -> Plot IR -> SVG/HTML |
-| Search candidate configurations | [`tune`](./doc/en_US/package_reference.md#tune) | Budgets, holdouts, scores, and Pareto fronts |
-| Tune the built-in GEMM example | [`tune_gemm`](./doc/en_US/package_reference.md#tune_gemm) | Correctness, layouts, packing, workspace, and timing scope |
-| Use files from a shell | [`cli`](./doc/en_US/package_reference.md#cli) | `report` and guarded `replay` commands |
+| Describe scales, inputs, outcomes, and protocol | [`model`](./doc/manual/package_reference.md#model) | Shared versioned vocabulary and event payloads |
+| Generate deterministic inputs | [`generator`](./doc/manual/package_reference.md#generator) | Seed derivation and stable fingerprints |
+| Clone, prepare, reset, and time setup | [`fixture`](./doc/manual/package_reference.md#fixture) | Lifecycle and setup-timing policy |
+| Compare implementations | [`runner`](./doc/manual/package_reference.md#runner) | Validation-before-timing, calibration, balanced blocks |
+| Build reference or relational checks | [`experiment`](./doc/manual/package_reference.md#experiment) | Oracles, shrinkers, and crossover decisions |
+| Store or stream JSONL events | [`event`](./doc/manual/package_reference.md#event) | In-memory, JSONL, and tee sinks |
+| Summarize paired measurements | [`stats`](./doc/manual/package_reference.md#stats) | Median deltas and deterministic bootstrap intervals |
+| Render artifacts | [`report`](./doc/manual/package_reference.md#report) | JSONL -> Plot IR -> SVG/HTML |
+| Search candidate configurations | [`tune`](./doc/manual/package_reference.md#tune) | Budgets, holdouts, scores, and Pareto fronts |
+| Tune the built-in GEMM example | [`tune_gemm`](./doc/manual/package_reference.md#tune_gemm) | Correctness, layouts, packing, workspace, and timing scope |
+| Use files from a shell | [`cli`](./doc/manual/package_reference.md#cli) | `report` and guarded `replay` commands |
 
 The short path is `runner` + `generator` + `fixture` + `event`; add `stats`
 when making a decision and `report` when publishing an artifact. `tune` and
@@ -139,13 +139,14 @@ excluded from plotted series rather than silently treated as zero.
 
 ## Documentation Map
 
-- [English documentation](./doc/en_US/README.md)
-- [简体中文文档](./doc/zh_CN/README.md)
-- [日本語ドキュメント](./doc/ja_JP/README.md)
-- [Getting started](./doc/en_US/getting_started.md)
-- [Architecture and timing boundaries](./doc/en_US/architecture.md)
-- [Package reference](./doc/en_US/package_reference.md)
-- [Verification and evidence](./doc/en_US/verification.md)
+The manual is published at <https://luna-flow.github.io/en/mare_mark/>, with
+Chinese and Japanese translations. Its English source lives in
+[`doc/manual/`](./doc/manual/index.md).
+
+- [Getting started](./doc/manual/getting_started.md)
+- [Architecture and timing boundaries](./doc/manual/architecture.md)
+- [Package reference](./doc/manual/package_reference.md)
+- [Verification and evidence](./doc/manual/verification.md)
 - [Report fixture](./testdata/report/sample.jsonl)
 - [Replay fixture](./testdata/replay/sample.jsonl)
 
@@ -161,7 +162,7 @@ moon info
 ```
 
 The repository keeps application code under `src/`, documentation under
-`doc/<locale>/`, and checked-in smoke inputs under `testdata/`. Generated
+`doc/manual/`, and checked-in smoke inputs under `testdata/`. Generated
 `pkg.generated.mbti` files are the authoritative public interface snapshots;
 update prose when a public boundary changes, but do not edit generated files.
 
