@@ -23,6 +23,21 @@ All notable changes to mare_mark are documented in this file.
   package reference is folded into the package pages. Chinese and Japanese
   translations are complete.
 
+### Fixed
+
+- `stats.compare_paired` and `experiment.comparator_label` no longer report an
+  exact tie as `Faster` / `"A"` at a zero threshold; a tie is `Equivalent` /
+  `"Unknown"` for every threshold. A threshold that is `NaN`, infinite or
+  negative, or a `NaN` relative delta, now gives `Invalid` / `"Unknown"`
+  instead of a classification (#1).
+- `runner.validate_protocol` rejects `NaN` and infinite durations
+  (`warmup_time_us`, `target_batch_time_us`, `max_sample_time_us`) and a
+  non-finite `practical_delta_pct` (#1).
+- `stats.summarize` propagates `NaN`: every statistic except `count` is `NaN`
+  when the input contains one, instead of an inconsistent summary with
+  `min > max`. `filter_outliers` computes its fences from the non-`NaN`
+  values and drops `NaN` (#11).
+
 ## 0.3.0 - 2026-07-15
 
 - Add deterministic percentile bootstrap intervals for paired measurements,
