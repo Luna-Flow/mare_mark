@@ -289,7 +289,20 @@ pub fn select_best(
   }
 }
 
-/// Deterministic seeded candidate order used by bounded exploration.
+///|
+/// The SplitMix64 output finalizer (Stafford's Mix13): a bijection of 64-bit
+/// words with good avalanche, so every input bit affects the high bits that
+/// decide the sort.
+fn mix64(value : UInt64) -> UInt64 {
+  let mut mixed = value
+  mixed = (mixed ^ (mixed >> 30)) * 0xBF58476D1CE4E5B9UL
+  mixed = (mixed ^ (mixed >> 27)) * 0x94D049BB133111EBUL
+  mixed ^ (mixed >> 31)
+}
+
+/// Deterministic seeded candidate order used by bounded exploration. Ids are
+/// hashed with FNV-1a keyed by the seed and finalized with `mix64`; candidates
+/// are sorted by that key, then by id.
 
 ///|
 pub fn[Candidate] seeded_order(
@@ -304,7 +317,7 @@ pub fn[Candidate] seeded_order(
       hash = seed ^ 1469598103934665603UL {
       continue (hash ^ character.to_int().to_uint64()) * 1099511628211UL
     } nobreak {
-      hash
+      mix64(hash)
     }
     (hash, candidate)
   })

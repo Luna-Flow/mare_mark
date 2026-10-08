@@ -42,6 +42,11 @@ All notable changes to mare_mark are documented in this file.
 - `mare-mark replay --dry-run` without an artifact reports
   `replay requires an input artifact` and exits with `2` instead of exiting
   `0` silently (#9).
+- `tune.seeded_order` finalizes its seeded FNV-1a key with the SplitMix64
+  output finalizer before sorting. Unmixed keys kept ids that differ only in their
+  last characters next to each other, so a prefix was far from a random
+  subset. **The order produced for a given seed changes**: subsets recorded
+  with an earlier version are not reproduced by this one (#10).
 
 ## 0.3.0 - 2026-07-15
 

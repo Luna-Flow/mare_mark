@@ -75,3 +75,32 @@ test "exhaustive scoring rejects non-finite measurements" {
   @test.assert_eq(result.build_events[0].reason, "measurement")
   @test.assert_eq(result.policy, "global:good")
 }
+
+///|
+test "seeded order separates ids that differ only at the end" {
+  let ids = Array::makei(100, index => "candidate-" + index.to_string())
+  let decade : Map[String, Int] = Map([])
+  for index, id in ids {
+    decade[id] = index / 10
+  }
+  for seed in [1UL, 2UL, 2026UL] {
+    let order = @tune.seeded_order(ids, seed, id => id)
+    assert_eq(order.length(), 100)
+    // Unmixed FNV-1a keys put one block of ten consecutive ids first.
+    let first = decade.get(order[0]).unwrap()
+    assert_true(order[:10].iter().any(id => decade.get(id).unwrap() != first))
+  }
+}
+
+///|
+test "seeded order is a permutation that changes with the seed" {
+  let ids = Array::makei(64, index => "c" + index.to_string())
+  let first = @tune.seeded_order(ids, 1UL, id => id)
+  let second = @tune.seeded_order(ids, 2UL, id => id)
+  let sorted = first.copy()
+  sorted.sort()
+  let expected = ids.copy()
+  expected.sort()
+  assert_eq(sorted, expected)
+  assert_true(first != second)
+}
