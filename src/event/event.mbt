@@ -65,6 +65,26 @@ fn status_name(status : @model.ValidationStatus) -> String {
 }
 
 ///|
+fn status_reason(status : @model.ValidationStatus) -> String? {
+  match status {
+    Valid => None
+    Invalid(reason)
+    | Skipped(reason)
+    | ExpectedDifference(reason)
+    | Unsupported(reason)
+    | InfrastructureFailure(reason) => Some(reason)
+  }
+}
+
+///|
+fn setup_timing_name(timing : @model.SetupTiming) -> String {
+  match timing {
+    ExcludedFromMeasurement => "excluded_from_measurement"
+    IncludedInMeasurement => "included_in_measurement"
+  }
+}
+
+///|
 fn validation_json(validation : @model.Validation) -> Json {
   let base : Map[String, Json] = {
     "artifact_version": Json::string(@model.ArtifactVersion::V1.identifier()),
@@ -73,6 +93,10 @@ fn validation_json(validation : @model.Validation) -> Json {
     "implementation": Json::string(validation.implementation_id),
     "oracle": Json::string(validation.oracle_id),
     "scale": Json::string(validation.scale_text),
+  }
+  match status_reason(validation.status) {
+    Some(reason) => base["reason"] = Json::string(reason)
+    None => ()
   }
   match validation.evidence {
     None => Json::object(base)
@@ -145,6 +169,7 @@ fn observation_json(observation : @model.Observation) -> Json {
     "elapsed_us": Json::number(observation.raw_elapsed_us),
     "iterations": Json::number(observation.iterations.to_double()),
     "batch_sink": Json::string(observation.batch_sink.text()),
+    "setup_timing": Json::string(setup_timing_name(observation.setup_timing)),
     "valid": Json::boolean(observation.valid),
   })
 }

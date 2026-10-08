@@ -159,3 +159,50 @@ test "streaming JSONL writes every event and preserves location" {
   assert_true(lines[1].contains("\"type\":\"calibration\""))
   assert_true(lines[2].contains("\"type\":\"summary\""))
 }
+
+///|
+test "JSONL keeps setup timing and validation reasons" {
+  let jsonl = JsonlSink::new()
+  let sink = jsonl.as_sink()
+  (sink.emit_observation)(
+    @model.Observation::new(
+      "matmul",
+      "naive",
+      "1",
+      0,
+      0,
+      0,
+      @model.ObservationPhase::Confirmatory,
+      12.5,
+      1,
+      @model.BatchSinkStatus::Kept,
+      @model.SetupTiming::IncludedInMeasurement,
+      true,
+    ),
+  )
+  (sink.emit_validation)(
+    @model.Validation::new(
+      @model.ValidationStatus::Invalid("off by one ulp"),
+      "ref",
+      "naive",
+      "n=4096",
+    ),
+  )
+  (sink.emit_validation)(
+    @model.Validation::new(
+      @model.ValidationStatus::Valid,
+      "ref",
+      "naive",
+      "n=1",
+    ),
+  )
+  let lines = jsonl
+    .to_jsonl()
+    .split("\n")
+    .map(line => line.to_owned())
+    .collect()
+  assert_eq(lines.length(), 3)
+  assert_true(lines[0].contains("\"setup_timing\":\"included_in_measurement\""))
+  assert_true(lines[1].contains("\"reason\":\"off by one ulp\""))
+  assert_true(!lines[2].contains("\"reason\""))
+}

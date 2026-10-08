@@ -51,6 +51,10 @@ All notable changes to mare_mark are documented in this file.
   `ScaleDomain.compare` before looking for transitions, so an unsorted domain
   no longer turns a single crossover into `NonMonotonic` or a wrong boundary.
   The evidence lists the labels in sorted order (#5).
+- JSONL observations carry `setup_timing` (`excluded_from_measurement` or
+  `included_in_measurement`), and validation and `validation_failure` lines
+  carry the `reason` of every status that has one. Both fields are additive
+  within `mmka_1`; readers that ignore unknown fields are unaffected (#8).
 
 ## 0.3.0 - 2026-07-15
 
