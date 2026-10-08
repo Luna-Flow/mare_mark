@@ -9,6 +9,46 @@ async fn write_stdout(message : String) -> Unit {
 }
 
 ///|
+/// The usage error of a `replay` request, as a message and a hint, or `None`
+/// when the request may proceed. Checked in this order: parse errors, a
+/// missing artifact (with or without `--dry-run`), stdin as input, and a
+/// missing `--yes` outside `--dry-run`.
+fn replay_usage_error(request : CliRequest) -> (String, String)? {
+  match request.error {
+    Some(message) => return Some((message, "Try 'mare-mark replay --help'."))
+    None => ()
+  }
+  match request.input {
+    None =>
+      Some(
+        ("replay requires an input artifact", "Try 'mare-mark replay --help'."),
+      )
+    Some("-") =>
+      Some(
+        (
+          "replay stdin is not available on this command path yet", "Use a file artifact with 'mare-mark replay --help'.",
+        ),
+      )
+    Some(_) =>
+      if request.yes == false && request.dry_run == false {
+        Some(
+          (
+            "replay requires --yes to execute an external command", "Use --dry-run to inspect it first.",
+          ),
+        )
+      } else {
+        None
+      }
+  }
+}
+
+///|
+/// Formats a duration measured in microseconds as milliseconds.
+fn elapsed_text(elapsed_us : Double) -> String {
+  (elapsed_us / 1000.0).to_string() + "ms"
+}
+
+///|
 async fn main {
   let request = parse_args(@env.args())
   if request.show_help {
@@ -27,33 +67,12 @@ async fn main {
       @sys.exit(2)
     }
     Replay => {
-      if request.error is Some(message) {
-        write_stderr(
-          "mare-mark: error: " + message + "\nTry 'mare-mark replay --help'.",
-        )
-        @sys.exit(2)
-      }
-      if request.input is None {
-        if request.input is None &&
-          request.output is None &&
-          request.dry_run == false {
-          write_stderr(
-            "mare-mark: error: replay requires an input artifact\nTry 'mare-mark replay --help'.",
-          )
+      match replay_usage_error(request) {
+        Some((message, hint)) => {
+          write_stderr("mare-mark: error: " + message + "\n" + hint)
           @sys.exit(2)
         }
-      }
-      if request.input is Some("-") {
-        write_stderr(
-          "mare-mark: error: replay stdin is not available on this command path yet\nUse a file artifact with 'mare-mark replay --help'.",
-        )
-        @sys.exit(2)
-      }
-      if request.yes == false && request.dry_run == false {
-        write_stderr(
-          "mare-mark: error: replay requires --yes to execute an external command\nUse --dry-run to inspect it first.",
-        )
-        @sys.exit(2)
+        None => ()
       }
       match request.input {
         None => ()
@@ -163,8 +182,7 @@ async fn main {
                     "\nevents: " +
                     events.to_string() +
                     "\nelapsed: " +
-                    elapsed.to_string() +
-                    "ms",
+                    elapsed_text(elapsed),
                   )
                 }
               }

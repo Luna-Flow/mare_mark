@@ -37,6 +37,11 @@ All notable changes to mare_mark are documented in this file.
   when the input contains one, instead of an inconsistent summary with
   `min > max`. `filter_outliers` computes its fences from the non-`NaN`
   values and drops `NaN` (#11).
+- `mare-mark report` prints its elapsed time in milliseconds; it printed
+  microseconds labelled `ms` (#2).
+- `mare-mark replay --dry-run` without an artifact reports
+  `replay requires an input artifact` and exits with `2` instead of exiting
+  `0` silently (#9).
 
 ## 0.3.0 - 2026-07-15
 
