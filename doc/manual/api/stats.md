@@ -79,9 +79,10 @@ pub fn summarize(Array[Double]) -> SummaryStats
 
 The input is copied before sorting, so the caller's array keeps its order. An
 empty array gives `count == 0` and every other field `0.0`; test `count` before
-reading the other fields. Non-finite values are not rejected: a `NaN` makes the
-mean and standard deviation `NaN` and gives the sort an unspecified position
-for it. Cost: $O(n \log n)$ time for the two sorts, $O(n)$ extra space.
+reading the other fields. A `NaN` anywhere in the input propagates: every
+field except `count` is then `NaN`, wherever the `NaN` sits. Infinite values
+are sorted normally (and can make `mean` and `std_dev` infinite or `NaN`).
+Cost: $O(n \log n)$ time for the two sorts, $O(n)$ extra space.
 
 ```moonbit
 test "summarize a sample" {
@@ -116,10 +117,10 @@ pub enum Decision {
 
 | Constructor | Meaning |
 | --- | --- |
-| `Faster` | the relative median delta is at or below $-t$ |
-| `Slower` | the relative median delta is at or above $t$ |
-| `Equivalent` | the relative median delta lies strictly between $-t$ and $t$ |
-| `Invalid` | the two arrays have different lengths |
+| `Faster` | the relative median delta is negative and at or below $-t$ |
+| `Slower` | the relative median delta is positive and at or above $t$ |
+| `Equivalent` | anything else, including an exact tie |
+| `Invalid` | the arrays have different lengths, the threshold is not finite and non-negative, or the relative delta is `NaN` |
 | `Unknown` | there are no pairs |
 
 Here $t$ is the practical threshold passed as `practical_delta_pct`.
@@ -199,25 +200,24 @@ the point estimate $r$ only; the interval is the interquartile range
 $[Q_d(0.25), Q_d(0.75)]$ of the deltas and is descriptive, not a confidence
 interval.
 
-The decision is the first test that holds: `Invalid` if the lengths differ,
-`Unknown` if there are no pairs, `Faster` if $r \le -t$, `Slower` if
-$r \ge t$, `Equivalent` otherwise. Other edge cases:
+The decision is the first test that holds:
+
+1. `Invalid` if the lengths differ;
+2. `Unknown` if there are no pairs;
+3. `Invalid` if $t$ is `NaN`, infinite or negative, or if $r$ is `NaN`;
+4. `Faster` if $r < 0$ and $r \le -t$;
+5. `Slower` if $r > 0$ and $r \ge t$;
+6. `Equivalent` otherwise.
+
+An exact tie ($r = 0$) is therefore `Equivalent` for every valid threshold,
+including $t = 0$. Other edge cases:
 
 - When the lengths differ, $r$ and `speedup` mix the median of the truncated
   deltas with the median of the whole baseline; ignore them for `Invalid`.
 - When $\operatorname{med}(b) = 0$, $r$ is `0.0` (so the decision is
-  `Equivalent` for $t > 0$) and `speedup` is `0.0` unless
-  $\operatorname{med}(d) = 0$.
-- A `NaN` in either array is not rejected; it lands at an unspecified position
-  of the sort and can produce any decision. Filter non-finite values first.
-
-> [!WARNING]
-> The threshold is not validated
-> ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$
-> an exact tie is `Faster`, because $0 \le -0$. With $t < 0$ every slowdown
-> smaller than $\lvert t\rvert$ percent is `Faster`. With $t$ = `NaN` (or
-> $+\infty$) every comparison is `Equivalent`, even a twofold slowdown. Pass a
-> finite, positive threshold.
+  `Equivalent`) and `speedup` is `0.0` unless $\operatorname{med}(d) = 0$.
+- A `NaN` in either array propagates through `summarize` to $r$, so the
+  decision is `Invalid`.
 
 ```moonbit
 test "threshold edge cases" {
@@ -225,13 +225,13 @@ test "threshold edge cases" {
   let tie = @stats.compare_paired(
     "base", "cand", base, base, 0.0, @model.confirmatory_interval(),
   )
-  inspect(tie.decision is Faster, content="true")
+  inspect(tie.decision is Equivalent, content="true")
   let nan = 0.0 / 0.0
   let slow = @stats.compare_paired(
     "base", "cand", base, [20.0, 20.0, 20.0], nan, @model.confirmatory_interval(),
   )
   inspect(slow.relative_delta_pct, content="100")
-  inspect(slow.decision is Equivalent, content="true")
+  inspect(slow.decision is Invalid, content="true")
 }
 ```
 
@@ -357,8 +357,10 @@ seed, the resample count and the confidence in percent. Unlike
 empty arrays (`EmptySamples`). `relative_delta_pct`, `speedup`, `decision` and
 `valid_samples` are the same as from `compare_paired`; only `interval` changes,
 and it does not influence the decision. The interval is in the unit of the
-input, while the decision is in percent. The threshold is not validated here
-either: the warning under `compare_paired` applies unchanged.
+input, while the decision is in percent. A threshold that is not finite and
+non-negative gives `Ok` with the decision `Invalid`, as in `compare_paired`;
+a `NaN` or infinite delta is rejected by the bootstrap with
+`NonFiniteSample`.
 
 ```moonbit
 test "paired comparison with a bootstrap interval" {
@@ -398,7 +400,9 @@ pub fn filter_outliers(Array[Double], @model.OutlierPolicy) -> Array[Double]
 | `TukeyFence` | $Q(0.25) - 1.5\,\mathrm{IQR} \le x \le Q(0.75) + 1.5\,\mathrm{IQR}$ |
 | `MADTrim` | $\lvert x - Q(0.5)\rvert \le 3\,\mathrm{MAD}$ |
 
-The input array is never modified. When more than half of the values are equal,
+The input array is never modified. `TukeyFence` and `MADTrim` compute their
+fences from the values that are not `NaN` and never keep a `NaN`; `ReportOnly`
+keeps it. When more than half of the values are equal,
 the MAD is `0` and `MADTrim` keeps only the values equal to the median. Use the
 result for a derived view; keep the raw observations.
 

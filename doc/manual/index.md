@@ -107,14 +107,6 @@ GEMM tuning configuration `mmkts_1`; readers reject other versions. Timing
 thresholds, candidate enumeration, HTML styling and private layouts are not
 compatibility promises. Each design page ends with the package's boundaries.
 
-> [!WARNING]
-> `stats.compare_paired` and `experiment.comparator_label` do not validate the
-> practical threshold: `0` reports an exact tie as `Faster` (`"A"`), and `NaN`
-> reports every comparison as `Equivalent` (`"Unknown"`)
-> ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite,
-> positive threshold. The [stats API](api/stats.md) lists the
-> exact behaviour.
-
 ## Where to read next
 
 - New to benchmarking with mare_mark: read [getting started](getting_started.md),

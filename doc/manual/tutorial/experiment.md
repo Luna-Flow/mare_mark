@@ -138,15 +138,17 @@ crossover. Measure the gap more finely, or decide the policy yourself.
 
 ## Common pitfalls
 
-- **Unsorted scales.** `crossover_from_labels` uses the order you give.
+- **A comparator that disagrees with your scale order.** `crossover_from_labels`
+  sorts by `ScaleDomain.compare`; the boundary is reported in that order.
 - **Equality for floating-point results.** Use a tolerance that matches the
   algorithm's error bound.
 - **Shrinkers that grow the input.** Candidates should be smaller, or the
   budget is spent without progress.
 - **Reading `NonMonotonic` as a crossover.** It is not; the preference flips.
-- **A zero or `NaN` threshold in `comparator_label`.** With `0.0` a tie is
-  labelled `"A"`; with `NaN` every label is `"Unknown"` and no crossover can
-  be found. Use a finite, positive threshold.
+- **A zero or unusable threshold in `comparator_label`.** With `0.0` only an
+  exact tie is `"Unknown"`, so noise decides every other label; with `NaN`, an
+  infinite or a negative threshold every label is `"Unknown"` and no crossover
+  can be found. Use a finite, positive threshold.
 
 ## Next steps
 

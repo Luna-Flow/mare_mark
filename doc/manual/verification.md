@@ -74,10 +74,10 @@ The catalogs and attachments are checked with the Luna-Flow `lunadoc` tool:
 
 - `stats`: robust summaries, decision thresholds, invalid-input errors, and
   that bootstrap intervals are deterministic and lie within the range of the
-  deltas. Not: coverage of the intervals (the design page computes it for
-  small samples), BCa or hierarchical resampling, or the threshold edge cases
-  `0`, negative and `NaN`, which are documented but not rejected
-  ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)).
+  deltas, the decision for ties and for thresholds that are `0`, `NaN`,
+  infinite or negative, and `NaN` propagation through `summarize` and
+  `compare_paired`. Not: coverage of the intervals (the design page computes
+  it for small samples), BCa or hierarchical resampling.
 - `runner`: validation before timing, timing boundaries per setup policy
   (synchronization, reset exclusion), calibration bounds, balanced order,
   worker abort and timeout, minimized replayable failures, relational
@@ -88,7 +88,7 @@ The catalogs and attachments are checked with the Luna-Flow `lunadoc` tool:
 - `tune` and `tune_gemm`: median scoring, order-independent selection, Pareto
   filtering, candidate constraints, bitwise agreement of blocked and reference
   GEMM over all layouts with tails. Not: that a tuned candidate is fastest on
-  another CPU, or that `seeded_order` behaves like a uniform random
-  permutation (it does not for ids that differ only at the end).
+  another CPU. `seeded_order` is tested for spreading ids that differ only at
+  the end, not for statistical randomness.
 - `cli`: argument parsing, help texts, replay extraction. The native `main` is
   exercised by the smoke tests only.

@@ -323,9 +323,6 @@ snapshot, the seed determines everything except the timings.
 - It materializes one input per scale; it does not regenerate inputs per block.
 - `protocol_identity`, and hence `run_id`, covers only the warmup count, the
   confirmatory sample count and the practical threshold.
-- `validate_protocol` does not reject `NaN` durations or a `NaN` threshold: a
-  `NaN` target disables calibration and a `NaN` warmup time disables the time
-  criterion of the warmup.
 - Subprocess workers need the native target; `run` itself needs an async
   runtime (native, JS or wasm, not wasm-gc).
 - First-order carryover between implementations is not balanced.

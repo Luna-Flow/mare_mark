@@ -356,9 +356,9 @@ see the [generator tutorial](generator.md).
 - **Assuming `run_id` is unique.** It identifies protocol and case; put a
   unique id in `ProvenanceEnvironment.run_id`.
 - **Calling `run` outside an async context.** It is an `async fn`.
-- **Relying on `validate_protocol` to catch `NaN`.** It rejects negative and
-  zero values but not `NaN`; a `NaN` threshold makes every later comparison
-  `Equivalent`.
+- **A zero threshold with noisy data.** `validate_protocol` accepts `0.0`, and
+  `stats.compare_paired` then calls every non-zero difference `Faster` or
+  `Slower`. Choose the smallest change you care about.
 
 ## Next steps
 

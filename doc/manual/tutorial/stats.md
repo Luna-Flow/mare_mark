@@ -260,18 +260,18 @@ tied by $s = 1/(1 + r/100)$ whenever the baseline median is not zero; the
   and candidate separately destroys the pairing; sort pairs, not arrays.
 - **Mixing phases or targets.** Exploratory and confirmatory observations,
   native and JS timings are different populations. Filter before pairing.
-- **A zero, negative or `NaN` threshold.** The threshold is not validated. With
-  `practical_delta_pct = 0.0` an exact tie is reported as `Faster`; a negative
-  threshold reports small slowdowns as `Faster`; `NaN` reports everything,
-  even a twofold slowdown, as `Equivalent`
-  ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite,
-  positive threshold such as `2.0`.
+- **A zero threshold.** With `practical_delta_pct = 0.0` only an exact tie is
+  `Equivalent`; every other difference, however small, is `Faster` or
+  `Slower`. A `NaN`, infinite or negative threshold gives `Invalid`. Use a
+  finite, positive threshold such as `2.0`.
 - **Trusting the interval of a short run.** With a handful of blocks the
   bootstrap interval of the median covers the true median less often than its
   nominal level (87.5 % instead of 95 % for seven pairs); the
   [stats design](../design/stats.md) has the table.
-- **`NaN` timings.** `compare_paired` does not reject them and can return any
-  decision; the bootstrap functions return `NonFiniteSample`.
+- **`NaN` timings.** A single `NaN` makes every statistic of `summarize` `NaN`
+  and the decision of `compare_paired` `Invalid`; the bootstrap functions
+  return `NonFiniteSample`. Find and drop the broken observation instead of
+  filtering `NaN` silently.
 - **Reading `summarize([])`.** An empty sample returns zeros; check `count`.
 - **Comparing interval and threshold directly.** The interval is in the input
   unit, the threshold in percent.

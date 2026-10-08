@@ -149,13 +149,16 @@ Every line is an object with `"artifact_version": "mmka_1"` and a `"type"`:
 
 | `type` | Fields |
 | --- | --- |
-| `observation` | `case`, `implementation`, `implementation_version`, `dataset_id`, `repetition_id`, `block_id`, `phase`, `elapsed_us`, `iterations`, `batch_sink`, `valid` |
-| `validation` | `status`, `implementation`, `oracle`, `scale`; with evidence also `case`, `dataset_id`, `step_id`, `operation`, `operands`, `context`, `rounding`, `expected`, `actual`, `expected_kind`, `actual_kind`, `expected_flags`, `actual_flags`, `trap`, `stderr`, `exit_code` (when present), `fingerprint`, `implementation_version`, `replay_command`, `replay_arguments`, `replay_timeout_ms` |
+| `observation` | `case`, `implementation`, `implementation_version`, `dataset_id`, `repetition_id`, `block_id`, `phase`, `elapsed_us`, `iterations`, `batch_sink`, `setup_timing`, `valid` |
+| `validation` | `status`, `reason` (for every status except `valid`), `implementation`, `oracle`, `scale`; with evidence also `case`, `dataset_id`, `step_id`, `operation`, `operands`, `context`, `rounding`, `expected`, `actual`, `expected_kind`, `actual_kind`, `expected_flags`, `actual_flags`, `trap`, `stderr`, `exit_code` (when present), `fingerprint`, `implementation_version`, `replay_command`, `replay_arguments`, `replay_timeout_ms` |
 | `validation_failure` | all fields of the validation, plus `seed` (a decimal string), `original_fingerprint`, `minimal_fingerprint`, `shrink_path`, `minimal_input` |
 | `calibration` | `implementation`, `dataset_id`, `batch_iterations`, `elapsed_us`, `target_elapsed_us`, `retries` |
 | `summary` | `run_id`, `observation_count`, `validation_count`, `calibration_count`, `complete`, `passed_count`, `failed_count`, `unsupported_count`, `expected_difference_count`, and `environment` with `semantic`, `performance` and `provenance` objects when known |
 
 `status` is one of `valid`, `invalid`, `skipped`, `expected_difference`,
-`unsupported`, `infrastructure_failure`; the reason strings of the status are
-not written. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept`
-or `discarded:<reason>`. The observation's `setup_timing` is not written.
+`unsupported`, `infrastructure_failure`; `reason` is the string the status
+carries. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept`
+or `discarded:<reason>`; `setup_timing` is `excluded_from_measurement` or
+`included_in_measurement`. Both `reason` and `setup_timing` were added within
+`mmka_1` ([issue #8](https://github.com/Luna-Flow/mare_mark/issues/8)); older
+streams lack them, and readers must not require them.

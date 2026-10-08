@@ -252,7 +252,10 @@ This winner is the raw minimum of the measured scores: it ignores the
 practical threshold and the secondary metric, and it is subject to the
 winner's curse derived in the [tune design](../design/tune.md). For a decision,
 call `select_best` on `result.scores` and confirm the finalists with fresh
-measurements.
+measurements. Whether the policy string should follow `select_best` is open
+([issue #12](https://github.com/Luna-Flow/mare_mark/issues/12)); it would need
+a threshold and a secondary preference that `exhaustive_scores` does not take
+today.
 
 ```moonbit
 test "exhaustive search" {
@@ -295,18 +298,17 @@ pub struct TuningResult {
 pub fn[Candidate] seeded_order(Array[Candidate], UInt64, (Candidate) -> String) -> Array[Candidate]
 ```
 
-Each id is hashed with FNV-1a keyed by the seed; candidates are sorted by hash,
-then by id. When ids are unique, the result depends on the set of ids and the
-seed, not on the input order. Use a prefix of it as a reproducible subset.
+Each id is hashed with FNV-1a keyed by the seed, and the hash is passed through
+the SplitMix64 output finalizer; candidates are sorted by that key, then by
+id. When ids are unique, the result depends on the set of ids and the seed,
+not on the input order. Use a prefix of it as a reproducible random subset.
+The finalizer makes every character of an id, including the last one, affect
+the high bits that decide the sort, so ids that differ only at the end are
+spread over the order.
 
-> [!WARNING]
-> The hash has no final mixing step, and its high bits, which decide the sort,
-> depend only weakly on the last characters of an id. Ids that differ only at
-> the end stay clustered: for the ids `"c0"` to `"c99"` and seed `1` the order
-> starts `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …`. A prefix is then
-> far from a random subset. Ids with a long common suffix after the varying
-> part, such as the `tune_gemm` ids, are mixed much better. Put the varying
-> part first in your ids, or shuffle with your own well-mixed hash.
+The order changed in the release that added the finalizer
+([issue #10](https://github.com/Luna-Flow/mare_mark/issues/10)): a subset
+recorded with an earlier version is not reproduced by the same seed.
 
 ```moonbit
 test "seeded order is input-order independent" {

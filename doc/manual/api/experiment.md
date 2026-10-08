@@ -193,8 +193,17 @@ pub struct ScaleDomain[Scale] {
 pub fn[Scale] ScaleDomain::new(Array[Scale], (Scale, Scale) -> Int, (Scale) -> String) -> Self[Scale]
 ```
 
-`crossover_from_labels` reads `values` in the given order and does not sort
-them; pass them sorted.
+```moonbit
+test "the domain is sorted with its comparator" {
+  let domain = @experiment.ScaleDomain::new([64, 16, 256], (a, b) => a.compare(b), n => n.to_string())
+  guard @experiment.crossover_from_labels(domain, ["B", "A", "B"]) is Found(boundary, _, evidence) else {
+    fail("expected a crossover")
+  }
+  inspect(boundary.below, content="16")
+  inspect(boundary.at_or_above, content="64")
+  debug_inspect(evidence, content="[\"A\", \"B\", \"B\"]")
+}
+```
 
 ### `comparator_label`
 
@@ -204,17 +213,20 @@ them; pass them sorted.
 pub fn comparator_label(Double, Double) -> String
 ```
 
-`comparator_label(r, t)` is `"A"` when $r \le -t$, else `"B"` when $r \ge t$,
-else `"Unknown"`, the same ordered chain as the decision of
-`@stats.compare_paired`. Pass the relative delta of A measured against B as the
-baseline, so that `"A"` means A is faster.
+`comparator_label(r, t)` is `"A"` when $r < 0$ and $r \le -t$, `"B"` when
+$r > 0$ and $r \ge t$, and `"Unknown"` otherwise, the same rule as the decision
+of `@stats.compare_paired`. An exact tie is `"Unknown"` for every threshold,
+including `0`. A `NaN` delta and a threshold that is `NaN`, infinite or
+negative also give `"Unknown"`. Pass the relative delta of A measured against
+B as the baseline, so that `"A"` means A is faster.
 
-> [!WARNING]
-> The threshold is not validated
-> ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$
-> an exact tie ($r = 0$) is `"A"`; with $t < 0$ small slowdowns of A are `"A"`
-> too; with $t$ = `NaN` every delta is `"Unknown"`, so `crossover_from_labels`
-> can only report `NoCrossover`. Pass a finite, positive threshold.
+```moonbit
+test "ties and unusable thresholds stay unlabelled" {
+  inspect(@experiment.comparator_label(0.0, 0.0), content="Unknown")
+  inspect(@experiment.comparator_label(-1.0, 0.0), content="A")
+  inspect(@experiment.comparator_label(-50.0, 0.0 / 0.0), content="Unknown")
+}
+```
 
 ### `crossover_from_labels`
 
@@ -225,8 +237,11 @@ changes.
 pub fn[Scale] crossover_from_labels(ScaleDomain[Scale], Array[String]) -> @model.CrossoverResult[Scale]
 ```
 
-`labels[i]` is the verdict at `values[i]`. A transition is a pair of adjacent
-labels that differ and are both not `"Unknown"`.
+`labels[i]` is the verdict at `values[i]`. The pairs (`values[i]`,
+`labels[i]`) are first sorted stably with `domain.compare`, so the values may
+be given in any order; below, `values` and `labels` mean the sorted sequences.
+A transition is a pair of adjacent labels that differ and are both not
+`"Unknown"`.
 
 | Situation | Result |
 | --- | --- |

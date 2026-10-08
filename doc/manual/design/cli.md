@@ -83,5 +83,4 @@ pipes, so it composes with other tools.
 - `--open` uses the macOS `open` command.
 - `replay` reads files only, executes the first failure only, and passes the
   command directly to the process API (no shell).
-- The progress line prints a microsecond value labelled `ms`.
 - The version string is fixed in the source.

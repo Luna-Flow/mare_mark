@@ -277,7 +277,7 @@ the decision is then `Invalid`, and $r$ and $s$ are not meaningful.
 *Problem.* With enough repetitions any difference becomes statistically
 significant, including a 0.1 % change nobody would act on. *Options.* A
 $t$-test or Wilcoxon test; an equivalence test (TOST); a practical threshold
-on the point estimate. *Choice.* The decision is the three-way rule
+on the point estimate. *Choice.* For $t > 0$ the decision is the three-way rule
 
 $$
 \text{Faster} \iff r \le -t, \qquad
@@ -291,35 +291,35 @@ in the unit of the decision, the rule is reproducible from two medians, and it
 does not reward running more repetitions. Uncertainty is reported next to the
 decision through the interval, not folded into it.
 
-The code evaluates the rule as an ordered chain, `Faster` first:
+The rule is meaningful only for a threshold $t \in [0, \infty)$ and a
+relative delta $r \ne \mathrm{NaN}$; `compare_paired` returns `Invalid`
+otherwise. For valid inputs the code evaluates
 
 $$
 \text{decision}(r, t) =
 \begin{cases}
-\text{Faster} & \text{if } r \le -t, \\
-\text{Slower} & \text{else if } r \ge t, \\
+\text{Faster} & \text{if } r < 0 \text{ and } r \le -t, \\
+\text{Slower} & \text{if } r > 0 \text{ and } r \ge t, \\
 \text{Equivalent} & \text{otherwise.}
 \end{cases}
 $$
 
-For $0 < t < \infty$ the three regions $(-\infty, -t]$, $[t, \infty)$ and
-$(-t, t)$ partition $\mathbb R$ and the chain is the rule above. For other
-thresholds it is not, and `compare_paired` does not reject them:[^issue1]
+The sign conditions make the first two regions disjoint for every $t \ge 0$:
+$\{r < 0,\ r \le -t\} = (-\infty, -t] \setminus \{0\}$ and
+$\{r > 0,\ r \ge t\} = [t, \infty) \setminus \{0\}$, so together with the rest
+of the line they partition $\mathbb R$. For $t > 0$ the sign conditions are
+implied by the threshold tests and the rule is exactly the one above. For
+$t = 0$ they matter: an exact tie $r = 0$ lies in neither of the first two
+regions and is `Equivalent`, while every other $r$ is `Faster` or `Slower`.
+Without them, $0 \le -0$ would make a tie `Faster`.[^issue1]
 
-- $t = 0$: $r \le -0$ holds at $r = 0$, so an exact tie is `Faster` and
-  `Equivalent` is never returned.
-- $t < 0$: the first test is $r \le \lvert t\rvert$, so every slowdown smaller
-  than $\lvert t\rvert$ percent is reported as `Faster`, and `Equivalent` is
-  never returned.
-- $t = \mathrm{NaN}$: every comparison with `NaN` is false, so every pair of
-  arrays, including a twofold slowdown, is `Equivalent`.
-- $t = +\infty$: every finite $r$ is `Equivalent`.
+A threshold that is `NaN`, infinite or negative has no meaning as "the smallest
+change you care about", and every comparison with `NaN` is false, so such a
+threshold would silently classify everything as `Equivalent` (or, for $t < 0$,
+small slowdowns as `Faster`). Returning `Invalid` makes the mistake visible.
+`runner.validate_protocol` rejects the same thresholds before a run.
 
-A `NaN` relative delta (for example from a `NaN` in the input) is also
-`Equivalent`. `runner.validate_protocol` rejects $t < 0$ but accepts `NaN`, and
-`stats` is called with any `Double`. Use a finite, positive threshold.
-
-[^issue1]: Reported as [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1). `experiment.comparator_label` uses the same chain and has the same behaviour.
+[^issue1]: Fixed in [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1). `experiment.comparator_label` uses the same rule and returns `"Unknown"` where `compare_paired` returns `Equivalent` or `Invalid`.
 
 ### Seeded percentile bootstrap of the median delta
 
@@ -393,15 +393,31 @@ Because the MAD is unscaled, the MAD trim removes about six times as many
 points as the Tukey fence from clean normal data ($4.3\,\%$ against
 $0.70\,\%$). It is also degenerate when more than half of the values coincide:
 the MAD is then $0$ and only values equal to the median survive. Both filters
-drop `NaN` values, because every comparison with `NaN` is false, but a `NaN`
-also corrupts the quartiles they are computed from.
+compute their fences from the values that are not `NaN` and never keep a
+`NaN`.
+
+### `NaN` propagates
+
+*Problem.* The default `Double` order puts a `NaN` at an unspecified position
+of a sort, so order statistics computed after sorting a sample with a `NaN`
+are inconsistent (a minimum above the maximum) and depend on the position of
+the `NaN` in the input. *Options.* Reject `NaN` with an error; drop it
+silently; propagate it. *Choice.* `summarize` returns `NaN` for every
+statistic except `count` when the input contains a `NaN`, and
+`compare_paired` turns the resulting `NaN` relative delta into `Invalid`.
+*Why.* Both functions are total and have no error channel; propagation keeps
+the result honest without changing their signatures, and `count` still shows
+how many values were passed. Dropping values would change $n$ and the pairing
+silently. The bootstrap functions, which already return `Result`, keep
+rejecting non-finite values with `NonFiniteSample`.
 
 ### Errors as values
 
 Invalid bootstrap input returns `Err(BootstrapError)`. An empty or non-finite
 sample would otherwise yield a plausible-looking interval of zeros or `NaN`.
 `summarize` and `compare_paired` stay total: they return neutral values
-(`count == 0`, `Unknown`, `Invalid`) that a caller can test.
+(`count == 0`, `NaN` statistics, `Unknown`, `Invalid`) that a caller can
+test.
 
 ## Correctness and invariants
 
@@ -460,11 +476,9 @@ sample would otherwise yield a plausible-looking interval of zeros or `NaN`.
   blocks dependent; the interval does not model that.
 - `filter_outliers` is never applied automatically, and `OutlierPolicy` in a
   `RunProtocol` is a recorded intent, not an action.
-- Non-finite values are rejected only by the bootstrap functions. A `NaN` in
-  the input of `summarize` or `compare_paired` lands at an unspecified position
-  of the sort and can produce any decision.
-- The practical threshold is not validated: `0`, negative values and `NaN`
-  give the decisions listed under the decision rule above.
+- Non-finite values are rejected with an error only by the bootstrap
+  functions; `summarize` and `compare_paired` propagate `NaN` as derived
+  above.
 - The bootstrap interval has no coverage guarantee for small $n$ (see the
   coverage table). An interval with guaranteed coverage for the median is the
   order-statistic interval $[d_{(i)}, d_{(j)}]$ with $i$ and $j$ chosen from

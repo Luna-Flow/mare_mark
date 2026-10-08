@@ -79,14 +79,19 @@ means the preference flips more than once and cannot be expressed as one
 threshold; $T = 0$ means no adjacent pair of definite, different labels.
 
 `comparator_label(r, t)` maps the relative delta to the labels with the same
-threshold rule as `stats`: $A$ if $r \le -t$, $B$ if $r \ge t$, `Unknown`
-otherwise, tested in this order. The `Unknown` band of width $2t$ keeps noise
-around $r = 0$ from creating spurious transitions. The band exists only for
-$0 < t < \infty$: with $t = 0$ the first test catches $r = 0$ and a tie becomes
-$A$, with $t < 0$ every $r \le \lvert t\rvert$ becomes $A$, and with
-$t = \mathrm{NaN}$ every label is `Unknown`, so $T = 0$ whatever the data. The
-function does not reject such thresholds; see
-[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1).
+threshold rule as `stats`: $A$ if $r < 0$ and $r \le -t$, $B$ if $r > 0$ and
+$r \ge t$, `Unknown` otherwise. The `Unknown` band $(-t, t)$ keeps noise around
+$r = 0$ from creating spurious transitions; for $t = 0$ it shrinks to the
+single point $r = 0$, so an exact tie never counts as a preference. A
+threshold that is `NaN`, infinite or negative has no band at all and yields
+`Unknown` for every $r$ (and so $T = 0$); `runner.validate_protocol` rejects
+such thresholds before a run.
+
+The labels are counted in scale order. `crossover_from_labels` first sorts the
+pairs $(s_i, \ell_i)$ stably with `ScaleDomain.compare`, so the sequence above is
+defined by the comparator and not by the order in which the caller listed the
+scales. Without the sort, a single crossover measured in the order
+$64, 16, 256$ with labels $B, A, B$ would count two transitions.
 
 ## Design decisions
 
@@ -130,9 +135,12 @@ would encode noise.
   transition.
 - `ReferenceOracle::equal` returns `Valid` only for two `Value` outcomes
   accepted by the comparator.
-- `comparator_label` partitions the real line into
-  $(-\infty, -t]$, $(-t, t)$, $[t, \infty)$ for $0 < t < \infty$; other
-  thresholds are accepted and behave as described above.
+- For a finite $t \ge 0$, `comparator_label` partitions the real line into
+  $(-\infty, -t] \setminus \{0\}$ (`A`), $[t, \infty) \setminus \{0\}$ (`B`)
+  and the rest (`Unknown`); for any other $t$ every label is `Unknown`.
+- `crossover_from_labels` depends only on the multiset of (scale, label)
+  pairs and the comparator, except for the order of pairs whose scales compare
+  equal, which the stable sort keeps.
 
 ## Alternatives rejected
 
@@ -145,8 +153,8 @@ would encode noise.
 
 ## Boundaries
 
-- `crossover_from_labels` does not sort the domain and does not use
-  `ScaleDomain.compare`; pass sorted values.
+- `crossover_from_labels` uses `ScaleDomain.compare` only to sort; equal
+  scales are not merged, and their labels stay in input order.
 - A transition across an `Unknown` label (A, Unknown, B) is not counted, so
   such a sequence reports `NoCrossover`.
 - Oracles are not run here; the runner runs them. `ReferenceOracle.sequence_length`

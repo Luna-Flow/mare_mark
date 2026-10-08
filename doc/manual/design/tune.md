@@ -91,17 +91,33 @@ $B = 60$ already gives $1 - 0.95^{60} \approx 0.954$ for the top 5 %. This is th
 classical argument for random search over grids.[^random]
 
 `seeded_order` approximates such an order by sorting candidates on a seeded
-64-bit FNV-1a hash of their ids. The argument needs the hash order to behave
-like a random permutation, and FNV-1a without a final mixing step does so only
-partly. The last character $c$ of an id enters as
+key $k = \mathrm{mix}(h)$, where $h$ is the 64-bit FNV-1a hash of the id with
+the seed folded into the offset basis and $\mathrm{mix}$ is the SplitMix64
+output finalizer
+
+$$
+\begin{aligned}
+z_1 &= (h \oplus (h \gg 30))\cdot \mathtt{0xBF58476D1CE4E5B9}, \\
+z_2 &= (z_1 \oplus (z_1 \gg 27))\cdot \mathtt{0x94D049BB133111EB}, \\
+k &= z_2 \oplus (z_2 \gg 31).
+\end{aligned}
+$$
+
+The argument needs the key order to behave like a random permutation, and
+FNV-1a alone does so only partly. The last character $c$ of an id enters as
 $h' = (h \oplus c)\cdot(2^{40} + 435)$: it changes the low byte of $h \oplus c$,
 which the factor $2^{40}$ moves to bits 40–47, and reaches the top bits, which
-decide the sort, only through carries. Ids that differ only in their last
-characters therefore stay next to each other in the order (for `"c0"` to
-`"c99"` and seed `1`, the first ten are `c0` to `c9` in an XOR-permuted
-order). Ids whose
-varying part is followed by a long common suffix, like the `tune_gemm` ids, go
-through many more multiplications after the difference and are well mixed.
+decide the sort, only through carries. Sorting on $h$ itself kept ids that
+differ only in their last characters next to each other (for `"c0"` to
+`"c99"` and seed `1`, the first ten were `c0` to `c9`).[^issue10] Each step of
+$\mathrm{mix}$ is a bijection (an xorshift and a multiplication by an odd
+constant), so distinct hashes keep distinct keys, and the right shifts feed the
+high bits back into the low ones before each multiplication carries them up
+again: one changed input bit changes each output bit with probability close to
+$1/2$. The key order is then a pseudo-random permutation for every pattern of
+ids.
+
+[^issue10]: [Issue #10](https://github.com/Luna-Flow/mare_mark/issues/10). Adding the finalizer changed the order for every seed.
 
 [^random]: J. Bergstra and Y. Bengio, "Random search for hyper-parameter optimization", *JMLR* 13, 2012.
 
@@ -170,5 +186,5 @@ finalists get more samples, quiet ones do not waste time.
 - `CandidateSpace.neighbors` is not used by any function in the package.
 - `exhaustive_scores` does not use `seeded_order` itself; reorder the space
   first if you want a random subset.
-- `seeded_order` is not a uniform random permutation; ids that differ only in
-  their last characters stay clustered.
+- `seeded_order` is pseudo-random, not cryptographic: the order is a fixed
+  function of the ids and the seed.

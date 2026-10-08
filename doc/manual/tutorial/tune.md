@@ -100,36 +100,20 @@ The 128×128 tile needs 128 KiB and is rejected before it is measured.
 
 ```moonbit
 test "a seeded subset" {
-  let all = Array::makei(100, i => i.to_string() + "-candidate")
+  let all = Array::makei(100, i => "candidate-" + i.to_string())
   let first_five = @tune.seeded_order(all, 2026UL, id => id)[:5].to_owned()
   let again = @tune.seeded_order(all.rev(), 2026UL, id => id)[:5].to_owned()
   inspect(first_five == again, content="true")
   inspect(
     first_five.join(" "),
-    content="5-candidate 57-candidate 4-candidate 68-candidate 40-candidate",
+    content="candidate-7 candidate-66 candidate-10 candidate-14 candidate-47",
   )
 }
 ```
 
 The same seed gives the same candidates whatever order the space is listed
-in. Record the seed with the result.
-
-Put the varying part of an id first. The hash behind `seeded_order` mixes the
-last characters of an id poorly, so ids that differ only at the end stay
-together:
-
-```moonbit
-test "ids that differ only at the end stay together" {
-  let all = Array::makei(100, i => "candidate-" + i.to_string())
-  debug_inspect(
-    @tune.seeded_order(all, 2026UL, id => id)[:3].to_owned(),
-    content="[\"candidate-90\", \"candidate-91\", \"candidate-92\"]",
-  )
-}
-```
-
-With these ids the first ten are `candidate-90` to `candidate-99`, which is not
-a random subset. The [tune API](../api/tune.md) explains why.
+in, and the candidates are spread over the whole space even though the ids
+differ only in their last characters. Record the seed with the result.
 
 ## Going further
 
@@ -151,8 +135,8 @@ a random subset. The [tune API](../api/tune.md) explains why.
   better than it is.
 - **A threshold of zero with noisy data.** Ties are then decided by noise.
 - **Ids that are not unique.** Selection and ordering assume unique ids.
-- **Ids that differ only at the end.** `seeded_order` keeps them clustered;
-  put the varying part first.
+- **Comparing subsets across versions.** The order for a seed changed when
+  `seeded_order` gained its finalizer; regenerate recorded subsets.
 - **Trusting the `exhaustive_scores` policy string.** `global:<id>` is the raw
   minimum, without practical ties or confirmation; decide with `select_best`.
 

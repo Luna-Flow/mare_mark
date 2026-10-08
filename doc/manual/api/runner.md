@@ -183,27 +183,24 @@ pub fn validate_protocol(@model.RunProtocol) -> Result[ValidatedProtocol, Array[
 | Rule | Error |
 | --- | --- |
 | `warmup_iterations >= 0` | `InvalidInteger("warmup_iterations", n)` |
-| `warmup_time_us`, when set, `>= 0` | `InvalidDuration("warmup_time_us", t)` |
+| `warmup_time_us`, when set, finite and `>= 0` | `InvalidDuration("warmup_time_us", t)` |
 | `exploratory_samples >= 0` | `InvalidInteger("exploratory_samples", n)` |
 | `confirmatory_samples > 0` | `InvalidInteger("confirmatory_samples", n)` |
-| `target_batch_time_us > 0` | `InvalidDuration("target_batch_time_us", t)` |
-| `max_sample_time_us > 0` | `InvalidDuration("max_sample_time_us", t)` |
+| `target_batch_time_us` finite and `> 0` | `InvalidDuration("target_batch_time_us", t)` |
+| `max_sample_time_us` finite and `> 0` | `InvalidDuration("max_sample_time_us", t)` |
 | `target_batch_time_us <= max_sample_time_us` | `InvalidDuration("target_batch_time_us", t)` |
 | `0 < min_batch_iterations <= max_batch_iterations` | `InvalidIterationRange(min, max)` |
-| `practical_delta_pct >= 0` | `InvalidPracticalDelta(pct)` |
+| `practical_delta_pct` finite and `>= 0` | `InvalidPracticalDelta(pct)` |
 
 All rules are checked; the errors are returned together, in this order.
 
-Each rule is implemented as a test for its violation (`x < 0.0`, `x <= 0.0`,
-`target > max`), and every comparison with `NaN` is false, so `NaN` passes all
-the `Double` rules. In particular a `NaN` `practical_delta_pct` is accepted and
-makes every `stats.compare_paired` decision on it `Equivalent`
-([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)), a `NaN`
-`target_batch_time_us` disables calibration (the first batch is kept), and a
-`NaN` `warmup_time_us` leaves only the `warmup_iterations` count. Infinite
-durations pass as well, except a `target_batch_time_us` above a finite
-`max_sample_time_us`. A threshold of `0.0` is accepted although it reports
-exact ties as `Faster`.
+"Finite" excludes `NaN` and both infinities. Without that requirement a `NaN`
+would pass every rule, because every comparison with `NaN` is false: a `NaN`
+`target_batch_time_us` would disable calibration and a `NaN`
+`practical_delta_pct` would make every later comparison meaningless. A
+threshold of `0.0` is valid; `stats.compare_paired` then reports every
+non-zero relative delta as `Faster` or `Slower` and an exact tie as
+`Equivalent`.
 
 ```moonbit
 test "protocol validation reports every problem" {

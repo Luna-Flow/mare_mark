@@ -94,6 +94,4 @@ evidence is without the runner knowing about files.
 - No file IO: writing lines to disk is the caller's job (the `cli` and
   applications do it).
 - `InMemorySink` does not keep the summary.
-- The JSONL writer omits the reason strings of validation statuses and the
-  observation's `setup_timing`.
 - No reader lives here; `report` and `cli` parse the stream.

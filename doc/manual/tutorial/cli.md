@@ -96,6 +96,8 @@ The [runner tutorial](runner.md) shows a run that produces such an event.
 - **Forgetting `--yes`.** Without it (and without `--dry-run`) `replay` exits
   with `2` and runs nothing.
 - **Extra arguments.** A third positional argument is a usage error.
+- **Forgetting the artifact.** `replay` needs an artifact path even with
+  `--dry-run`; without one it exits with `2`.
 
 ## Next steps
 

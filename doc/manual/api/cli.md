@@ -48,13 +48,13 @@ to execute without `--yes`.
 
 Exit codes: `0` on success, `1` when a file cannot be read or written, the
 JSONL is invalid, or a replay fails or times out, and `2` for usage errors
-(unknown command or option, missing arguments, missing `--yes`). On targets
+(unknown command or option, missing arguments, including `replay --dry-run`
+without an artifact, and missing `--yes`). On targets
 other than native, `report` works through `render_jsonl_report`, and `replay`
 exits with `2`.
 
 After writing a file, `report` prints the absolute output path, the number of
-non-empty input lines and the elapsed time. The elapsed value is measured in
-microseconds but labelled `ms`.
+non-empty input lines and the elapsed time in milliseconds.
 
 
 ## Requests
