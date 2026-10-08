@@ -92,3 +92,40 @@ test "replay parser reports malformed and incomplete artifacts" {
     is Err("unsupported artifact version 'mmka_99' at line 1"),
   )
 }
+
+///|
+#cfg(target="native")
+test "replay without an artifact is a usage error, also with --dry-run" {
+  for
+    arguments in [
+      ["mare-mark", "replay"],
+      ["mare-mark", "replay", "--dry-run"],
+      ["mare-mark", "replay", "--yes"],
+    ] {
+    guard replay_usage_error(parse_args(arguments)) is Some((message, _)) else {
+      abort("expected a usage error")
+    }
+    assert_eq(message, "replay requires an input artifact")
+  }
+  assert_true(
+    replay_usage_error(
+      parse_args(["mare-mark", "replay", "a.jsonl", "--dry-run"]),
+    )
+    is None,
+  )
+  assert_true(
+    replay_usage_error(parse_args(["mare-mark", "replay", "a.jsonl"]))
+    is Some(("replay requires --yes to execute an external command", _)),
+  )
+  assert_true(
+    replay_usage_error(parse_args(["mare-mark", "replay", "-", "--yes"]))
+    is Some(("replay stdin is not available on this command path yet", _)),
+  )
+}
+
+///|
+#cfg(target="native")
+test "report elapsed time converts microseconds to milliseconds" {
+  assert_eq(elapsed_text(1177.958), "1.177958ms")
+  assert_eq(elapsed_text(2500.0), "2.5ms")
+}
