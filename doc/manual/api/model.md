@@ -1,5 +1,7 @@
 # model API
 
+## Purpose
+
 `Luna-Flow/mare_mark/model` is the shared vocabulary of mare_mark: version
 identifiers, dataset and measurement keys, run protocols, environment
 snapshots, execution outcomes, validation evidence, the event records the
@@ -7,19 +9,27 @@ runner emits, and the decision types used by experiments and tuning. It has no
 dependencies and no behaviour beyond small accessors and identities. The
 reasons behind the shapes are in the [model design](../design/model.md).
 
+Most records are `pub struct` with read-only fields and a `new` constructor
+whose arguments follow the field order. Enums marked `pub(all)` can be built and
+matched by users.
+
 Source: [`src/model/model.mbt`](../../../src/model/model.mbt),
 [`src/model/versioning.mbt`](../../../src/model/versioning.mbt).
 
-```text
+## Importing
+
+Add the packages to the `moon.pkg` of the package that uses them:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/runner",
 }
 ```
 
-Most records are `pub struct` with read-only fields and a `new` constructor
-whose arguments follow the field order. Enums marked `pub(all)` can be built and
-matched by users.
+The examples on this page call them through their default aliases (`@model`,
+`@runner`); `runner` is needed only for `validate_protocol` and the protocol
+presets.
 
 ## Versions
 
@@ -188,7 +198,9 @@ Calibration grows the batch from `min_batch_iterations` until it lasts
 `target_batch_time_us`, reaches `max_batch_iterations` or exceeds
 `max_sample_time_us`.
 
-### Protocol enums
+### `ExperimentDesign`, `BatchPolicy`, `OrderPolicy`, `OutlierPolicy`, `ValidationCoverage`
+
+These enums name the choices a `RunProtocol` records.
 
 ```mbti
 pub(all) enum ExperimentDesign {
@@ -244,7 +256,7 @@ pub fn exploratory_interval() -> IntervalMode
 The enum is readonly outside the package; obtain values from the two
 functions.
 
-### Setup policy
+### `SetupPolicy`, `SetupFrequency`, `SetupTiming`, `WorkspaceScope`
 
 `SetupPolicy` tells the runner how often a fixture prepares its input and
 whether that work is timed.

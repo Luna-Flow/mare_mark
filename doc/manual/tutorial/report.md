@@ -6,13 +6,21 @@ machine-readable `mmks_1` JSON, and draw plots of your own. The examples are
 complete tests; file writing is left to your program or to the
 [`mare-mark` command](cli.md).
 
+| I want to | Use |
+| --- | --- |
+| render a JSONL stream as HTML | `@report.document_from_jsonl` and `@report.html` |
+| report a run without a file | an in-memory JSONL sink, then the two functions above |
+| export machine-readable results | `@report.plot_json` (`mmks_1`) |
+| draw one plot as SVG | `@report.plot_svg` |
+| publish numbers that did not come from a run | a `PlotDocument` built with `ir_model` |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/ir_model",
   "Luna-Flow/mare_mark/report",

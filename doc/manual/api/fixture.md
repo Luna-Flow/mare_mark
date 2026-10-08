@@ -1,5 +1,7 @@
 # fixture API
 
+## Purpose
+
 `Luna-Flow/mare_mark/fixture` describes the lifecycle of a benchmark input:
 how it is generated for a dataset, fingerprinted, copied, prepared for an
 implementation and reset afterwards, and whether that work is timed. The runner
@@ -8,12 +10,19 @@ lifecycle.
 
 Source: [`src/fixture/fixture.mbt`](../../../src/fixture/fixture.mbt).
 
-```text
+## Importing
+
+Add the packages to the `moon.pkg` of the package that uses them:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/fixture",
 }
 ```
+
+The examples on this page call them through their default aliases (`@model`,
+`@fixture`).
 
 ## Fixtures
 

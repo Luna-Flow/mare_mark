@@ -9,6 +9,14 @@ account for workspace, test tails, record the configuration and the
 environment) on matrix multiplication, without depending on hardware-specific
 kernels.
 
+## Constraints
+
+- The kernels must run on every MoonBit backend, so they use scalar code
+  only.
+- The built-in kernel must be checkable against the reference with tolerance
+  `0`.
+- Inputs must be reproducible from a seed on every target.
+
 ## Mathematical background
 
 ### The product and its layouts
@@ -88,13 +96,15 @@ $$
 x_{j+1} = 6364136223846793005\, x_j + 1442695040888963407 \pmod{2^{64}}, \qquad x_0 = \text{seed} \oplus \mathtt{0x9E3779B97F4A7C15},
 $$
 
-and maps each state to $v = \bigl((x \gg 32) \bmod 2001\bigr)/1000 - 1$. The
+and maps each state $x_1, x_2, \dots$ (the state is advanced before the first
+value is drawn) to $v = \bigl((x \gg 32) \bmod 2001\bigr)/1000 - 1$. The
 multiplier is $\equiv 1 \pmod 4$ and the increment is odd, so by the
 Hull–Dobell theorem the generator has the full period $2^{64}$. The 32-bit
 value $x \gg 32$ is reduced modulo 2001: since $2^{32} = 2146410 \cdot 2001 + 886$,
 886 of the 2001 values are slightly more likely, by a relative
-$1/2146410 \approx 4.7\cdot 10^{-7}$. Entries are multiples of $0.001$ in
-$[-1, 1]$. The logical matrix is generated in row-major order and then stored
+$1/2146410 \approx 4.7\cdot 10^{-7}$. Entries are $j/1000 - 1$ for
+$j \in \{0, \dots, 2000\}$, evaluated in double precision, so they lie in
+$[-1, 1]$ and are multiples of $0.001$ up to rounding. The logical matrix is generated in row-major order and then stored
 in the requested layout, so the layout does not change the values.
 
 ### Tails

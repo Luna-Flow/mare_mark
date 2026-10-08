@@ -8,6 +8,13 @@ accident. `fixture` separates the five things that happen to an input
 (generate, identify, copy, prepare, reset) so that the runner can place each
 of them on the right side of the clock.
 
+## Constraints
+
+- Input, prepared and output types are arbitrary, so the lifecycle is generic
+  in them.
+- The runner must know on which side of the clock each step falls.
+- Fixtures are often written inline in a test, next to the case they serve.
+
 ## Mathematical background
 
 A fixture is a small state machine applied per dataset $D$ and implementation
@@ -43,7 +50,7 @@ operations the runner reports $\hat T / n$, where
 | --- | --- | --- |
 | `PerIteration` | $c + a$ | $c$ |
 | `PerSample`, `PerBatch` | $c + a/n$ | $c$ |
-| long-lived | $c$ (the one preparation lands in an early, discarded batch) | $c$ |
+| long-lived | $c$ (the one preparation lands in the first warmup batch, or the first calibration batch without warmup; neither is reported as an observation) | $c$ |
 
 Including setup per batch measures an amortized cost that depends on the batch
 size chosen by calibration; include it only per iteration, or when the batch

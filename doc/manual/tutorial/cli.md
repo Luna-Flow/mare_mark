@@ -5,6 +5,14 @@ HTML report and to inspect, then replay, a recorded validation failure. The
 commands are run from a checkout of the repository; the examples use the
 fixtures in `testdata/`.
 
+| I want to | Use |
+| --- | --- |
+| turn a JSONL event file into an HTML report | `mare-mark report <input.jsonl> <output.html>` |
+| use the command in a pipeline | `mare-mark report - -` |
+| see what a recorded failure would run | `mare-mark replay <artifact.jsonl> --dry-run` |
+| run that command again | `mare-mark replay <artifact.jsonl> --yes` |
+| record failures that can be replayed | a `replay` function on the case, which fills `ReplaySpec` |
+
 ## Quick start
 
 ```sh

@@ -5,13 +5,21 @@ end: generate reproducible inputs, filter candidates by constraints, validate
 each one against the reference, measure the survivors with `runner`, score and
 select them with `tune`, and serialize the result.
 
+| I want to | Use |
+| --- | --- |
+| generate reproducible matrices | `@tune_gemm.reproducible_matrix` |
+| list the candidates that fit a shape and a workspace limit | `enumerate_gemm_candidates`, `valid_candidate`, `candidate_valid_for_shape` |
+| check a candidate, tails included | `boundary_shapes`, `gemm_reference`, `validate_gemm` |
+| measure candidates | `execute_candidate` inside a `runner` case |
+| choose and record the winner | `@tune.select_best` and `@tune_gemm.config_json` |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/tune_gemm",
   "Luna-Flow/mare_mark/model",

@@ -8,6 +8,14 @@ that turns one run seed into independent, named streams, and a fingerprint
 that records which input was actually used. Both are pure functions of their
 arguments.
 
+## Constraints
+
+- Derived seeds and fingerprints must be bit-identical on native, JS, wasm and
+  wasm-gc, years apart.
+- Inputs must depend on their names and ids only, never on the order in which
+  they are generated.
+- The functions keep no state between calls.
+
 ## Mathematical background
 
 All arithmetic is on 64-bit words, modulo $2^{64}$. Write $\oplus$ for
@@ -42,7 +50,8 @@ Each step is a bijection of 64-bit words:
 
 - $x \mapsto x \oplus a$ is its own inverse;
 - $x \mapsto a\,x$ with $a$ odd is invertible modulo $2^{64}$, because
-  $\gcd(a, 2^{64}) = 1$; all five multipliers are odd;
+  $\gcd(a, 2^{64}) = 1$; all four multipliers (the FNV prime, the golden-ratio
+  constant and the two finalizer constants) are odd;
 - $x \mapsto x \oplus (x \gg k)$ with $k \ge 1$ is invertible: the top $k$ bits
   are unchanged, and each lower block of $k$ bits is recovered from the block
   above it.
@@ -57,9 +66,14 @@ Two consequences follow directly.
    is a bijection, every FNV step $h \mapsto (h \oplus c)\,p$ is a bijection,
    and so is the rest. Changing the run seed changes every derived seed.
 
-Collisions are possible only between different domains, where FNV-1a behaves
-like a random function: for $N$ domain strings the chance of any collision is
-at most about $N^2 / 2^{65}$.
+For fixed $s$ and $i$, two domains collide exactly when their FNV states
+$h_m$ collide, because everything after $h_m$ is a bijection. Collisions are
+therefore possible only between different domains, or between different
+(domain, index) pairs with $h_m \oplus i = h'_{m'} \oplus i'$. Modelling FNV-1a
+as a random function, $N$ distinct domain strings collide with probability at
+most $\binom N2 2^{-64} < N^2/2^{65}$; this is a heuristic, not a property
+of FNV-1a. The index enters through `Int::to_uint64`, which sign-extends and
+is injective, so negative indices are distinct from non-negative ones.
 
 The finalizer gives avalanche: flipping one input bit flips each output bit
 with probability close to $1/2$. Consecutive indices therefore produce

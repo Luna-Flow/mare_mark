@@ -14,7 +14,7 @@ moon add Luna-Flow/mare_mark@0.3.0
 
 In the `moon.pkg` of the package that holds your benchmarks:
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/event",

@@ -7,6 +7,12 @@ report and every replayed failure must be recoverable from it. `event` keeps
 that record append-only and line-oriented, and keeps storage choices out of
 the runner.
 
+## Constraints
+
+- The record must be streamable, appendable and readable by any tool.
+- JSON numbers are doubles, so 64-bit integers cannot be stored as numbers.
+- The package does no file IO, so it runs on every target.
+
 ## Mathematical background
 
 Model a run as a sequence of events $e_1, e_2, \dots, e_N$ and a sink as a fold
@@ -16,9 +22,10 @@ joined by newlines.
 
 Two properties follow from this shape.
 
-1. **Prefix closure.** Every prefix of the stream is the stream of a shorter
-   run. A crash after $k$ events leaves the valid record of $e_1, \dots, e_k$;
-   a reader that processes lines independently can use it.
+1. **Prefix closure.** Every prefix of complete lines is the valid record of
+   $e_1, \dots, e_k$. A crash after $k$ events leaves such a prefix (without the
+   final summary event, which the runner emits last); a reader that processes
+   lines independently can use it.
 2. **Projection commutes with concatenation.** A report is built line by
    line, so the projection of two concatenated streams is computed from the
    projections of their lines. Merging or filtering streams is plain text

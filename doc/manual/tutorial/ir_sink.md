@@ -3,13 +3,20 @@
 This short tutorial wires a benchmark's events into both memory and a JSONL
 record using the `ir_sink` shorthand.
 
+| I want to | Use |
+| --- | --- |
+| keep events in memory | `@ir_sink.in_memory()` |
+| collect JSONL lines | `@ir_sink.jsonl()` |
+| write lines as they are produced | `@ir_sink.jsonl_stream(...)` |
+| do both | `@ir_sink.tee(left, right)` |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/ir_sink",

@@ -6,6 +6,13 @@ Separate what a report says from how it is drawn. Plot IR is a small,
 versioned data model that `report` produces from events and that any renderer
 (the built-in SVG/HTML, a notebook, a dashboard) can consume.
 
+## Constraints
+
+- Scales are integers, shapes, layouts or names, so one axis type must cover
+  them all.
+- Documents are read by renderers that may be newer or older than the writer.
+- The IR carries data only; it computes nothing.
+
 ## Mathematical background
 
 A plot is a finite multiset of points $(x, y, s)$ with a categorical $x$, a

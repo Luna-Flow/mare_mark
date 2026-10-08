@@ -1,5 +1,7 @@
 # event API
 
+## Purpose
+
 `Luna-Flow/mare_mark/event` receives what the runner emits. An
 `ObservationSink` is a record of five callbacks; the package provides an
 in-memory sink, a buffered JSONL sink, a streaming JSONL sink and a fan-out
@@ -8,12 +10,19 @@ read. See the [event design](../design/event.md).
 
 Source: [`src/event/event.mbt`](../../../src/event/event.mbt).
 
-```text
+## Importing
+
+Add the packages to the `moon.pkg` of the package that uses them:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/event",
 }
 ```
+
+The examples on this page call them through their default aliases (`@model`,
+`@event`).
 
 ## Sinks
 

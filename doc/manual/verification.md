@@ -56,10 +56,13 @@ uncovered lines), the interface check (`moon info` with no diff) and
 
 Every `moonbit` block in `doc/manual` is a complete test or a top-level
 definition; blocks that are deliberately partial are fenced
-`moonbit nocheck`. To check them, put each page's blocks into one package of a
-scratch module outside the repository that imports the mare_mark packages
-(with `moonbitlang/async` for the `async test`s), join it with the repository
-in a `moon.work`, and run `moon test`. The `inspect` contents in the pages are
+`moonbit nocheck`. To check them, put each page's blocks into one temporary
+package that imports the mare_mark packages it uses (with `moonbitlang/async`
+for the `async test`s), either under `src/` or in a scratch module joined with
+the repository in a `moon.work`, and run `moon test` on it. The `cli` pages
+are tests of the executable package, so their blocks go into a temporary
+`_test.mbt` file of `src/cli`. Remove the temporary package or file
+afterwards. The `inspect` contents in the pages are
 the verified outputs. Outputs that depend on the machine (timings, decisions on
 real measurements) are never shown.
 
@@ -71,7 +74,10 @@ The catalogs and attachments are checked with the Luna-Flow `lunadoc` tool:
 
 - `stats`: robust summaries, decision thresholds, invalid-input errors, and
   that bootstrap intervals are deterministic and lie within the range of the
-  deltas. Not: coverage of the intervals, BCa or hierarchical resampling.
+  deltas. Not: coverage of the intervals (the design page computes it for
+  small samples), BCa or hierarchical resampling, or the threshold edge cases
+  `0`, negative and `NaN`, which are documented but not rejected
+  ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)).
 - `runner`: validation before timing, timing boundaries per setup policy
   (synchronization, reset exclusion), calibration bounds, balanced order,
   worker abort and timeout, minimized replayable failures, relational
@@ -82,6 +88,7 @@ The catalogs and attachments are checked with the Luna-Flow `lunadoc` tool:
 - `tune` and `tune_gemm`: median scoring, order-independent selection, Pareto
   filtering, candidate constraints, bitwise agreement of blocked and reference
   GEMM over all layouts with tails. Not: that a tuned candidate is fastest on
-  another CPU.
+  another CPU, or that `seeded_order` behaves like a uniform random
+  permutation (it does not for ids that differ only at the end).
 - `cli`: argument parsing, help texts, replay extraction. The native `main` is
   exercised by the smoke tests only.

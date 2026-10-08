@@ -8,6 +8,15 @@ a result can be traced back to its protocol, input and environment. It owns no
 behaviour beyond identities and accessors, so it can be depended on by every
 layer without cycles.
 
+## Constraints
+
+- Every other package depends on `model`, directly or indirectly, so it can
+  depend on nothing.
+- Records travel through JSONL artifacts that outlive the code that wrote
+  them; their meaning must be pinned by a version.
+- Values are read everywhere but should be built through one documented path.
+- The package has no IO and no behaviour beyond identities and accessors.
+
 ## Mathematical background
 
 ### Environment compatibility as an equivalence relation

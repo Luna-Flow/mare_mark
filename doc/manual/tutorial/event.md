@@ -4,13 +4,21 @@ This tutorial shows where benchmark events go: into memory for analysis, into
 JSONL for the record, to both at once, or into a sink of your own. Every
 example is a complete test.
 
+| I want to | Use |
+| --- | --- |
+| keep events in memory for analysis | `@event.InMemorySink::new()` and `as_sink()` |
+| write the JSONL audit record | `@event.JsonlSink::new()`, `as_sink()` and `to_jsonl()` |
+| write lines while the run is going | `@event.streaming_jsonl(write_line, location)` |
+| send events to two sinks | `@event.tee(left, right)` |
+| store events somewhere else | `@event.ObservationSink::new(...)` with your callbacks |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/event",

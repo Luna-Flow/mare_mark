@@ -5,6 +5,11 @@
 Give applications one short import for the sinks that feed the report
 pipeline, without a second implementation of them.
 
+## Constraints
+
+- It must not define behaviour of its own, so it cannot drift from `event`.
+- Its values must mix freely with values built through `event`.
+
 ## Mathematical background
 
 Each function of `ir_sink` equals an `event` function:

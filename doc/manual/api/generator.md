@@ -1,5 +1,7 @@
 # generator API
 
+## Purpose
+
 `Luna-Flow/mare_mark/generator` makes benchmark inputs reproducible: it derives
 independent seeds for datasets, repetitions and blocks from one run seed,
 builds generation contexts, and fingerprints serialized inputs. The mixing
@@ -7,12 +9,19 @@ functions are derived in the [generator design](../design/generator.md).
 
 Source: [`src/generator/generator.mbt`](../../../src/generator/generator.mbt).
 
-```text
+## Importing
+
+Add the packages to the `moon.pkg` of the package that uses them:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/generator",
 }
 ```
+
+The examples on this page call them through their default aliases (`@model`,
+`@generator`).
 
 ## Seeds
 

@@ -5,13 +5,21 @@ immutable input shared by everyone, a mutable input copied before each batch,
 an input prepared differently per implementation, and setup cost that is
 deliberately included in the measurement. Every example is a complete test.
 
+| I want to | Use |
+| --- | --- |
+| share an input that nobody mutates | `@fixture.Fixture::immutable` |
+| copy a mutable input before each batch | `@fixture.Fixture::new` with a real `clone_input` |
+| prepare a layout per implementation | the implementation id passed to `prepare` |
+| include setup cost in the measurement | `SetupTiming::IncludedInMeasurement` in the `SetupPolicy` |
+| run the lifecycle by hand | `@fixture.materialize` and `@fixture.prepare` |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/fixture",

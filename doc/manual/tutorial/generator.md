@@ -5,13 +5,21 @@ independent seeds per dataset, a fixture uses them to generate inputs, and a
 fingerprint records exactly what was measured. Every example is a complete
 test.
 
+| I want to | Use |
+| --- | --- |
+| derive an independent seed for a dataset | `@generator.derive_seed(seed, domain, index)` |
+| derive a seed for one measured batch | `@generator.measurement_seed` |
+| build a generation context by hand | `@generator.context` |
+| record which input was measured | `@generator.stable_fingerprint` |
+| bundle a generator with its fingerprint | `@generator.Generator::new` |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/generator",

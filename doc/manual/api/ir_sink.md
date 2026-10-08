@@ -1,17 +1,26 @@
 # ir_sink API
 
+## Purpose
+
 `Luna-Flow/mare_mark/ir_sink` is a small facade over [`event`](event.md): four
 named constructors for the sinks that applications use most. Each function
 calls the `event` function of the same purpose and adds no behaviour.
 
 Source: [`src/ir_sink/ir_sink.mbt`](../../../src/ir_sink/ir_sink.mbt).
 
-```text
+## Importing
+
+Add the packages to the `moon.pkg` of the package that uses them:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/ir_sink",
   "Luna-Flow/mare_mark/model",
 }
 ```
+
+The examples on this page call them through their default aliases (`@ir_sink`,
+`@model`).
 
 ## `in_memory`
 

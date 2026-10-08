@@ -4,13 +4,21 @@ This tutorial builds report documents directly in Plot IR, so you can publish
 results that do not come from a JSONL stream, such as a tuning sweep or a
 summary computed with `stats`.
 
+| I want to | Use |
+| --- | --- |
+| build a report document by hand | `@ir_model.PlotDocument::new` |
+| plot one value per scale and series | `@ir_model.Plot::new` with `PlotPoint::new` |
+| choose how a plot is drawn | `@ir_model.PlotKind` |
+| attach mismatches and counterexamples | `@ir_model.DifferentialReport::new` |
+| render the document | `@report.html`, `@report.plot_json`, `@report.plot_svg` |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/ir_model",

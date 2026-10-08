@@ -1,5 +1,7 @@
 # ir_model API
 
+## Purpose
+
 `Luna-Flow/mare_mark/ir_model` defines Plot IR, the portable document that
 `report` builds from events and renders as JSON, SVG or HTML: plots of
 categorical points and a differential report of mismatches, capabilities,
@@ -7,11 +9,17 @@ counterexamples and corpus counts. See the [ir_model design](../design/ir_model.
 
 Source: [`src/ir_model/ir_model.mbt`](../../../src/ir_model/ir_model.mbt).
 
-```text
+## Importing
+
+Add the package to the `moon.pkg` of the package that uses it:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/ir_model",
 }
 ```
+
+The examples on this page call it through its default alias `@ir_model`.
 
 ## Documents
 

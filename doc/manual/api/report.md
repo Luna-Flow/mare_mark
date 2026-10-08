@@ -1,5 +1,7 @@
 # report API
 
+## Purpose
+
 `Luna-Flow/mare_mark/report` turns a JSONL event stream into a Plot IR
 document and renders that document as `mmks_1` JSON, standalone SVG or a
 self-contained HTML page. All four functions are pure: they take strings and
@@ -9,12 +11,19 @@ values and return strings. Reading and writing files is the job of the
 
 Source: [`src/report/report.mbt`](../../../src/report/report.mbt).
 
-```text
+## Importing
+
+Add the packages to the `moon.pkg` of the package that uses them:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/ir_model",
   "Luna-Flow/mare_mark/report",
 }
 ```
+
+The examples on this page call them through their default aliases (`@ir_model`,
+`@report`).
 
 ## Parsing events
 

@@ -5,13 +5,21 @@ an environment snapshot you can compare across runs, a protocol you can
 record, outcomes that say why an operation has no value, and a deployment
 policy derived from results. Every example is a complete test.
 
+| I want to | Use |
+| --- | --- |
+| describe the machine a run used | `@model.EnvironmentSnapshot::new` |
+| know whether two runs may be compared | `@model.environment_compatible` |
+| write down how a run was measured | `@model.RunProtocol::new` and `@model.protocol_identity` |
+| say why an operation has no value | the cases of `@model.ExecutionOutcome` |
+| turn a crossover into a deployment rule | `@model.CrossoverResult` and `@model.DeploymentPolicy` |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
 }

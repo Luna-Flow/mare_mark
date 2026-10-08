@@ -8,6 +8,13 @@ share. `report` is a pure projection from the JSONL event stream to Plot IR
 fast; it shows what the stream contains, and it never lets an invalid
 measurement look like a valid one.
 
+## Constraints
+
+- The same JSONL must give the same bytes on every target, so the functions
+  are pure and do no IO.
+- The HTML must render without network access, years later.
+- Strings in events come from payloads and may contain markup.
+
 ## Mathematical background
 
 ### The projection
@@ -45,14 +52,17 @@ $$
 \end{cases}
 $$
 
-and $[0, 1]$ for an empty plot. In every case $h - \ell > 0$, so the linear map
+and $[0, 1]$ for an empty plot. For finite values and in exact arithmetic,
+$h - \ell > 0$ in every case, so the linear map
 
 $$
 Y(v) = 354 - (v - \ell)\,\frac{252}{h - \ell}
 $$
 
 is well defined, and for every plotted value $\ell < v < h$, which places every
-point strictly inside the plot area. Heatmap cells use the opacity
+point strictly inside the plot area. In floating point the padding can be lost
+to rounding when $w$ is tiny compared with $\lvert v\rvert$, and an infinite or
+`NaN` value breaks the bounds; the renderer does not filter them. Heatmap cells use the opacity
 $0.18 + 0.72\,(v - \ell)/(h - \ell)$, which therefore lies strictly between
 $0.18$ and $0.90$: no cell is invisible and none is fully saturated.
 
@@ -123,8 +133,8 @@ JSON output carries `schema_version` `mmks_1`.
 - **Determinism.** Every function is pure; equal inputs give equal strings.
 - **Exclusion.** No point comes from an observation that is invalid, discarded
   or covered by a failing validation (definition of $P$).
-- **Containment.** Every point lies strictly inside the plot area, and every
-  heatmap opacity lies in $(0.18, 0.90)$ (derived above).
+- **Containment.** For finite values, every point lies strictly inside the
+  plot area, and every heatmap opacity lies in $(0.18, 0.90)$ (derived above).
 - **Escaping.** All text originating from events, titles, units and series
   names passes through the escape function before reaching SVG or HTML.
 - **Complexity.** Parsing is linear in the stream size, except that each point

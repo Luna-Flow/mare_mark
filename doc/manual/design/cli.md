@@ -7,6 +7,13 @@ Every other package is pure or confines its effects to the measurement loop.
 live. It keeps that adapter thin, and it makes the one dangerous operation,
 executing a command recorded in an artifact, explicit.
 
+## Constraints
+
+- Processes, standard streams and the filesystem are fully available only on
+  the native target.
+- Replay artifacts may come from untrusted sources and contain command lines.
+- Scripts must be able to tell a broken input from a broken invocation.
+
 ## Mathematical background
 
 The command line is a small total function from argument vectors to requests,

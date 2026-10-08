@@ -1,5 +1,7 @@
 # cli API
 
+## Purpose
+
 `Luna-Flow/mare_mark/cli` is the `mare-mark` executable: it renders JSONL
 event files as HTML reports and replays recorded validation failures. This
 page documents the command line and the public helper functions of the
@@ -10,9 +12,20 @@ Source: [`src/cli/cli.mbt`](../../../src/cli/cli.mbt),
 [`src/cli/main_unimplemented.mbt`](../../../src/cli/main_unimplemented.mbt)
 (other targets), [`src/cli/replay_native.mbt`](../../../src/cli/replay_native.mbt).
 
-## Command line
+## Importing
 
-Run it from a checkout with `moon run src/cli --target native -- <arguments>`.
+The package is an executable (`pkgtype(kind: "executable")`): you run it, you
+do not import it. Run it from a checkout with
+`moon run src/cli --target native -- <arguments>`, or build it with
+`moon build --target native` and call the produced binary.
+
+Its public functions are the building blocks of `main` and are covered by the
+package's tests. MoonBit 0.10 still lets another package import an executable
+package, but warns that this will become an error, so do not build on these
+functions from your own packages. The examples on this page are tests inside
+the package, where it is visible as `@cli`.
+
+## Command line
 
 ```text
 mare-mark <replay|report> [options] [input] [output]
@@ -43,13 +56,6 @@ After writing a file, `report` prints the absolute output path, the number of
 non-empty input lines and the elapsed time. The elapsed value is measured in
 microseconds but labelled `ms`.
 
-## Package functions
-
-The package is an executable (`pkgtype(kind: "executable")`). Its public
-functions are the building blocks of `main` and are covered by the package's
-tests. MoonBit 0.10 still lets another package import an executable package,
-but warns that this will become an error, so do not build on these functions
-from your own packages.
 
 ## Requests
 

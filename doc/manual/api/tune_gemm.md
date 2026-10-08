@@ -1,5 +1,7 @@
 # tune_gemm API
 
+## Purpose
+
 `Luna-Flow/mare_mark/tune_gemm` is a worked tuning domain: double-precision
 batched matrix multiplication $C = AB$ with configurable layouts, a blocked
 scalar implementation parameterized by cache and register block sizes, a
@@ -10,11 +12,17 @@ configuration. See the [tune_gemm design](../design/tune_gemm.md).
 Source: [`src/tune_gemm/gemm.mbt`](../../../src/tune_gemm/gemm.mbt),
 [`src/tune_gemm/versioning.mbt`](../../../src/tune_gemm/versioning.mbt).
 
-```text
+## Importing
+
+Add the package to the `moon.pkg` of the package that uses it:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/tune_gemm",
 }
 ```
+
+The examples on this page call it through its default alias `@tune_gemm`.
 
 ## Problem description
 
