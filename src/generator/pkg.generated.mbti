@@ -28,4 +28,3 @@ pub fn[Scale, Input] Generator::new(String, String, (@model.GenerationContext[Sc
 // Type aliases
 
 // Traits
-

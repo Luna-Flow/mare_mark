@@ -153,4 +153,3 @@ pub fn[Prepared, Output, Context] WorkerSpec::new(String, (Prepared, Context) ->
 // Type aliases
 
 // Traits
-

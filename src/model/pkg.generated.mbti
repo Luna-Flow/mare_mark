@@ -388,4 +388,3 @@ pub(all) enum WorkspaceScope {
 // Type aliases
 
 // Traits
-

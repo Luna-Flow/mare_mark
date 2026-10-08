@@ -42,4 +42,3 @@ pub fn SampleContext::new(Int, String, Int) -> Self
 // Type aliases
 
 // Traits
-

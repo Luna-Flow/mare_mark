@@ -57,4 +57,3 @@ pub fn[Input] Shrinker::new((Input) -> Array[Input], (Input) -> String, max_step
 // Type aliases
 
 // Traits
-

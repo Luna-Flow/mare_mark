@@ -47,4 +47,3 @@ pub enum Command {
 // Type aliases
 
 // Traits
-

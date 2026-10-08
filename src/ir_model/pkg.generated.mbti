@@ -96,4 +96,3 @@ pub fn PlotPoint::new(String, Double, String) -> Self
 // Type aliases
 
 // Traits
-

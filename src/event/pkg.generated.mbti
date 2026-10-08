@@ -41,4 +41,3 @@ pub fn ObservationSink::new((@model.Observation) -> Unit, (@model.Validation) ->
 // Type aliases
 
 // Traits
-

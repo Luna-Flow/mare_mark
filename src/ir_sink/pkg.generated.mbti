@@ -21,4 +21,3 @@ pub fn tee(@event.ObservationSink, @event.ObservationSink) -> @event.Observation
 // Type aliases
 
 // Traits
-
