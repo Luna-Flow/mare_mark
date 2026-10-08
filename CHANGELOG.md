@@ -47,6 +47,10 @@ All notable changes to mare_mark are documented in this file.
   last characters next to each other, so a prefix was far from a random
   subset. **The order produced for a given seed changes**: subsets recorded
   with an earlier version are not reproduced by this one (#10).
+- `experiment.crossover_from_labels` sorts the (scale, label) pairs with
+  `ScaleDomain.compare` before looking for transitions, so an unsorted domain
+  no longer turns a single crossover into `NonMonotonic` or a wrong boundary.
+  The evidence lists the labels in sorted order (#5).
 
 ## 0.3.0 - 2026-07-15
 

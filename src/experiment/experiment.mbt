@@ -191,16 +191,46 @@ pub fn[Scale] ScaleDomain::new(
 }
 
 ///|
+/// Positions of `domain.values` in ascending `domain.compare` order. The sort
+/// is stable, so equal scales keep their input order.
+fn[Scale] ascending_positions(domain : ScaleDomain[Scale]) -> Array[Int] {
+  let order = Array::makei(domain.values.length(), index => index)
+  for index = 1; index < order.length(); index = index + 1 {
+    let current = order[index]
+    let mut position = index
+    while position > 0 &&
+          (domain.compare)(
+            domain.values[order[position - 1]],
+            domain.values[current],
+          ) >
+          0 {
+      order[position] = order[position - 1]
+      position -= 1
+    }
+    order[position] = current
+  }
+  order
+}
+
+///|
+/// Finds the scale at which the preferred implementation changes. The pairs
+/// (`domain.values[i]`, `labels[i]`) are first sorted by `domain.compare`, so
+/// the domain need not be given in ascending order; the evidence lists the
+/// labels in that sorted order.
 pub fn[Scale] crossover_from_labels(
   domain : ScaleDomain[Scale],
   labels : Array[String],
 ) -> @model.CrossoverResult[Scale] {
-  let evidence = labels.copy()
   if domain.values.length() != labels.length() || labels.is_empty() {
     @model.CrossoverResult::inconclusive(
-      "label/domain length mismatch", evidence,
+      "label/domain length mismatch",
+      labels.copy(),
     )
   } else {
+    let order = ascending_positions(domain)
+    let values = order.map(index => domain.values[index])
+    let labels = order.map(index => labels[index])
+    let evidence = labels.copy()
     let mut transitions = 0
     let mut transition_index = -1
     for index = 1; index < labels.length(); index = index + 1 {
@@ -218,8 +248,8 @@ pub fn[Scale] crossover_from_labels(
     } else if transitions > 1 {
       @model.CrossoverResult::non_monotonic(evidence)
     } else {
-      let below = domain.values[transition_index - 1]
-      let at_or_above = domain.values[transition_index]
+      let below = values[transition_index - 1]
+      let at_or_above = values[transition_index]
       @model.CrossoverResult::found(
         @model.ScaleBoundary::new(below, at_or_above),
         "piecewise-confirmed",

@@ -102,3 +102,32 @@ test "comparator_label leaves ties and unusable thresholds unlabelled" {
   assert_true(@experiment.comparator_label(3.0, -5.0) == "Unknown")
   assert_true(@experiment.comparator_label(nan, 5.0) == "Unknown")
 }
+
+///|
+test "crossover sorts the domain with its comparator" {
+  let unsorted = @experiment.ScaleDomain::new(
+    [64, 16, 256],
+    (a, b) => a.compare(b),
+    value => value.to_string(),
+  )
+  match @experiment.crossover_from_labels(unsorted, ["B", "A", "B"]) {
+    Found(boundary, _, evidence) => {
+      assert_eq(boundary.below, 16)
+      assert_eq(boundary.at_or_above, 64)
+      assert_eq(evidence, ["A", "B", "B"])
+    }
+    _ => fail("expected a crossover")
+  }
+  let descending = @experiment.ScaleDomain::new(
+    [256, 64, 16],
+    (a, b) => b.compare(a),
+    value => value.to_string(),
+  )
+  match @experiment.crossover_from_labels(descending, ["B", "B", "A"]) {
+    Found(boundary, _, _) => {
+      assert_eq(boundary.below, 64)
+      assert_eq(boundary.at_or_above, 16)
+    }
+    _ => fail("expected a crossover")
+  }
+}
