@@ -6,13 +6,22 @@ at the trade-offs on a Pareto front, and restrict a large space to a
 reproducible random subset. Timings are given as numbers so the examples are
 deterministic; in practice they come from `runner` observations.
 
+| I want to | Use |
+| --- | --- |
+| describe the candidates | `@tune.CandidateSpace::new` |
+| score a candidate from timings | `@tune.score_samples` |
+| pick a winner with practical ties | `@tune.select_best` |
+| see the speed and size trade-offs | `@tune.pareto_frontier` |
+| score every candidate that meets the constraints | `@tune.exhaustive_scores` |
+| measure a reproducible subset | `@tune.seeded_order`, then a prefix |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/tune",
 }
@@ -91,15 +100,36 @@ The 128×128 tile needs 128 KiB and is rejected before it is measured.
 
 ```moonbit
 test "a seeded subset" {
-  let all = Array::makei(100, i => "candidate-" + i.to_string())
-  let first_ten = @tune.seeded_order(all, 2026UL, id => id)[:10].to_owned()
-  let again = @tune.seeded_order(all.rev(), 2026UL, id => id)[:10].to_owned()
-  inspect(first_ten == again, content="true")
+  let all = Array::makei(100, i => i.to_string() + "-candidate")
+  let first_five = @tune.seeded_order(all, 2026UL, id => id)[:5].to_owned()
+  let again = @tune.seeded_order(all.rev(), 2026UL, id => id)[:5].to_owned()
+  inspect(first_five == again, content="true")
+  inspect(
+    first_five.join(" "),
+    content="5-candidate 57-candidate 4-candidate 68-candidate 40-candidate",
+  )
 }
 ```
 
-The same seed gives the same ten candidates whatever order the space is listed
+The same seed gives the same candidates whatever order the space is listed
 in. Record the seed with the result.
+
+Put the varying part of an id first. The hash behind `seeded_order` mixes the
+last characters of an id poorly, so ids that differ only at the end stay
+together:
+
+```moonbit
+test "ids that differ only at the end stay together" {
+  let all = Array::makei(100, i => "candidate-" + i.to_string())
+  debug_inspect(
+    @tune.seeded_order(all, 2026UL, id => id)[:3].to_owned(),
+    content="[\"candidate-90\", \"candidate-91\", \"candidate-92\"]",
+  )
+}
+```
+
+With these ids the first ten are `candidate-90` to `candidate-99`, which is not
+a random subset. The [tune API](../api/tune.md) explains why.
 
 ## Going further
 
@@ -121,6 +151,10 @@ in. Record the seed with the result.
   better than it is.
 - **A threshold of zero with noisy data.** Ties are then decided by noise.
 - **Ids that are not unique.** Selection and ordering assume unique ids.
+- **Ids that differ only at the end.** `seeded_order` keeps them clustered;
+  put the varying part first.
+- **Trusting the `exhaustive_scores` policy string.** `global:<id>` is the raw
+  minimum, without practical ties or confirmation; decide with `select_best`.
 
 ## Next steps
 

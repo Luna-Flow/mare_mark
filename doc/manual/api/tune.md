@@ -1,5 +1,7 @@
 # tune API
 
+## Purpose
+
 `Luna-Flow/mare_mark/tune` provides the policy side of auto-tuning: candidate
 spaces, budgets and holdouts, robust scores, selection with a practical
 threshold, Pareto fronts, and a seeded candidate order. It does not build or
@@ -8,11 +10,17 @@ hands the numbers to these functions. See the [tune design](../design/tune.md).
 
 Source: [`src/tune/tune.mbt`](../../../src/tune/tune.mbt).
 
-```text
+## Importing
+
+Add the package to the `moon.pkg` of the package that uses it:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/tune",
 }
 ```
+
+The examples on this page call it through its default alias `@tune`.
 
 ## Candidates
 
@@ -181,9 +189,10 @@ Arguments: scores, practical threshold $t$ in percent, and whether to minimize
 the secondary metric. With $p_{\min}$ the smallest primary, the finalists are
 the scores with $100\,(p - p_{\min})/p_{\min} \le t$ (when $p_{\min} = 0$, those
 with $p = 0$). Among them it returns the best secondary value, then the
-smallest id. A threshold that is `NaN`, infinite or negative is treated as
-`0`. Returns `None` when no score is usable. The result does not depend on the
-order of the input.
+smallest id in MoonBit's `String` order, which compares lengths first: `"b"`
+comes before `"aa"`. A threshold that is `NaN`, infinite or negative is treated
+as `0`. Returns `None` when no score is usable. When ids are unique, the result
+does not depend on the order of the input.
 
 ```moonbit
 test "fast enough, then small" {
@@ -236,7 +245,14 @@ pub fn[Candidate] exhaustive_scores(CandidateSpace[Candidate], Int, (Candidate) 
 It takes the first $\min(\text{budget}, \lvert\text{space}\rvert)$ candidates
 of `enumerate()`. Each valid candidate is scored by the callback; invalid ones
 are not. The policy string is `"global:<id>"` of the smallest usable primary
-(first one on ties), or `"global:"` when none is usable.
+(first one on ties), or `"global:"` when none is usable. The id comes from the
+score, the build events use `candidate_id` of the space.
+
+This winner is the raw minimum of the measured scores: it ignores the
+practical threshold and the secondary metric, and it is subject to the
+winner's curse derived in the [tune design](../design/tune.md). For a decision,
+call `select_best` on `result.scores` and confirm the finalists with fresh
+measurements.
 
 ```moonbit
 test "exhaustive search" {
@@ -280,8 +296,17 @@ pub fn[Candidate] seeded_order(Array[Candidate], UInt64, (Candidate) -> String) 
 ```
 
 Each id is hashed with FNV-1a keyed by the seed; candidates are sorted by hash,
-then by id. The result depends on the set of ids and the seed, not on the
-input order. Use a prefix of it as a reproducible random subset.
+then by id. When ids are unique, the result depends on the set of ids and the
+seed, not on the input order. Use a prefix of it as a reproducible subset.
+
+> [!WARNING]
+> The hash has no final mixing step, and its high bits, which decide the sort,
+> depend only weakly on the last characters of an id. Ids that differ only at
+> the end stay clustered: for the ids `"c0"` to `"c99"` and seed `1` the order
+> starts `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …`. A prefix is then
+> far from a random subset. Ids with a long common suffix after the varying
+> part, such as the `tune_gemm` ids, are mixed much better. Put the varying
+> part first in your ids, or shuffle with your own well-mixed hash.
 
 ```moonbit
 test "seeded order is input-order independent" {
@@ -301,7 +326,9 @@ pub fn confirmation_count(Int, Double, Int) -> Int
 ```
 
 `confirmation_count(base, u, budget)` is `base` times 1, 2 or 3 for
-$u \le 0.05$, $0.05 < u \le 0.2$ and $u > 0.2$, clamped to $[0, \text{budget}]$.
+$u \le 0.05$, $0.05 < u \le 0.2$ and $u > 0.2$, then clamped: the result is
+$\max(0, \min(\text{budget}, m \cdot \text{base}))$, so a negative budget gives
+`0`. A `NaN` uncertainty counts as $u \le 0.05$.
 `u` is a relative uncertainty of your choice, for example IQR divided by
 median.
 

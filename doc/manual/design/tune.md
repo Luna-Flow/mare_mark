@@ -10,6 +10,14 @@ scores, practical ties, confirmation and holdouts, while leaving the building
 and running of candidates to the application, where they can be validated and
 measured like any other benchmark.
 
+## Constraints
+
+- Candidates must be validated and measured like any other benchmark, so the
+  package cannot run them itself.
+- Tuning measurements are noisy and the candidate spaces are large.
+- The policy must be testable with made-up numbers and reproducible from a
+  seed.
+
 ## Mathematical background
 
 ### Scores
@@ -45,11 +53,14 @@ $$
 F = \Bigl\{\, c : \frac{p_c - p_{\min}}{p_{\min}} \cdot 100 \le t \,\Bigr\},
 $$
 
-and returns the element of $F$ with the best secondary value, then the smallest
-id. The rule is order independent: $F$ is defined by values only, and the
-second step is the minimum of a total order (secondary, then id) on $F$, which
-is unique when ids are unique. So permuting the input cannot change the
-result.
+(for $p_{\min} = 0$, $F = \{\, c : p_c = 0 \,\}$; a threshold that is `NaN`,
+infinite or negative counts as $t = 0$), and returns the element of $F$ with the
+best secondary value, then the smallest id. Ids are compared with MoonBit's
+`String` order, which compares lengths first and then code units, so `"b"`
+precedes `"aa"`. The rule is order independent: $F$ is defined by values only,
+and the second step is the minimum of a total order (secondary, then id) on
+$F$, which is unique when ids are unique. So permuting the input cannot change
+the result.
 
 ### Pareto dominance
 
@@ -64,18 +75,33 @@ set, so every chain ends in a minimal element).
 
 ### Random subsets of a large space
 
-`seeded_order` sorts candidates by a seeded 64-bit FNV-1a hash of their ids,
-which acts as a pseudo-random permutation. Take its first $B$ candidates. If
-the ids are unrelated to quality, every candidate is equally likely to land in
-the prefix, and the probability that the prefix contains at least one candidate
-from the best fraction $q$ of the space is
+Take the first $B$ of $N$ candidates in a uniformly random order, and let a
+fraction $q$ of the space be "good". The prefix misses every good candidate
+with probability
 
 $$
-1 - (1 - q)^{B} .
+\frac{\binom{N - qN}{B}}{\binom{N}{B}}
+= \prod_{l=0}^{B-1} \frac{N - qN - l}{N - l}
+\le (1 - q)^{B},
 $$
 
+because each factor is at most $1 - q$. So the prefix contains at least one
+good candidate with probability at least $1 - (1 - q)^{B}$, whatever $N$ is.
 $B = 60$ already gives $1 - 0.95^{60} \approx 0.954$ for the top 5 %. This is the
 classical argument for random search over grids.[^random]
+
+`seeded_order` approximates such an order by sorting candidates on a seeded
+64-bit FNV-1a hash of their ids. The argument needs the hash order to behave
+like a random permutation, and FNV-1a without a final mixing step does so only
+partly. The last character $c$ of an id enters as
+$h' = (h \oplus c)\cdot(2^{40} + 435)$: it changes the low byte of $h \oplus c$,
+which the factor $2^{40}$ moves to bits 40–47, and reaches the top bits, which
+decide the sort, only through carries. Ids that differ only in their last
+characters therefore stay next to each other in the order (for `"c0"` to
+`"c99"` and seed `1`, the first ten are `c0` to `c9` in an XOR-permuted
+order). Ids whose
+varying part is followed by a long common suffix, like the `tune_gemm` ids, go
+through many more multiplications after the difference and are well mixed.
 
 [^random]: J. Bergstra and Y. Bengio, "Random search for hyper-parameter optimization", *JMLR* 13, 2012.
 
@@ -100,11 +126,13 @@ measurement returned `0` or `NaN`.
 
 `exhaustive_scores` scores the first `budget` candidates of the enumeration
 and records a `BuildEvent` for each, including rejected ones. Combined with
-`seeded_order`, the prefix is a reproducible random subset; with the natural
-order and a large budget, it is a full grid search. The policy string
-`global:<id>` names a single global winner; finer policies (per shape,
-Pareto) are built with `select_best`, `pareto_frontier` and
-`@model.DeploymentPolicy`.
+`seeded_order`, the prefix is a reproducible subset (random to the extent
+discussed above); with the natural order and a large budget, it is a full grid
+search. The policy string `global:<id>` names the candidate with the smallest
+measured primary score, the first one on ties. That is the raw minimum, which
+the winner's curse argument above warns against: treat it as a shortlist entry,
+not a decision. Decisions (with practical ties, per shape, Pareto) are built
+with `select_best`, `pareto_frontier` and `@model.DeploymentPolicy`.
 
 ### Adaptive confirmation
 
@@ -123,7 +151,7 @@ finalists get more samples, quiet ones do not waste time.
   callback only for valid ones.
 - `seeded_order` is a permutation of its input that depends only on the ids and
   the seed.
-- `confirmation_count` lies in $[0, \text{budget}]$.
+- `confirmation_count` lies in $[0, \max(\text{budget}, 0)]$.
 
 ## Alternatives rejected
 
@@ -131,7 +159,8 @@ finalists get more samples, quiet ones do not waste time.
   model of the space and makes results harder to reproduce; the hooks
   (`neighbors`, `seeded_order`) allow a user-written search.
 - **Mean scores.** One preempted run would decide.
-- **Selecting the raw minimum.** Subject to the winner's curse.
+- **Selecting the raw minimum.** Subject to the winner's curse. Only the
+  informational policy string of `exhaustive_scores` uses it.
 
 ## Boundaries
 
@@ -141,3 +170,5 @@ finalists get more samples, quiet ones do not waste time.
 - `CandidateSpace.neighbors` is not used by any function in the package.
 - `exhaustive_scores` does not use `seeded_order` itself; reorder the space
   first if you want a random subset.
+- `seeded_order` is not a uniform random permutation; ids that differ only in
+  their last characters stay clustered.
