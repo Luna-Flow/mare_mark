@@ -20,7 +20,7 @@ Requires MoonBit with `moonc` 0.10 or later.
 
 ## Example
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/event",
@@ -103,6 +103,13 @@ an API page, a tutorial and a design page for every package, plus
 [getting started](doc/manual/getting_started.md),
 [architecture](doc/manual/architecture.md) and
 [verification](doc/manual/verification.md).
+
+Known limitations are documented where they apply. In particular,
+`stats.compare_paired` and `experiment.comparator_label` do not validate the
+practical threshold: `0` reports an exact tie as faster and `NaN` reports every
+comparison as equivalent
+([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)); use a finite,
+positive threshold.
 
 ## Contributing
 
