@@ -118,11 +118,11 @@ msgid "Options may appear anywhere after the command. Unknown options and more t
 msgstr ""
 
 #: manual/api/cli.md:49
-msgid "Exit codes: `0` on success, `1` when a file cannot be read or written, the JSONL is invalid, or a replay fails or times out, and `2` for usage errors (unknown command or option, missing arguments, missing `--yes`). On targets other than native, `report` works through `render_jsonl_report`, and `replay` exits with `2`."
+msgid "Exit codes: `0` on success, `1` when a file cannot be read or written, the JSONL is invalid, or a replay fails or times out, and `2` for usage errors (unknown command or option, missing arguments, including `replay --dry-run` without an artifact, and missing `--yes`). On targets other than native, `report` works through `render_jsonl_report`, and `replay` exits with `2`."
 msgstr ""
 
-#: manual/api/cli.md:55
-msgid "After writing a file, `report` prints the absolute output path, the number of non-empty input lines and the elapsed time. The elapsed value is measured in microseconds but labelled `ms`."
+#: manual/api/cli.md:56
+msgid "After writing a file, `report` prints the absolute output path, the number of non-empty input lines and the elapsed time in milliseconds."
 msgstr ""
 
 #: manual/api/cli.md:60
@@ -272,7 +272,7 @@ msgid "Fields"
 msgstr ""
 
 #: manual/api/event.md:153
-msgid "`status`, `implementation`, `oracle`, `scale`; with evidence also `case`, `dataset_id`, `step_id`, `operation`, `operands`, `context`, `rounding`, `expected`, `actual`, `expected_kind`, `actual_kind`, `expected_flags`, `actual_flags`, `trap`, `stderr`, `exit_code` (when present), `fingerprint`, `implementation_version`, `replay_command`, `replay_arguments`, `replay_timeout_ms`"
+msgid "`status`, `reason` (for every status except `valid`), `implementation`, `oracle`, `scale`; with evidence also `case`, `dataset_id`, `step_id`, `operation`, `operands`, `context`, `rounding`, `expected`, `actual`, `expected_kind`, `actual_kind`, `expected_flags`, `actual_flags`, `trap`, `stderr`, `exit_code` (when present), `fingerprint`, `implementation_version`, `replay_command`, `replay_arguments`, `replay_timeout_ms`"
 msgstr ""
 
 #: manual/api/event.md:154
@@ -284,7 +284,7 @@ msgid "`run_id`, `observation_count`, `validation_count`, `calibration_count`, `
 msgstr ""
 
 #: manual/api/event.md:158
-msgid "`status` is one of `valid`, `invalid`, `skipped`, `expected_difference`, `unsupported`, `infrastructure_failure`; the reason strings of the status are not written. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept` or `discarded:<reason>`. The observation's `setup_timing` is not written."
+msgid "`status` is one of `valid`, `invalid`, `skipped`, `expected_difference`, `unsupported`, `infrastructure_failure`; `reason` is the string the status carries. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept` or `discarded:<reason>`; `setup_timing` is `excluded_from_measurement` or `included_in_measurement`. Both `reason` and `setup_timing` were added within `mmka_1` ([issue #8](https://github.com/Luna-Flow/mare_mark/issues/8)); older streams lack them, and readers must not require them."
 msgstr ""
 
 #: manual/api/experiment.md:1
@@ -375,51 +375,43 @@ msgstr ""
 msgid "`ScaleDomain` lists the scales of an analysis with their order and text."
 msgstr ""
 
-#: manual/api/experiment.md:196
-msgid "`crossover_from_labels` reads `values` in the given order and does not sort them; pass them sorted."
-msgstr ""
-
-#: manual/api/experiment.md:201
+#: manual/api/experiment.md:210
 msgid "`comparator_label` turns a relative delta into a label for crossover analysis."
 msgstr ""
 
-#: manual/api/experiment.md:207
-msgid "`comparator_label(r, t)` is `\"A\"` when $r \\le -t$, else `\"B\"` when $r \\ge t$, else `\"Unknown\"`, the same ordered chain as the decision of `@stats.compare_paired`. Pass the relative delta of A measured against B as the baseline, so that `\"A\"` means A is faster."
-msgstr ""
-
-#: manual/api/experiment.md:212
-msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie ($r = 0$) is `\"A\"`; with $t < 0$ small slowdowns of A are `\"A\"` too; with $t$ = `NaN` every delta is `\"Unknown\"`, so `crossover_from_labels` can only report `NoCrossover`. Pass a finite, positive threshold."
-msgstr ""
-
-#: manual/api/experiment.md:221
-msgid "`crossover_from_labels` finds the scale at which the preferred implementation changes."
-msgstr ""
-
-#: manual/api/experiment.md:228
-msgid "`labels[i]` is the verdict at `values[i]`. A transition is a pair of adjacent labels that differ and are both not `\"Unknown\"`."
-msgstr ""
-
-#: manual/api/experiment.md:231
-msgid "Situation"
-msgstr ""
-
-#: manual/api/experiment.md:231
-msgid "Result"
+#: manual/api/experiment.md:216
+msgid "`comparator_label(r, t)` is `\"A\"` when $r < 0$ and $r \\le -t$, `\"B\"` when $r > 0$ and $r \\ge t$, and `\"Unknown\"` otherwise, the same rule as the decision of `@stats.compare_paired`. An exact tie is `\"Unknown\"` for every threshold, including `0`. A `NaN` delta and a threshold that is `NaN`, infinite or negative also give `\"Unknown\"`. Pass the relative delta of A measured against B as the baseline, so that `\"A\"` means A is faster."
 msgstr ""
 
 #: manual/api/experiment.md:233
+msgid "`crossover_from_labels` finds the scale at which the preferred implementation changes."
+msgstr ""
+
+#: manual/api/experiment.md:240
+msgid "`labels[i]` is the verdict at `values[i]`. The pairs (`values[i]`, `labels[i]`) are first sorted stably with `domain.compare`, so the values may be given in any order; below, `values` and `labels` mean the sorted sequences. A transition is a pair of adjacent labels that differ and are both not `\"Unknown\"`."
+msgstr ""
+
+#: manual/api/experiment.md:246
+msgid "Situation"
+msgstr ""
+
+#: manual/api/experiment.md:246
+msgid "Result"
+msgstr ""
+
+#: manual/api/experiment.md:248
 msgid "no labels, or a different number of labels and values"
 msgstr ""
 
-#: manual/api/experiment.md:234
+#: manual/api/experiment.md:249
 msgid "no transition"
 msgstr ""
 
-#: manual/api/experiment.md:235
+#: manual/api/experiment.md:250
 msgid "exactly one transition, between $i-1$ and $i$"
 msgstr ""
 
-#: manual/api/experiment.md:236
+#: manual/api/experiment.md:251
 msgid "more than one transition"
 msgstr ""
 
@@ -448,9 +440,9 @@ msgid "`Fixture` is the lifecycle of one kind of input."
 msgstr ""
 
 #: manual/api/fixture.md:46
-#: manual/api/runner.md:262
+#: manual/api/runner.md:259
 #: manual/api/stats.md:51
-#: manual/api/stats.md:162
+#: manual/api/stats.md:163
 msgid "Field"
 msgstr ""
 
@@ -844,8 +836,8 @@ msgstr ""
 #: manual/api/model.md:235
 #: manual/api/model.md:466
 #: manual/api/runner.md:40
-#: manual/api/stats.md:117
-#: manual/api/stats.md:162
+#: manual/api/stats.md:118
+#: manual/api/stats.md:163
 msgid "Meaning"
 msgstr ""
 
@@ -955,7 +947,7 @@ msgstr ""
 
 #: manual/api/model.md:466
 #: manual/api/model.md:789
-#: manual/api/stats.md:117
+#: manual/api/stats.md:118
 #: manual/api/stats.md:286
 #: manual/api/tune.md:115
 msgid "Constructor"
@@ -1007,7 +999,7 @@ msgstr ""
 
 #: manual/api/model.md:511
 #: manual/api/tune_gemm.md:329
-#: manual/index.md:135
+#: manual/index.md:127
 msgid "Validation"
 msgstr ""
 
@@ -1383,7 +1375,19 @@ msgid "Error"
 msgstr ""
 
 #: manual/api/runner.md:186
-msgid "`warmup_time_us`, when set, `>= 0`"
+msgid "`warmup_time_us`, when set, finite and `>= 0`"
+msgstr ""
+
+#: manual/api/runner.md:189
+msgid "`target_batch_time_us` finite and `> 0`"
+msgstr ""
+
+#: manual/api/runner.md:190
+msgid "`max_sample_time_us` finite and `> 0`"
+msgstr ""
+
+#: manual/api/runner.md:193
+msgid "`practical_delta_pct` finite and `>= 0`"
 msgstr ""
 
 #: manual/api/runner.md:195
@@ -1391,296 +1395,296 @@ msgid "All rules are checked; the errors are returned together, in this order."
 msgstr ""
 
 #: manual/api/runner.md:197
-msgid "Each rule is implemented as a test for its violation (`x < 0.0`, `x <= 0.0`, `target > max`), and every comparison with `NaN` is false, so `NaN` passes all the `Double` rules. In particular a `NaN` `practical_delta_pct` is accepted and makes every `stats.compare_paired` decision on it `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)), a `NaN` `target_batch_time_us` disables calibration (the first batch is kept), and a `NaN` `warmup_time_us` leaves only the `warmup_iterations` count. Infinite durations pass as well, except a `target_batch_time_us` above a finite `max_sample_time_us`. A threshold of `0.0` is accepted although it reports exact ties as `Faster`."
+msgid "\"Finite\" excludes `NaN` and both infinities. Without that requirement a `NaN` would pass every rule, because every comparison with `NaN` is false: a `NaN` `target_batch_time_us` would disable calibration and a `NaN` `practical_delta_pct` would make every later comparison meaningless. A threshold of `0.0` is valid; `stats.compare_paired` then reports every non-zero relative delta as `Faster` or `Slower` and an exact tie as `Equivalent`."
 msgstr ""
 
-#: manual/api/runner.md:232
+#: manual/api/runner.md:229
 msgid "`ProtocolConfigError` names one violated protocol rule."
 msgstr ""
 
-#: manual/api/runner.md:243
+#: manual/api/runner.md:240
 msgid "The `String` payload is the field name; the number is the rejected value."
 msgstr ""
 
-#: manual/api/runner.md:247
+#: manual/api/runner.md:244
 msgid "`ProtocolPreset` names a ready-made protocol."
 msgstr ""
 
-#: manual/api/runner.md:259
+#: manual/api/runner.md:256
 msgid "`validated` returns the preset's protocol (for `Custom`, the wrapped one). The presets are:"
 msgstr ""
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "batch iterations"
 msgstr ""
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "1 to 1000"
 msgstr ""
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "1 to 10000"
 msgstr ""
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "5 to 10000"
 msgstr ""
 
-#: manual/api/runner.md:278
+#: manual/api/runner.md:275
 msgid "The runner acts on the warmup, calibration, order and sample fields. `experiment_design`, `outlier_policy`, `validation_coverage` and `practical_delta_pct` are recorded intent: validation always runs once per dataset before timing, and outlier filtering and decisions happen in `stats`."
 msgstr ""
 
-#: manual/api/runner.md:283
+#: manual/api/runner.md:280
 msgid "Implementations"
 msgstr ""
 
-#: manual/api/runner.md:287
+#: manual/api/runner.md:284
 msgid "`Implementation` is one competitor in a benchmark."
 msgstr ""
 
-#: manual/api/runner.md:299
+#: manual/api/runner.md:296
 msgid "`id` names it in events and must be unique and non-empty within a case; `version` is copied into every observation and validation. `initial_context` starts each validation sequence and each measured batch. `synchronize` is called immediately before the clock starts and after it stops; use it to wait for queued asynchronous work (a GPU stream, a thread pool)."
 msgstr ""
 
-#: manual/api/runner.md:307
+#: manual/api/runner.md:304
 msgid "`Implementation::stateless` wraps a function of the prepared input that needs no context."
 msgstr ""
 
-#: manual/api/runner.md:314
+#: manual/api/runner.md:311
 msgid "The `next_context` of the function's result is ignored and replaced by `Some(())`, so a stateless operation never ends a sequence early."
 msgstr ""
 
-#: manual/api/runner.md:319
+#: manual/api/runner.md:316
 msgid "`Implementation::in_process` builds an implementation that runs in the current process and threads a context."
 msgstr ""
 
-#: manual/api/runner.md:326
+#: manual/api/runner.md:323
 msgid "Return `next_context = Some(c)` to continue with `c`; return `None` to end the sequence (in a timed batch this marks the observation invalid)."
 msgstr ""
 
-#: manual/api/runner.md:341
+#: manual/api/runner.md:338
 msgid "`Implementation::worker` builds an implementation that runs each operation in a separate process."
 msgstr ""
 
-#: manual/api/runner.md:348
+#: manual/api/runner.md:345
 msgid "Use it for code that may crash, hang or corrupt memory. A crash becomes an `Aborted` outcome instead of ending the benchmark."
 msgstr ""
 
-#: manual/api/runner.md:353
+#: manual/api/runner.md:350
 msgid "`ExecutionMode` says where an operation runs."
 msgstr ""
 
-#: manual/api/runner.md:362
+#: manual/api/runner.md:359
 msgid "It is readonly outside the package; build it through the `Implementation` constructors."
 msgstr ""
 
-#: manual/api/runner.md:367
+#: manual/api/runner.md:364
 msgid "`WorkerSpec` describes how to run one operation as a subprocess."
 msgstr ""
 
-#: manual/api/runner.md:380
+#: manual/api/runner.md:377
 msgid "`build_arguments` produces the argument vector, `decode` turns the worker's stdout into a result, `timeout_ms` defaults to `5000`, and `cwd` defaults to the current directory."
 msgstr ""
 
-#: manual/api/runner.md:406
+#: manual/api/runner.md:403
 msgid "`execute_operation` runs one operation of an implementation."
 msgstr ""
 
-#: manual/api/runner.md:412
+#: manual/api/runner.md:409
 msgid "For `InProcess` it calls the function. For `Subprocess` it starts the command, captures stdout and stderr, and maps the result:"
 msgstr ""
 
-#: manual/api/runner.md:415
+#: manual/api/runner.md:412
 msgid "Worker result"
 msgstr ""
 
-#: manual/api/runner.md:415
+#: manual/api/runner.md:412
 msgid "Outcome"
 msgstr ""
 
-#: manual/api/runner.md:417
+#: manual/api/runner.md:414
 msgid "exit code 0"
 msgstr ""
 
-#: manual/api/runner.md:417
+#: manual/api/runner.md:414
 msgid "the outcome and context returned by `decode(stdout)`, with stdout, stderr and exit code attached"
 msgstr ""
 
-#: manual/api/runner.md:418
+#: manual/api/runner.md:415
 msgid ""
 "exit code $\\n"
 "e 0$"
 msgstr ""
 
-#: manual/api/runner.md:418
+#: manual/api/runner.md:415
 msgid "`Aborted(code, stderr)`, no next context"
 msgstr ""
 
-#: manual/api/runner.md:419
+#: manual/api/runner.md:416
 msgid "no exit within `timeout_ms`"
 msgstr ""
 
-#: manual/api/runner.md:419
+#: manual/api/runner.md:416
 msgid "`Timeout(timeout_ms, \"worker exceeded timeout\")`; the process is killed"
 msgstr ""
 
-#: manual/api/runner.md:420
+#: manual/api/runner.md:417
 msgid "the process could not be started"
 msgstr ""
 
-#: manual/api/runner.md:421
+#: manual/api/runner.md:418
 msgid "not on the native target"
 msgstr ""
 
-#: manual/api/runner.md:425
+#: manual/api/runner.md:422
 msgid "`OutputSink` folds the outputs of a batch so that the compiler cannot discard the work."
 msgstr ""
 
-#: manual/api/runner.md:438
+#: manual/api/runner.md:435
 msgid "`fold` runs inside the timed region after every operation; `finish` runs after the clock stops and its value is passed to `@bench.Bench::keep`. `keep_last` keeps the last output. Use `OutputSink::new` with a cheap checksum when the output must be consumed:"
 msgstr ""
 
-#: manual/api/runner.md:455
+#: manual/api/runner.md:452
 msgid "Describing a case"
 msgstr ""
 
-#: manual/api/runner.md:459
+#: manual/api/runner.md:456
 msgid "`single_step` starts the short builder for a case with one operation per input."
 msgstr ""
 
-#: manual/api/runner.md:466
+#: manual/api/runner.md:463
 msgid "The builder chain is `single_step(id, scales)` `.with_immutable_input(generate, fingerprint)` `.compare(implementations)` `.against_equal(reference, comparator)` `.compile()`. Each step copies the arrays it receives."
 msgstr ""
 
-#: manual/api/runner.md:473
+#: manual/api/runner.md:470
 msgid "`Case` is a namespace for the builder entry point."
 msgstr ""
 
-#: manual/api/runner.md:482
+#: manual/api/runner.md:479
 msgid "`Case::single_step(id, scales)` is the same as `single_step(id, scales)`."
 msgstr ""
 
-#: manual/api/runner.md:486
+#: manual/api/runner.md:483
 msgid "`SingleStepCase` is a case with an id and scales but no input yet."
 msgstr ""
 
-#: manual/api/runner.md:497
+#: manual/api/runner.md:494
 msgid "`compile` always fails at this stage and lists what is missing (`MissingFixture`, `EmptyImplementations`, `MissingOracle`, `MissingOutputSink`, plus `EmptyCaseId` and `EmptyScales` when they apply). `with_immutable_input` adds an immutable fixture named `id + \"-fixture\"`, version `\"1\"`, built with `@fixture.Fixture::immutable`."
 msgstr ""
 
-#: manual/api/runner.md:505
+#: manual/api/runner.md:502
 msgid "`ImmutableSingleStepCase` is a case with an immutable input."
 msgstr ""
 
-#: manual/api/runner.md:516
+#: manual/api/runner.md:513
 msgid "`compare` adds the stateless implementations to compare."
 msgstr ""
 
-#: manual/api/runner.md:520
+#: manual/api/runner.md:517
 msgid "`ComparedSingleStepCase` is a case with input and implementations."
 msgstr ""
 
-#: manual/api/runner.md:532
+#: manual/api/runner.md:529
 msgid "`against_equal(reference, comparator)` adds a reference oracle named `id + \"-reference\"` built with `@experiment.ReferenceOracle::equal`, an `OutputSink::keep_last` sink, a sequence length of 1, and placeholder text functions (`\"<scale>\"`, `\"<input>\"`, `\"<output>\"`). Its replay spec has an empty command and the implementation id as the only argument. Use `BenchSpec::advanced` when you need real text in events and replay artifacts."
 msgstr ""
 
-#: manual/api/runner.md:541
+#: manual/api/runner.md:538
 msgid "`BenchSpec` is a complete, not yet validated case description."
 msgstr ""
 
-#: manual/api/runner.md:551
+#: manual/api/runner.md:548
 msgid "`BenchSpec::advanced` builds a case from all of its parts."
 msgstr ""
 
-#: manual/api/runner.md:557
+#: manual/api/runner.md:554
 msgid "Argument"
 msgstr ""
 
-#: manual/api/runner.md:557
+#: manual/api/runner.md:554
 msgid "Role"
 msgstr ""
 
-#: manual/api/runner.md:559
+#: manual/api/runner.md:556
 msgid "case id, copied into every event"
 msgstr ""
 
-#: manual/api/runner.md:560
+#: manual/api/runner.md:557
 msgid "materializes, clones, prepares and resets the input"
 msgstr ""
 
-#: manual/api/runner.md:561
+#: manual/api/runner.md:558
 msgid "the competitors (the array is copied)"
 msgstr ""
 
-#: manual/api/runner.md:562
+#: manual/api/runner.md:559
 msgid "folds outputs inside timed batches"
 msgstr ""
 
-#: manual/api/runner.md:563
+#: manual/api/runner.md:560
 msgid "reference and/or relational validation"
 msgstr ""
 
-#: manual/api/runner.md:564
+#: manual/api/runner.md:561
 msgid "one dataset per scale, in this order (copied)"
 msgstr ""
 
-#: manual/api/runner.md:565
+#: manual/api/runner.md:562
 msgid "text of a scale in validation events"
 msgstr ""
 
-#: manual/api/runner.md:566
+#: manual/api/runner.md:563
 msgid "number of operations validated per implementation and dataset"
 msgstr ""
 
-#: manual/api/runner.md:567
+#: manual/api/runner.md:564
 msgid "operation, operands, context and rounding of step $i$ for evidence"
 msgstr ""
 
-#: manual/api/runner.md:568
+#: manual/api/runner.md:565
 msgid "text forms used in evidence and failure artifacts"
 msgstr ""
 
-#: manual/api/runner.md:569
+#: manual/api/runner.md:566
 msgid "the command that reproduces input and implementation id"
 msgstr ""
 
-#: manual/api/runner.md:570
+#: manual/api/runner.md:567
 msgid "optional; minimizes failing inputs"
 msgstr ""
 
-#: manual/api/runner.md:574
+#: manual/api/runner.md:571
 msgid "`with_sequence_length` returns a copy of the spec with another sequence length."
 msgstr ""
 
-#: manual/api/runner.md:582
+#: manual/api/runner.md:579
 msgid "`compile` validates a spec and returns a plan or every configuration error."
 msgstr ""
 
-#: manual/api/runner.md:588
+#: manual/api/runner.md:585
 msgid "It checks, in order: a non-empty case id, at least one scale, at least one implementation, a positive sequence length, and non-empty, unique implementation ids."
 msgstr ""
 
-#: manual/api/runner.md:612
+#: manual/api/runner.md:609
 msgid "`BenchConfigError` names one problem in a case description."
 msgstr ""
 
-#: manual/api/runner.md:629
+#: manual/api/runner.md:626
 msgid "`EmptyImplementationId` carries the index of the implementation, `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the rejected length. The `Missing*` constructors come from `SingleStepCase::compile`; `MissingSerializer` is reserved and not produced by the current code."
 msgstr ""
 
-#: manual/api/runner.md:637
+#: manual/api/runner.md:634
 msgid "`DifferentialCase` is the record behind a spec or a plan."
 msgstr ""
 
-#: manual/api/runner.md:658
+#: manual/api/runner.md:655
 msgid "Its fields mirror the arguments of `BenchSpec::advanced`."
 msgstr ""
 
-#: manual/api/runner.md:662
+#: manual/api/runner.md:659
 msgid "`ValidatedBenchPlan` is a case that passed `BenchSpec::compile`."
 msgstr ""
 
-#: manual/api/runner.md:670
+#: manual/api/runner.md:667
 msgid "It can only be created by `compile`, and `run` accepts nothing else."
 msgstr ""
 
@@ -1737,115 +1741,139 @@ msgid "`summarize` computes a `SummaryStats` for an array of values."
 msgstr ""
 
 #: manual/api/stats.md:80
-msgid "The input is copied before sorting, so the caller's array keeps its order. An empty array gives `count == 0` and every other field `0.0`; test `count` before reading the other fields. Non-finite values are not rejected: a `NaN` makes the mean and standard deviation `NaN` and gives the sort an unspecified position for it. Cost: $O(n \\log n)$ time for the two sorts, $O(n)$ extra space."
+msgid "The input is copied before sorting, so the caller's array keeps its order. An empty array gives `count == 0` and every other field `0.0`; test `count` before reading the other fields. A `NaN` anywhere in the input propagates: every field except `count` is then `NaN`, wherever the `NaN` sits. Infinite values are sorted normally (and can make `mean` and `std_dev` infinite or `NaN`). Cost: $O(n \\log n)$ time for the two sorts, $O(n)$ extra space."
 msgstr ""
 
-#: manual/api/stats.md:98
+#: manual/api/stats.md:99
 msgid "The mean is pulled to `22` by one slow value; the median, quartiles and MAD are not. That is why the comparisons below are built on medians."
 msgstr ""
 
-#: manual/api/stats.md:101
+#: manual/api/stats.md:102
 msgid "Paired comparisons"
 msgstr ""
 
-#: manual/api/stats.md:105
+#: manual/api/stats.md:106
 msgid "`Decision` is the verdict of a paired comparison."
 msgstr ""
 
-#: manual/api/stats.md:119
-msgid "the relative median delta is at or below $-t$"
-msgstr ""
-
 #: manual/api/stats.md:120
-msgid "the relative median delta is at or above $t$"
+msgid "the relative median delta is negative and at or below $-t$"
 msgstr ""
 
 #: manual/api/stats.md:121
-msgid "the relative median delta lies strictly between $-t$ and $t$"
+msgid "the relative median delta is positive and at or above $t$"
 msgstr ""
 
 #: manual/api/stats.md:122
-msgid "the two arrays have different lengths"
+msgid "anything else, including an exact tie"
 msgstr ""
 
 #: manual/api/stats.md:123
+msgid "the arrays have different lengths, the threshold is not finite and non-negative, or the relative delta is `NaN`"
+msgstr ""
+
+#: manual/api/stats.md:124
 msgid "there are no pairs"
 msgstr ""
 
-#: manual/api/stats.md:125
+#: manual/api/stats.md:126
 msgid "Here $t$ is the practical threshold passed as `practical_delta_pct`. `Decision` is readonly outside the package: you match on it, you do not build it."
 msgstr ""
 
-#: manual/api/stats.md:131
+#: manual/api/stats.md:132
 msgid "`Interval` is a pair of bounds labelled with the phase it belongs to."
 msgstr ""
 
-#: manual/api/stats.md:141
+#: manual/api/stats.md:142
 msgid "`compare_paired` fills it with the interquartile range of the paired deltas; `bootstrap_interval` and `compare_paired_with_bootstrap` fill it with a percentile bootstrap interval. `mode` is a label copied from the caller; it does not change the computation."
 msgstr ""
 
-#: manual/api/stats.md:148
+#: manual/api/stats.md:149
 msgid "`Comparison` is the result of comparing a candidate against a baseline."
 msgstr ""
 
-#: manual/api/stats.md:164
+#: manual/api/stats.md:165
 msgid "$r = 100 \\cdot \\operatorname{med}(d) / \\operatorname{med}(b)$, or `0.0` when $\\operatorname{med}(b) = 0$"
 msgstr ""
 
-#: manual/api/stats.md:165
+#: manual/api/stats.md:166
 msgid "$\\operatorname{med}(b) / (\\operatorname{med}(b) + \\operatorname{med}(d))$, or `1.0` when $\\operatorname{med}(d) = 0$"
 msgstr ""
 
-#: manual/api/stats.md:166
+#: manual/api/stats.md:167
 msgid "bounds on the paired deltas, in the unit of the input (for example µs)"
 msgstr ""
 
-#: manual/api/stats.md:167
+#: manual/api/stats.md:168
 msgid "the `Decision` described above"
 msgstr ""
 
-#: manual/api/stats.md:168
+#: manual/api/stats.md:169
 msgid "number of pairs, $\\min(\\lvert b\\rvert, \\lvert c\\rvert)$"
 msgstr ""
 
-#: manual/api/stats.md:170
+#: manual/api/stats.md:171
 msgid "$b$ is the baseline array, $c$ the candidate array and $d_i = c_i - b_i$ the paired deltas. A `speedup` above `1.0` means the candidate is faster."
 msgstr ""
 
-#: manual/api/stats.md:175
+#: manual/api/stats.md:176
 msgid "`paired_deltas` subtracts each baseline value from the candidate value at the same index."
 msgstr ""
 
-#: manual/api/stats.md:182
+#: manual/api/stats.md:183
 msgid "The first argument is the baseline, the second the candidate. The result has $\\min(\\lvert b\\rvert, \\lvert c\\rvert)$ elements: surplus values of the longer array are ignored, so check the lengths yourself when a mismatch is an error."
 msgstr ""
 
-#: manual/api/stats.md:188
+#: manual/api/stats.md:189
 msgid "`compare_paired` compares two aligned arrays of timings with a practical threshold."
 msgstr ""
 
-#: manual/api/stats.md:195
+#: manual/api/stats.md:196
 msgid "Arguments: baseline id, candidate id, baseline values, candidate values, the practical threshold $t$ in percent, and the interval label. Index $i$ of both arrays must describe the same dataset, repetition and block. The decision uses the point estimate $r$ only; the interval is the interquartile range $[Q_d(0.25), Q_d(0.75)]$ of the deltas and is descriptive, not a confidence interval."
 msgstr ""
 
-#: manual/api/stats.md:202
-msgid "The decision is the first test that holds: `Invalid` if the lengths differ, `Unknown` if there are no pairs, `Faster` if $r \\le -t$, `Slower` if $r \\ge t$, `Equivalent` otherwise. Other edge cases:"
+#: manual/api/stats.md:203
+msgid "The decision is the first test that holds:"
+msgstr ""
+
+#: manual/api/stats.md:205
+msgid "`Invalid` if the lengths differ;"
 msgstr ""
 
 #: manual/api/stats.md:206
-msgid "When the lengths differ, $r$ and `speedup` mix the median of the truncated deltas with the median of the whole baseline; ignore them for `Invalid`."
+msgid "`Unknown` if there are no pairs;"
+msgstr ""
+
+#: manual/api/stats.md:207
+msgid "`Invalid` if $t$ is `NaN`, infinite or negative, or if $r$ is `NaN`;"
 msgstr ""
 
 #: manual/api/stats.md:208
-msgid "When $\\operatorname{med}(b) = 0$, $r$ is `0.0` (so the decision is `Equivalent` for $t > 0$) and `speedup` is `0.0` unless $\\operatorname{med}(d) = 0$."
+msgid "`Faster` if $r < 0$ and $r \\le -t$;"
 msgstr ""
 
-#: manual/api/stats.md:211
-msgid "A `NaN` in either array is not rejected; it lands at an unspecified position of the sort and can produce any decision. Filter non-finite values first."
+#: manual/api/stats.md:209
+msgid "`Slower` if $r > 0$ and $r \\ge t$;"
 msgstr ""
 
-#: manual/api/stats.md:214
-msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie is `Faster`, because $0 \\le -0$. With $t < 0$ every slowdown smaller than $\\lvert t\\rvert$ percent is `Faster`. With $t$ = `NaN` (or $+\\infty$) every comparison is `Equivalent`, even a twofold slowdown. Pass a finite, positive threshold."
+#: manual/api/stats.md:210
+msgid "`Equivalent` otherwise."
+msgstr ""
+
+#: manual/api/stats.md:212
+msgid "An exact tie ($r = 0$) is therefore `Equivalent` for every valid threshold, including $t = 0$. Other edge cases:"
+msgstr ""
+
+#: manual/api/stats.md:215
+msgid "When the lengths differ, $r$ and `speedup` mix the median of the truncated deltas with the median of the whole baseline; ignore them for `Invalid`."
+msgstr ""
+
+#: manual/api/stats.md:217
+msgid "When $\\operatorname{med}(b) = 0$, $r$ is `0.0` (so the decision is `Equivalent`) and `speedup` is `0.0` unless $\\operatorname{med}(d) = 0$."
+msgstr ""
+
+#: manual/api/stats.md:219
+msgid "A `NaN` in either array propagates through `summarize` to $r$, so the decision is `Invalid`."
 msgstr ""
 
 #: manual/api/stats.md:260
@@ -1909,31 +1937,31 @@ msgid "`compare_paired_with_bootstrap` is `compare_paired` with the interquartil
 msgstr ""
 
 #: manual/api/stats.md:354
-msgid "The first six arguments are those of `compare_paired`; the last three are the seed, the resample count and the confidence in percent. Unlike `compare_paired`, unequal lengths are an error (`MismatchedPairs`) and so are empty arrays (`EmptySamples`). `relative_delta_pct`, `speedup`, `decision` and `valid_samples` are the same as from `compare_paired`; only `interval` changes, and it does not influence the decision. The interval is in the unit of the input, while the decision is in percent. The threshold is not validated here either: the warning under `compare_paired` applies unchanged."
+msgid "The first six arguments are those of `compare_paired`; the last three are the seed, the resample count and the confidence in percent. Unlike `compare_paired`, unequal lengths are an error (`MismatchedPairs`) and so are empty arrays (`EmptySamples`). `relative_delta_pct`, `speedup`, `decision` and `valid_samples` are the same as from `compare_paired`; only `interval` changes, and it does not influence the decision. The interval is in the unit of the input, while the decision is in percent. A threshold that is not finite and non-negative gives `Ok` with the decision `Invalid`, as in `compare_paired`; a `NaN` or infinite delta is rejected by the bootstrap with `NonFiniteSample`."
 msgstr ""
 
-#: manual/api/stats.md:384
+#: manual/api/stats.md:386
 msgid "Outlier views"
 msgstr ""
 
-#: manual/api/stats.md:388
+#: manual/api/stats.md:390
 msgid "`filter_outliers` returns the values that an outlier policy keeps, in their original order."
 msgstr ""
 
-#: manual/api/stats.md:395
+#: manual/api/stats.md:397
 msgid "Policy"
 msgstr ""
 
-#: manual/api/stats.md:395
+#: manual/api/stats.md:397
 msgid "Kept values"
 msgstr ""
 
-#: manual/api/stats.md:397
+#: manual/api/stats.md:399
 msgid "all values (a copy)"
 msgstr ""
 
-#: manual/api/stats.md:401
-msgid "The input array is never modified. When more than half of the values are equal, the MAD is `0` and `MADTrim` keeps only the values equal to the median. Use the result for a derived view; keep the raw observations."
+#: manual/api/stats.md:403
+msgid "The input array is never modified. `TukeyFence` and `MADTrim` compute their fences from the values that are not `NaN` and never keep a `NaN`; `ReportOnly` keeps it. When more than half of the values are equal, the MAD is `0` and `MADTrim` keeps only the values equal to the median. Use the result for a derived view; keep the raw observations."
 msgstr ""
 
 #: manual/api/tune.md:1
@@ -2075,34 +2103,34 @@ msgid "It takes the first $\\min(\\text{budget}, \\lvert\\text{space}\\rvert)$ c
 msgstr ""
 
 #: manual/api/tune.md:251
-msgid "This winner is the raw minimum of the measured scores: it ignores the practical threshold and the secondary metric, and it is subject to the winner's curse derived in the [tune design](../design/tune.md). For a decision, call `select_best` on `result.scores` and confirm the finalists with fresh measurements."
+msgid "This winner is the raw minimum of the measured scores: it ignores the practical threshold and the secondary metric, and it is subject to the winner's curse derived in the [tune design](../design/tune.md). For a decision, call `select_best` on `result.scores` and confirm the finalists with fresh measurements. Whether the policy string should follow `select_best` is open ([issue #12](https://github.com/Luna-Flow/mare_mark/issues/12)); it would need a threshold and a secondary preference that `exhaustive_scores` does not take today."
 msgstr ""
 
-#: manual/api/tune.md:277
+#: manual/api/tune.md:280
 msgid "`TuningResult` is the outcome of `exhaustive_scores`."
 msgstr ""
 
-#: manual/api/tune.md:287
+#: manual/api/tune.md:290
 msgid "`scores` holds the scores of valid candidates (usable or not), `build_events` one event per examined candidate."
 msgstr ""
 
-#: manual/api/tune.md:292
+#: manual/api/tune.md:295
 msgid "`seeded_order` permutes candidates by a seeded hash of their ids."
 msgstr ""
 
-#: manual/api/tune.md:298
-msgid "Each id is hashed with FNV-1a keyed by the seed; candidates are sorted by hash, then by id. When ids are unique, the result depends on the set of ids and the seed, not on the input order. Use a prefix of it as a reproducible subset."
+#: manual/api/tune.md:301
+msgid "Each id is hashed with FNV-1a keyed by the seed, and the hash is passed through the SplitMix64 output finalizer; candidates are sorted by that key, then by id. When ids are unique, the result depends on the set of ids and the seed, not on the input order. Use a prefix of it as a reproducible random subset. The finalizer makes every character of an id, including the last one, affect the high bits that decide the sort, so ids that differ only at the end are spread over the order."
 msgstr ""
 
-#: manual/api/tune.md:302
-msgid "[!WARNING] The hash has no final mixing step, and its high bits, which decide the sort, depend only weakly on the last characters of an id. Ids that differ only at the end stay clustered: for the ids `\"c0\"` to `\"c99\"` and seed `1` the order starts `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …`. A prefix is then far from a random subset. Ids with a long common suffix after the varying part, such as the `tune_gemm` ids, are mixed much better. Put the varying part first in your ids, or shuffle with your own well-mixed hash."
+#: manual/api/tune.md:309
+msgid "The order changed in the release that added the finalizer ([issue #10](https://github.com/Luna-Flow/mare_mark/issues/10)): a subset recorded with an earlier version is not reproduced by the same seed."
 msgstr ""
 
-#: manual/api/tune.md:321
+#: manual/api/tune.md:323
 msgid "`confirmation_count` scales the number of confirmation samples with the measured uncertainty."
 msgstr ""
 
-#: manual/api/tune.md:328
+#: manual/api/tune.md:330
 msgid "`confirmation_count(base, u, budget)` is `base` times 1, 2 or 3 for $u \\le 0.05$, $0.05 < u \\le 0.2$ and $u > 0.2$, then clamped: the result is $\\max(0, \\min(\\text{budget}, m \\cdot \\text{base}))$, so a negative budget gives `0`. A `NaN` uncertainty counts as $u \\le 0.05$. `u` is a relative uncertainty of your choice, for example IQR divided by median."
 msgstr ""
 
@@ -2612,7 +2640,7 @@ msgstr ""
 
 #: manual/design/cli.md:32
 #: manual/design/event.md:38
-#: manual/design/experiment.md:91
+#: manual/design/experiment.md:96
 #: manual/design/fixture.md:59
 #: manual/design/generator.md:96
 #: manual/design/ir_model.md:30
@@ -2621,7 +2649,7 @@ msgstr ""
 #: manual/design/report.md:74
 #: manual/design/runner.md:152
 #: manual/design/stats.md:218
-#: manual/design/tune.md:108
+#: manual/design/tune.md:124
 #: manual/design/tune_gemm.md:116
 msgid "Design decisions"
 msgstr ""
@@ -2660,7 +2688,7 @@ msgstr ""
 
 #: manual/design/cli.md:65
 #: manual/design/event.md:74
-#: manual/design/experiment.md:124
+#: manual/design/experiment.md:129
 #: manual/design/fixture.md:89
 #: manual/design/generator.md:135
 #: manual/design/ir_model.md:56
@@ -2668,8 +2696,8 @@ msgstr ""
 #: manual/design/model.md:109
 #: manual/design/report.md:131
 #: manual/design/runner.md:279
-#: manual/design/stats.md:406
-#: manual/design/tune.md:143
+#: manual/design/stats.md:422
+#: manual/design/tune.md:159
 #: manual/design/tune_gemm.md:150
 msgid "Correctness and invariants"
 msgstr ""
@@ -2692,7 +2720,7 @@ msgstr ""
 
 #: manual/design/cli.md:72
 #: manual/design/event.md:85
-#: manual/design/experiment.md:137
+#: manual/design/experiment.md:145
 #: manual/design/fixture.md:98
 #: manual/design/generator.md:143
 #: manual/design/ir_model.md:62
@@ -2700,8 +2728,8 @@ msgstr ""
 #: manual/design/model.md:121
 #: manual/design/report.md:145
 #: manual/design/runner.md:300
-#: manual/design/stats.md:433
-#: manual/design/tune.md:156
+#: manual/design/stats.md:449
+#: manual/design/tune.md:172
 #: manual/design/tune_gemm.md:162
 msgid "Alternatives rejected"
 msgstr ""
@@ -2720,7 +2748,7 @@ msgstr ""
 
 #: manual/design/cli.md:79
 #: manual/design/event.md:92
-#: manual/design/experiment.md:146
+#: manual/design/experiment.md:154
 #: manual/design/fixture.md:105
 #: manual/design/generator.md:151
 #: manual/design/ir_model.md:68
@@ -2728,8 +2756,8 @@ msgstr ""
 #: manual/design/model.md:130
 #: manual/design/report.md:154
 #: manual/design/runner.md:315
-#: manual/design/stats.md:451
-#: manual/design/tune.md:165
+#: manual/design/stats.md:467
+#: manual/design/tune.md:181
 #: manual/design/tune_gemm.md:170
 msgid "Boundaries"
 msgstr ""
@@ -2747,10 +2775,6 @@ msgid "`replay` reads files only, executes the first failure only, and passes th
 msgstr ""
 
 #: manual/design/cli.md:86
-msgid "The progress line prints a microsecond value labelled `ms`."
-msgstr ""
-
-#: manual/design/cli.md:87
 msgid "The version string is fixed in the source."
 msgstr ""
 
@@ -2877,10 +2901,6 @@ msgid "`InMemorySink` does not keep the summary."
 msgstr ""
 
 #: manual/design/event.md:97
-msgid "The JSONL writer omits the reason strings of validation statuses and the observation's `setup_timing`."
-msgstr ""
-
-#: manual/design/event.md:99
 msgid "No reader lives here; `report` and `cli` parse the stream."
 msgstr ""
 
@@ -2957,82 +2977,90 @@ msgid "If the relative delta $r(s)$ is monotone in the scale, the labels $\\text
 msgstr ""
 
 #: manual/design/experiment.md:81
-msgid "`comparator_label(r, t)` maps the relative delta to the labels with the same threshold rule as `stats`: $A$ if $r \\le -t$, $B$ if $r \\ge t$, `Unknown` otherwise, tested in this order. The `Unknown` band of width $2t$ keeps noise around $r = 0$ from creating spurious transitions. The band exists only for $0 < t < \\infty$: with $t = 0$ the first test catches $r = 0$ and a tie becomes $A$, with $t < 0$ every $r \\le \\lvert t\\rvert$ becomes $A$, and with $t = \\mathrm{NaN}$ every label is `Unknown`, so $T = 0$ whatever the data. The function does not reject such thresholds; see [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)."
+msgid "`comparator_label(r, t)` maps the relative delta to the labels with the same threshold rule as `stats`: $A$ if $r < 0$ and $r \\le -t$, $B$ if $r > 0$ and $r \\ge t$, `Unknown` otherwise. The `Unknown` band $(-t, t)$ keeps noise around $r = 0$ from creating spurious transitions; for $t = 0$ it shrinks to the single point $r = 0$, so an exact tie never counts as a preference. A threshold that is `NaN`, infinite or negative has no band at all and yields `Unknown` for every $r$ (and so $T = 0$); `runner.validate_protocol` rejects such thresholds before a run."
 msgstr ""
 
-#: manual/design/experiment.md:93
+#: manual/design/experiment.md:90
+msgid "The labels are counted in scale order. `crossover_from_labels` first sorts the pairs $(s_i, \\ell_i)$ stably with `ScaleDomain.compare`, so the sequence above is defined by the comparator and not by the order in which the caller listed the scales. Without the sort, a single crossover measured in the order $64, 16, 256$ with labels $B, A, B$ would count two transitions."
+msgstr ""
+
+#: manual/design/experiment.md:98
 msgid "Oracles are values"
 msgstr ""
 
-#: manual/design/experiment.md:95
+#: manual/design/experiment.md:100
 msgid "*Problem.* Each case needs its own notion of correctness. *Choice.* Oracles are records of functions with an id. *Why.* They can capture tolerances and contexts, are named in every validation event, and can be built inline."
 msgstr ""
 
-#: manual/design/experiment.md:99
+#: manual/design/experiment.md:104
 msgid "Outcomes, not just values, reach the oracle"
 msgstr ""
 
-#: manual/design/experiment.md:101
+#: manual/design/experiment.md:106
 msgid "The oracle sees `ExecutionOutcome`s, so it can accept a documented `ExpectedDifference`, compare raised flags, or require that both sides trap. The runner pre-classifies worker crashes, timeouts, decoding errors and `Unsupported` before the oracle is called, so oracles only judge real results."
 msgstr ""
 
-#: manual/design/experiment.md:106
+#: manual/design/experiment.md:111
 msgid "Greedy, first-improvement shrinking"
 msgstr ""
 
-#: manual/design/experiment.md:108
+#: manual/design/experiment.md:113
 msgid "*Options.* Exhaustive search for the smallest failing input; delta debugging; greedy descent. *Choice.* Greedy descent with an explicit candidate function and an evaluation budget. *Why.* Each evaluation may run a whole operation sequence, so the budget is what bounds the cost; the candidate function lets the user encode the structure of the input (halve a size, drop an element). The accepted path is recorded so a reader can see how the counterexample was reached."
 msgstr ""
 
-#: manual/design/experiment.md:116
+#: manual/design/experiment.md:121
 msgid "Conservative crossover"
 msgstr ""
 
-#: manual/design/experiment.md:118
+#: manual/design/experiment.md:123
 msgid "*Problem.* A crossover becomes a deployment rule (`DeploymentPolicy::Piecewise`) that will be applied to inputs never measured. *Choice.* Accept a boundary only for exactly one transition; report `NonMonotonic` otherwise and leave the policy to the user. *Why.* A rule built from a noisy, flipping preference would encode noise."
 msgstr ""
 
-#: manual/design/experiment.md:126
+#: manual/design/experiment.md:131
 msgid "`shrink` evaluates the predicate at most `max_steps` times and returns an input satisfying it whenever the initial input does."
 msgstr ""
 
-#: manual/design/experiment.md:128
+#: manual/design/experiment.md:133
 msgid "`crossover_from_labels` returns `Found` only when there is exactly one transition, and its boundary consists of the two adjacent scales of that transition."
 msgstr ""
 
-#: manual/design/experiment.md:131
+#: manual/design/experiment.md:136
 msgid "`ReferenceOracle::equal` returns `Valid` only for two `Value` outcomes accepted by the comparator."
 msgstr ""
 
-#: manual/design/experiment.md:133
-msgid "`comparator_label` partitions the real line into $(-\\infty, -t]$, $(-t, t)$, $[t, \\infty)$ for $0 < t < \\infty$; other thresholds are accepted and behave as described above."
-msgstr ""
-
-#: manual/design/experiment.md:139
-msgid "**Statistical change-point detection on raw timings.** Needs a noise model; labels from practical thresholds are explainable."
+#: manual/design/experiment.md:138
+msgid "For a finite $t \\ge 0$, `comparator_label` partitions the real line into $(-\\infty, -t] \\setminus \\{0\\}$ (`A`), $[t, \\infty) \\setminus \\{0\\}$ (`B`) and the rest (`Unknown`); for any other $t$ every label is `Unknown`."
 msgstr ""
 
 #: manual/design/experiment.md:141
+msgid "`crossover_from_labels` depends only on the multiset of (scale, label) pairs and the comparator, except for the order of pairs whose scales compare equal, which the stable sort keeps."
+msgstr ""
+
+#: manual/design/experiment.md:147
+msgid "**Statistical change-point detection on raw timings.** Needs a noise model; labels from practical thresholds are explainable."
+msgstr ""
+
+#: manual/design/experiment.md:149
 msgid "**Interpolating the boundary.** The scales between two measured ones were not measured; the result names the two measured scales instead."
 msgstr ""
 
-#: manual/design/experiment.md:143
+#: manual/design/experiment.md:151
 msgid "**Delta debugging.** Powerful for sequences, but needs a fixed input representation; the candidate function is more general."
 msgstr ""
 
-#: manual/design/experiment.md:148
-msgid "`crossover_from_labels` does not sort the domain and does not use `ScaleDomain.compare`; pass sorted values."
+#: manual/design/experiment.md:156
+msgid "`crossover_from_labels` uses `ScaleDomain.compare` only to sort; equal scales are not merged, and their labels stay in input order."
 msgstr ""
 
-#: manual/design/experiment.md:150
+#: manual/design/experiment.md:158
 msgid "A transition across an `Unknown` label (A, Unknown, B) is not counted, so such a sequence reports `NoCrossover`."
 msgstr ""
 
-#: manual/design/experiment.md:152
+#: manual/design/experiment.md:160
 msgid "Oracles are not run here; the runner runs them. `ReferenceOracle.sequence_length` is not used by the runner."
 msgstr ""
 
-#: manual/design/experiment.md:154
+#: manual/design/experiment.md:162
 msgid "`shrink` does not check that the initial input fails."
 msgstr ""
 
@@ -4129,14 +4157,10 @@ msgid "`protocol_identity`, and hence `run_id`, covers only the warmup count, th
 msgstr ""
 
 #: manual/design/runner.md:326
-msgid "`validate_protocol` does not reject `NaN` durations or a `NaN` threshold: a `NaN` target disables calibration and a `NaN` warmup time disables the time criterion of the warmup."
-msgstr ""
-
-#: manual/design/runner.md:329
 msgid "Subprocess workers need the native target; `run` itself needs an async runtime (native, JS or wasm, not wasm-gc)."
 msgstr ""
 
-#: manual/design/runner.md:331
+#: manual/design/runner.md:328
 msgid "First-order carryover between implementations is not balanced."
 msgstr ""
 
@@ -4353,7 +4377,7 @@ msgid "A practical threshold instead of a significance test"
 msgstr ""
 
 #: manual/design/stats.md:277
-msgid "*Problem.* With enough repetitions any difference becomes statistically significant, including a 0.1 % change nobody would act on. *Options.* A $t$-test or Wilcoxon test; an equivalence test (TOST); a practical threshold on the point estimate. *Choice.* The decision is the three-way rule"
+msgid "*Problem.* With enough repetitions any difference becomes statistically significant, including a 0.1 % change nobody would act on. *Options.* A $t$-test or Wilcoxon test; an equivalence test (TOST); a practical threshold on the point estimate. *Choice.* For $t > 0$ the decision is the three-way rule"
 msgstr ""
 
 #: manual/design/stats.md:288
@@ -4361,35 +4385,21 @@ msgid "checked after `Invalid` (unequal lengths) and `Unknown` (no pairs). *Why.
 msgstr ""
 
 #: manual/design/stats.md:294
-msgid "The code evaluates the rule as an ordered chain, `Faster` first:"
+msgid ""
+"The rule is meaningful only for a threshold $t \\in [0, \\infty)$ and a relative delta $r \\n"
+"e \\mathrm{NaN}$; `compare_paired` returns `Invalid` otherwise. For valid inputs the code evaluates"
 msgstr ""
 
-#: manual/design/stats.md:305
-msgid "For $0 < t < \\infty$ the three regions $(-\\infty, -t]$, $[t, \\infty)$ and $(-t, t)$ partition $\\mathbb R$ and the chain is the rule above. For other thresholds it is not, and `compare_paired` does not reject them:[^issue1]"
-msgstr ""
-
-#: manual/design/stats.md:309
-msgid "$t = 0$: $r \\le -0$ holds at $r = 0$, so an exact tie is `Faster` and `Equivalent` is never returned."
-msgstr ""
-
-#: manual/design/stats.md:311
-msgid "$t < 0$: the first test is $r \\le \\lvert t\\rvert$, so every slowdown smaller than $\\lvert t\\rvert$ percent is reported as `Faster`, and `Equivalent` is never returned."
-msgstr ""
-
-#: manual/design/stats.md:314
-msgid "$t = \\mathrm{NaN}$: every comparison with `NaN` is false, so every pair of arrays, including a twofold slowdown, is `Equivalent`."
+#: manual/design/stats.md:307
+msgid "The sign conditions make the first two regions disjoint for every $t \\ge 0$: $\\{r < 0,\\ r \\le -t\\} = (-\\infty, -t] \\setminus \\{0\\}$ and $\\{r > 0,\\ r \\ge t\\} = [t, \\infty) \\setminus \\{0\\}$, so together with the rest of the line they partition $\\mathbb R$. For $t > 0$ the sign conditions are implied by the threshold tests and the rule is exactly the one above. For $t = 0$ they matter: an exact tie $r = 0$ lies in neither of the first two regions and is `Equivalent`, while every other $r$ is `Faster` or `Slower`. Without them, $0 \\le -0$ would make a tie `Faster`.[^issue1]"
 msgstr ""
 
 #: manual/design/stats.md:316
-msgid "$t = +\\infty$: every finite $r$ is `Equivalent`."
-msgstr ""
-
-#: manual/design/stats.md:318
-msgid "A `NaN` relative delta (for example from a `NaN` in the input) is also `Equivalent`. `runner.validate_protocol` rejects $t < 0$ but accepts `NaN`, and `stats` is called with any `Double`. Use a finite, positive threshold."
+msgid "A threshold that is `NaN`, infinite or negative has no meaning as \"the smallest change you care about\", and every comparison with `NaN` is false, so such a threshold would silently classify everything as `Equivalent` (or, for $t < 0$, small slowdowns as `Faster`). Returning `Invalid` makes the mistake visible. `runner.validate_protocol` rejects the same thresholds before a run."
 msgstr ""
 
 #: manual/design/stats.md:322
-msgid "Reported as [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1). `experiment.comparator_label` uses the same chain and has the same behaviour."
+msgid "Fixed in [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1). `experiment.comparator_label` uses the same rule and returns `\"Unknown\"` where `compare_paired` returns `Equivalent` or `Invalid`."
 msgstr ""
 
 #: manual/design/stats.md:324
@@ -4429,94 +4439,98 @@ msgid "*Problem.* Reports want plots without one 50 ms page-fault spike; decisio
 msgstr ""
 
 #: manual/design/stats.md:392
-msgid "Because the MAD is unscaled, the MAD trim removes about six times as many points as the Tukey fence from clean normal data ($4.3\\,\\%$ against $0.70\\,\\%$). It is also degenerate when more than half of the values coincide: the MAD is then $0$ and only values equal to the median survive. Both filters drop `NaN` values, because every comparison with `NaN` is false, but a `NaN` also corrupts the quartiles they are computed from."
+msgid "Because the MAD is unscaled, the MAD trim removes about six times as many points as the Tukey fence from clean normal data ($4.3\\,\\%$ against $0.70\\,\\%$). It is also degenerate when more than half of the values coincide: the MAD is then $0$ and only values equal to the median survive. Both filters compute their fences from the values that are not `NaN` and never keep a `NaN`."
 msgstr ""
 
 #: manual/design/stats.md:399
-msgid "Errors as values"
+msgid "`NaN` propagates"
 msgstr ""
 
 #: manual/design/stats.md:401
-msgid "Invalid bootstrap input returns `Err(BootstrapError)`. An empty or non-finite sample would otherwise yield a plausible-looking interval of zeros or `NaN`. `summarize` and `compare_paired` stay total: they return neutral values (`count == 0`, `Unknown`, `Invalid`) that a caller can test."
+msgid "*Problem.* The default `Double` order puts a `NaN` at an unspecified position of a sort, so order statistics computed after sorting a sample with a `NaN` are inconsistent (a minimum above the maximum) and depend on the position of the `NaN` in the input. *Options.* Reject `NaN` with an error; drop it silently; propagate it. *Choice.* `summarize` returns `NaN` for every statistic except `count` when the input contains a `NaN`, and `compare_paired` turns the resulting `NaN` relative delta into `Invalid`. *Why.* Both functions are total and have no error channel; propagation keeps the result honest without changing their signatures, and `count` still shows how many values were passed. Dropping values would change $n$ and the pairing silently. The bootstrap functions, which already return `Result`, keep rejecting non-finite values with `NonFiniteSample`."
 msgstr ""
 
-#: manual/design/stats.md:408
+#: manual/design/stats.md:414
+msgid "Errors as values"
+msgstr ""
+
+#: manual/design/stats.md:416
+msgid "Invalid bootstrap input returns `Err(BootstrapError)`. An empty or non-finite sample would otherwise yield a plausible-looking interval of zeros or `NaN`. `summarize` and `compare_paired` stay total: they return neutral values (`count == 0`, `NaN` statistics, `Unknown`, `Invalid`) that a caller can test."
+msgstr ""
+
+#: manual/design/stats.md:424
 msgid "**Inputs are not modified.** `summarize` sorts a copy; `filter_outliers` returns a new array; the bootstrap sorts each resample, never the input."
 msgstr ""
 
-#: manual/design/stats.md:410
+#: manual/design/stats.md:426
 msgid "**Range.** By the range property of $Q$, `median`, `q1` and `q3` lie in $[x_{(1)}, x_{(n)}]$. Every resampled median lies in $[\\min d, \\max d]$ because it is a quantile of values drawn from $d$; the interval endpoints are quantiles of those medians, hence $\\min d \\le$ `low` $\\le$ `high` $\\le \\max d$."
 msgstr ""
 
-#: manual/design/stats.md:415
+#: manual/design/stats.md:431
 msgid "**Order.** For $0 < \\gamma < 100$, $\\alpha/2 < 1 - \\alpha/2$, and monotonicity of $Q$ gives `low` $\\le$ `high`."
 msgstr ""
 
-#: manual/design/stats.md:417
+#: manual/design/stats.md:433
 msgid "**Determinism.** The bootstrap is a function of (values, seed, $B$, $\\gamma$). Sorting finite doubles is deterministic, and the generator uses wrapping integer arithmetic, so the same inputs give bit-identical bounds on every target."
 msgstr ""
 
-#: manual/design/stats.md:421
+#: manual/design/stats.md:437
 msgid "**Floating-point error.** The mean is a left-to-right sum. With $u = 2^{-53}$ and $\\gamma_k = ku/(1-ku)$, the standard bound $\\lvert \\mathrm{fl}(\\sum x_i) - \\sum x_i\\rvert \\le \\gamma_{n-1}\\sum \\lvert x_i\\rvert$ becomes a relative error of at most $\\gamma_{n-1} \\approx n u$ for positive timings. The variance uses the two-pass formula $\\sum (x_i - \\bar x)^2$, which avoids the cancellation of the one-pass $\\sum x_i^2 - n\\bar x^2$.[^higham]"
 msgstr ""
 
-#: manual/design/stats.md:427
+#: manual/design/stats.md:443
 msgid "**Complexity.** `summarize` is $O(n\\log n)$; `compare_paired` is $O(n\\log n)$; `bootstrap_interval` is $O(B\\,n\\log n + B\\log B)$; `filter_outliers` is $O(n\\log n)$."
 msgstr ""
 
-#: manual/design/stats.md:431
+#: manual/design/stats.md:447
 msgid "N. J. Higham, *Accuracy and Stability of Numerical Algorithms*, 2nd ed., SIAM, 2002, §4.2 and §1.9."
 msgstr ""
 
-#: manual/design/stats.md:435
+#: manual/design/stats.md:451
 msgid "**BCa and studentized bootstrap.** For smooth statistics they reduce the one-sided coverage error from $O(n^{-1/2})$ to $O(n^{-1})$, but they need a jackknife acceleration estimate or a variance estimate for every resample; for the median both are unstable with the small $n$ that benchmarks have, and neither removes the discreteness derived above. Not implemented."
 msgstr ""
 
-#: manual/design/stats.md:440
+#: manual/design/stats.md:456
 msgid "**Hierarchical bootstrap.** Resampling datasets, then repetitions, matches `HierarchicalDatasetsAndRepeats` better, but the comparison functions take flat arrays. Callers can still resample per dataset themselves."
 msgstr ""
 
-#: manual/design/stats.md:443
+#: manual/design/stats.md:459
 msgid "**Hodges–Lehmann estimator.** The median of pairwise Walsh averages is more efficient under symmetry, but costs $O(n^2)$ and is harder to explain in a report."
 msgstr ""
 
-#: manual/design/stats.md:446
+#: manual/design/stats.md:462
 msgid "**Hypothesis tests ($t$, Welch, Mann–Whitney).** Rejected for the decision as explained above; their $p$-values answer a different question."
 msgstr ""
 
-#: manual/design/stats.md:448
+#: manual/design/stats.md:464
 msgid "**Scaled MAD.** Multiplying by 1.4826 assumes normality; the unscaled value is reported and the factor is documented instead."
 msgstr ""
 
-#: manual/design/stats.md:453
+#: manual/design/stats.md:469
 msgid "The decision uses the point estimate and the threshold only; the interval is reported, not used to decide. There is no equivalence test."
 msgstr ""
 
-#: manual/design/stats.md:455
+#: manual/design/stats.md:471
 msgid "Comparisons take flat arrays. Pairing, phase separation (exploratory or confirmatory) and environment compatibility are the caller's job."
 msgstr ""
 
-#: manual/design/stats.md:457
+#: manual/design/stats.md:473
 msgid "The bootstrap interval is in the unit of the deltas; the decision is in percent. Divide by $\\operatorname{med}(b)$ to compare them."
 msgstr ""
 
-#: manual/design/stats.md:459
+#: manual/design/stats.md:475
 msgid "The bootstrap assumes exchangeable deltas. Rotation order makes neighbouring blocks dependent; the interval does not model that."
 msgstr ""
 
-#: manual/design/stats.md:461
+#: manual/design/stats.md:477
 msgid "`filter_outliers` is never applied automatically, and `OutlierPolicy` in a `RunProtocol` is a recorded intent, not an action."
 msgstr ""
 
-#: manual/design/stats.md:463
-msgid "Non-finite values are rejected only by the bootstrap functions. A `NaN` in the input of `summarize` or `compare_paired` lands at an unspecified position of the sort and can produce any decision."
+#: manual/design/stats.md:479
+msgid "Non-finite values are rejected with an error only by the bootstrap functions; `summarize` and `compare_paired` propagate `NaN` as derived above."
 msgstr ""
 
-#: manual/design/stats.md:466
-msgid "The practical threshold is not validated: `0`, negative values and `NaN` give the decisions listed under the decision rule above."
-msgstr ""
-
-#: manual/design/stats.md:468
+#: manual/design/stats.md:482
 msgid "The bootstrap interval has no coverage guarantee for small $n$ (see the coverage table). An interval with guaranteed coverage for the median is the order-statistic interval $[d_{(i)}, d_{(j)}]$ with $i$ and $j$ chosen from $\\mathrm{Bin}(n, \\tfrac12)$; it is not provided."
 msgstr ""
 
@@ -4592,95 +4606,103 @@ msgid "because each factor is at most $1 - q$. So the prefix contains at least o
 msgstr ""
 
 #: manual/design/tune.md:93
-msgid "`seeded_order` approximates such an order by sorting candidates on a seeded 64-bit FNV-1a hash of their ids. The argument needs the hash order to behave like a random permutation, and FNV-1a without a final mixing step does so only partly. The last character $c$ of an id enters as $h' = (h \\oplus c)\\cdot(2^{40} + 435)$: it changes the low byte of $h \\oplus c$, which the factor $2^{40}$ moves to bits 40–47, and reaches the top bits, which decide the sort, only through carries. Ids that differ only in their last characters therefore stay next to each other in the order (for `\"c0\"` to `\"c99\"` and seed `1`, the first ten are `c0` to `c9` in an XOR-permuted order). Ids whose varying part is followed by a long common suffix, like the `tune_gemm` ids, go through many more multiplications after the difference and are well mixed."
+msgid "`seeded_order` approximates such an order by sorting candidates on a seeded key $k = \\mathrm{mix}(h)$, where $h$ is the 64-bit FNV-1a hash of the id with the seed folded into the offset basis and $\\mathrm{mix}$ is the SplitMix64 output finalizer"
 msgstr ""
 
 #: manual/design/tune.md:106
+msgid "The argument needs the key order to behave like a random permutation, and FNV-1a alone does so only partly. The last character $c$ of an id enters as $h' = (h \\oplus c)\\cdot(2^{40} + 435)$: it changes the low byte of $h \\oplus c$, which the factor $2^{40}$ moves to bits 40–47, and reaches the top bits, which decide the sort, only through carries. Sorting on $h$ itself kept ids that differ only in their last characters next to each other (for `\"c0\"` to `\"c99\"` and seed `1`, the first ten were `c0` to `c9`).[^issue10] Each step of $\\mathrm{mix}$ is a bijection (an xorshift and a multiplication by an odd constant), so distinct hashes keep distinct keys, and the right shifts feed the high bits back into the low ones before each multiplication carries them up again: one changed input bit changes each output bit with probability close to $1/2$. The key order is then a pseudo-random permutation for every pattern of ids."
+msgstr ""
+
+#: manual/design/tune.md:120
+msgid "[Issue #10](https://github.com/Luna-Flow/mare_mark/issues/10). Adding the finalizer changed the order for every seed."
+msgstr ""
+
+#: manual/design/tune.md:122
 msgid "J. Bergstra and Y. Bengio, \"Random search for hyper-parameter optimization\", *JMLR* 13, 2012."
 msgstr ""
 
-#: manual/design/tune.md:110
+#: manual/design/tune.md:126
 msgid "Policy here, effects in the application"
 msgstr ""
 
-#: manual/design/tune.md:112
+#: manual/design/tune.md:128
 msgid "*Problem.* Building a candidate may mean compiling a kernel; running it must be validated and timed under a protocol. *Choice.* `tune` takes scores as input and never runs anything; `BuiltCandidate` carries a `runner.Implementation`. *Why.* Tuning measurements then go through the same validation, calibration and event stream as every other benchmark, and the tuning policy is testable with made-up numbers."
 msgstr ""
 
-#: manual/design/tune.md:119
+#: manual/design/tune.md:135
 msgid "Median scores"
 msgstr ""
 
-#: manual/design/tune.md:121
+#: manual/design/tune.md:137
 msgid "`score_samples` takes the median of usable samples and marks a candidate with no usable sample invalid, so a candidate cannot win because a broken measurement returned `0` or `NaN`."
 msgstr ""
 
-#: manual/design/tune.md:125
+#: manual/design/tune.md:141
 msgid "Exhaustive search over a bounded prefix"
 msgstr ""
 
-#: manual/design/tune.md:127
+#: manual/design/tune.md:143
 msgid "`exhaustive_scores` scores the first `budget` candidates of the enumeration and records a `BuildEvent` for each, including rejected ones. Combined with `seeded_order`, the prefix is a reproducible subset (random to the extent discussed above); with the natural order and a large budget, it is a full grid search. The policy string `global:<id>` names the candidate with the smallest measured primary score, the first one on ties. That is the raw minimum, which the winner's curse argument above warns against: treat it as a shortlist entry, not a decision. Decisions (with practical ties, per shape, Pareto) are built with `select_best`, `pareto_frontier` and `@model.DeploymentPolicy`."
 msgstr ""
 
-#: manual/design/tune.md:137
+#: manual/design/tune.md:153
 msgid "Adaptive confirmation"
 msgstr ""
 
-#: manual/design/tune.md:139
+#: manual/design/tune.md:155
 msgid "`confirmation_count` multiplies the base confirmation count by 1, 2 or 3 as the relative uncertainty crosses 5 % and 20 %, clamped to the budget. Noisy finalists get more samples, quiet ones do not waste time."
 msgstr ""
 
-#: manual/design/tune.md:145
+#: manual/design/tune.md:161
 msgid "`select_best` returns `None` exactly when no score is usable; otherwise its result is usable, within the threshold of the fastest, and independent of input order (derived above)."
 msgstr ""
 
-#: manual/design/tune.md:148
+#: manual/design/tune.md:164
 msgid "`pareto_frontier` returns only usable, non-dominated scores, sorted by primary, secondary, id."
 msgstr ""
 
-#: manual/design/tune.md:150
+#: manual/design/tune.md:166
 msgid "`exhaustive_scores` examines at most `budget` candidates and calls the score callback only for valid ones."
 msgstr ""
 
-#: manual/design/tune.md:152
+#: manual/design/tune.md:168
 msgid "`seeded_order` is a permutation of its input that depends only on the ids and the seed."
 msgstr ""
 
-#: manual/design/tune.md:154
+#: manual/design/tune.md:170
 msgid "`confirmation_count` lies in $[0, \\max(\\text{budget}, 0)]$."
 msgstr ""
 
-#: manual/design/tune.md:158
+#: manual/design/tune.md:174
 msgid "**Bayesian optimization or evolutionary search.** Effective, but needs a model of the space and makes results harder to reproduce; the hooks (`neighbors`, `seeded_order`) allow a user-written search."
 msgstr ""
 
-#: manual/design/tune.md:161
+#: manual/design/tune.md:177
 msgid "**Mean scores.** One preempted run would decide."
 msgstr ""
 
-#: manual/design/tune.md:162
+#: manual/design/tune.md:178
 msgid "**Selecting the raw minimum.** Subject to the winner's curse. Only the informational policy string of `exhaustive_scores` uses it."
 msgstr ""
 
-#: manual/design/tune.md:167
+#: manual/design/tune.md:183
 msgid "No candidate is built, run or validated here."
 msgstr ""
 
-#: manual/design/tune.md:168
+#: manual/design/tune.md:184
 msgid "`TuningBudget`, `TuningObjective` and `HoldoutPlan` are data; no function enforces them."
 msgstr ""
 
-#: manual/design/tune.md:170
+#: manual/design/tune.md:186
 msgid "`CandidateSpace.neighbors` is not used by any function in the package."
 msgstr ""
 
-#: manual/design/tune.md:171
+#: manual/design/tune.md:187
 msgid "`exhaustive_scores` does not use `seeded_order` itself; reorder the space first if you want a random subset."
 msgstr ""
 
-#: manual/design/tune.md:173
-msgid "`seeded_order` is not a uniform random permutation; ids that differ only in their last characters stay clustered."
+#: manual/design/tune.md:189
+msgid "`seeded_order` is pseudo-random, not cryptographic: the order is a fixed function of the ids and the seed."
 msgstr ""
 
 #: manual/design/tune_gemm.md:1
@@ -5332,30 +5354,26 @@ msgid "mare_mark is pre-1.0. The versioned contracts are the protocol vocabulary
 msgstr ""
 
 #: manual/index.md:110
-msgid "[!WARNING] `stats.compare_paired` and `experiment.comparator_label` do not validate the practical threshold: `0` reports an exact tie as `Faster` (`\"A\"`), and `NaN` reports every comparison as `Equivalent` (`\"Unknown\"`) ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold. The [stats API](api/stats.md) lists the exact behaviour."
-msgstr ""
-
-#: manual/index.md:118
 msgid "Where to read next"
 msgstr ""
 
-#: manual/index.md:120
+#: manual/index.md:112
 msgid "New to benchmarking with mare_mark: read [getting started](getting_started.md), then the [runner tutorial](tutorial/runner.md) and the [stats tutorial](tutorial/stats.md). Publish with the [report tutorial](tutorial/report.md)."
 msgstr ""
 
-#: manual/index.md:124
+#: manual/index.md:116
 msgid "Using it in a project: keep the API pages of [`runner`](api/runner.md), [`stats`](api/stats.md) and [`model`](api/model.md) at hand; read the [fixture](tutorial/fixture.md) and [generator](tutorial/generator.md) tutorials for realistic inputs, and the [experiment tutorial](tutorial/experiment.md) for oracles and crossovers. For tuning, read [tune](tutorial/tune.md) and [tune_gemm](tutorial/tune_gemm.md)."
 msgstr ""
 
-#: manual/index.md:130
+#: manual/index.md:122
 msgid "Reviewing results or contributing: read the [architecture](architecture.md) and the design pages, starting with [runner](design/runner.md) (experimental design and calibration) and [stats](design/stats.md) (estimators, bootstrap and decision rule), then [verification](verification.md)."
 msgstr ""
 
-#: manual/index.md:137
+#: manual/index.md:129
 msgid "Recommended release checks:"
 msgstr ""
 
-#: manual/index.md:145
+#: manual/index.md:137
 msgid "The [verification](verification.md) guide lists the full matrix, the artifact smoke tests and how the examples of this manual are compiled and run."
 msgstr ""
 
@@ -5490,7 +5508,7 @@ msgstr ""
 #: manual/tutorial/report.md:143
 #: manual/tutorial/runner.md:322
 #: manual/tutorial/stats.md:225
-#: manual/tutorial/tune.md:134
+#: manual/tutorial/tune.md:118
 #: manual/tutorial/tune_gemm.md:157
 msgid "Going further"
 msgstr ""
@@ -5514,7 +5532,7 @@ msgstr ""
 #: manual/tutorial/report.md:154
 #: manual/tutorial/runner.md:345
 #: manual/tutorial/stats.md:257
-#: manual/tutorial/tune.md:148
+#: manual/tutorial/tune.md:132
 #: manual/tutorial/tune_gemm.md:165
 msgid "Common pitfalls"
 msgstr ""
@@ -5531,9 +5549,13 @@ msgstr ""
 msgid "**Extra arguments.** A third positional argument is a usage error."
 msgstr ""
 
-#: manual/tutorial/cli.md:100
+#: manual/tutorial/cli.md:99
+msgid "**Forgetting the artifact.** `replay` needs an artifact path even with `--dry-run`; without one it exits with `2`."
+msgstr ""
+
+#: manual/tutorial/cli.md:102
 #: manual/tutorial/event.md:139
-#: manual/tutorial/experiment.md:151
+#: manual/tutorial/experiment.md:153
 #: manual/tutorial/fixture.md:137
 #: manual/tutorial/generator.md:137
 #: manual/tutorial/ir_model.md:89
@@ -5542,16 +5564,16 @@ msgstr ""
 #: manual/tutorial/report.md:163
 #: manual/tutorial/runner.md:363
 #: manual/tutorial/stats.md:281
-#: manual/tutorial/tune.md:159
+#: manual/tutorial/tune.md:143
 #: manual/tutorial/tune_gemm.md:175
 msgid "Next steps"
 msgstr ""
 
-#: manual/tutorial/cli.md:102
+#: manual/tutorial/cli.md:104
 msgid "[cli API](../api/cli.md), [cli design](../design/cli.md)."
 msgstr ""
 
-#: manual/tutorial/cli.md:103
+#: manual/tutorial/cli.md:105
 msgid "[report tutorial](report.md) for the report itself."
 msgstr ""
 
@@ -5760,30 +5782,30 @@ msgid "The [experiment design](../design/experiment.md) proves that shrinking te
 msgstr ""
 
 #: manual/tutorial/experiment.md:141
-msgid "**Unsorted scales.** `crossover_from_labels` uses the order you give."
+msgid "**A comparator that disagrees with your scale order.** `crossover_from_labels` sorts by `ScaleDomain.compare`; the boundary is reported in that order."
 msgstr ""
 
-#: manual/tutorial/experiment.md:142
+#: manual/tutorial/experiment.md:143
 msgid "**Equality for floating-point results.** Use a tolerance that matches the algorithm's error bound."
 msgstr ""
 
-#: manual/tutorial/experiment.md:144
+#: manual/tutorial/experiment.md:145
 msgid "**Shrinkers that grow the input.** Candidates should be smaller, or the budget is spent without progress."
 msgstr ""
 
-#: manual/tutorial/experiment.md:146
+#: manual/tutorial/experiment.md:147
 msgid "**Reading `NonMonotonic` as a crossover.** It is not; the preference flips."
 msgstr ""
 
-#: manual/tutorial/experiment.md:147
-msgid "**A zero or `NaN` threshold in `comparator_label`.** With `0.0` a tie is labelled `\"A\"`; with `NaN` every label is `\"Unknown\"` and no crossover can be found. Use a finite, positive threshold."
+#: manual/tutorial/experiment.md:148
+msgid "**A zero or unusable threshold in `comparator_label`.** With `0.0` only an exact tie is `\"Unknown\"`, so noise decides every other label; with `NaN`, an infinite or a negative threshold every label is `\"Unknown\"` and no crossover can be found. Use a finite, positive threshold."
 msgstr ""
 
-#: manual/tutorial/experiment.md:153
+#: manual/tutorial/experiment.md:155
 msgid "[experiment API](../api/experiment.md), [experiment design](../design/experiment.md)."
 msgstr ""
 
-#: manual/tutorial/experiment.md:154
+#: manual/tutorial/experiment.md:156
 msgid "[runner tutorial](runner.md) for oracles inside a run."
 msgstr ""
 
@@ -6500,7 +6522,7 @@ msgid "**Calling `run` outside an async context.** It is an `async fn`."
 msgstr ""
 
 #: manual/tutorial/runner.md:359
-msgid "**Relying on `validate_protocol` to catch `NaN`.** It rejects negative and zero values but not `NaN`; a `NaN` threshold makes every later comparison `Equivalent`."
+msgid "**A zero threshold with noisy data.** `validate_protocol` accepts `0.0`, and `stats.compare_paired` then calls every non-zero difference `Faster` or `Slower`. Choose the smallest change you care about."
 msgstr ""
 
 #: manual/tutorial/runner.md:365
@@ -6652,15 +6674,15 @@ msgid "**Mixing phases or targets.** Exploratory and confirmatory observations, 
 msgstr ""
 
 #: manual/tutorial/stats.md:263
-msgid "**A zero, negative or `NaN` threshold.** The threshold is not validated. With `practical_delta_pct = 0.0` an exact tie is reported as `Faster`; a negative threshold reports small slowdowns as `Faster`; `NaN` reports everything, even a twofold slowdown, as `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold such as `2.0`."
+msgid "**A zero threshold.** With `practical_delta_pct = 0.0` only an exact tie is `Equivalent`; every other difference, however small, is `Faster` or `Slower`. A `NaN`, infinite or negative threshold gives `Invalid`. Use a finite, positive threshold such as `2.0`."
 msgstr ""
 
-#: manual/tutorial/stats.md:269
+#: manual/tutorial/stats.md:267
 msgid "**Trusting the interval of a short run.** With a handful of blocks the bootstrap interval of the median covers the true median less often than its nominal level (87.5 % instead of 95 % for seven pairs); the [stats design](../design/stats.md) has the table."
 msgstr ""
 
-#: manual/tutorial/stats.md:273
-msgid "**`NaN` timings.** `compare_paired` does not reject them and can return any decision; the bootstrap functions return `NonFiniteSample`."
+#: manual/tutorial/stats.md:271
+msgid "**`NaN` timings.** A single `NaN` makes every statistic of `summarize` `NaN` and the decision of `compare_paired` `Invalid`; the bootstrap functions return `NonFiniteSample`. Find and drop the broken observation instead of filtering `NaN` silently."
 msgstr ""
 
 #: manual/tutorial/stats.md:275
@@ -6756,58 +6778,50 @@ msgid "Sample a large space reproducibly"
 msgstr ""
 
 #: manual/tutorial/tune.md:114
-msgid "The same seed gives the same candidates whatever order the space is listed in. Record the seed with the result."
+msgid "The same seed gives the same candidates whatever order the space is listed in, and the candidates are spread over the whole space even though the ids differ only in their last characters. Record the seed with the result."
 msgstr ""
 
-#: manual/tutorial/tune.md:117
-msgid "Put the varying part of an id first. The hash behind `seeded_order` mixes the last characters of an id poorly, so ids that differ only at the end stay together:"
-msgstr ""
-
-#: manual/tutorial/tune.md:131
-msgid "With these ids the first ten are `candidate-90` to `candidate-99`, which is not a random subset. The [tune API](../api/tune.md) explains why."
-msgstr ""
-
-#: manual/tutorial/tune.md:136
+#: manual/tutorial/tune.md:120
 msgid "**Confirm finalists.** Re-measure the best few with `@tune.confirmation_count(base, relative_iqr, budget)` fresh samples and select again on those; the [tune design](../design/tune.md) explains why the first selection is optimistic."
 msgstr ""
 
-#: manual/tutorial/tune.md:140
+#: manual/tutorial/tune.md:124
 msgid "**Hold out shapes.** Choose with some shapes, then check the winner on a `ShapeHoldout`."
 msgstr ""
 
-#: manual/tutorial/tune.md:142
+#: manual/tutorial/tune.md:126
 msgid "**Measure with the runner.** Wrap each candidate in a `@runner.Implementation`, run them in one case so they share blocks, and feed per-candidate confirmatory medians to `score_samples`."
 msgstr ""
 
-#: manual/tutorial/tune.md:145
+#: manual/tutorial/tune.md:129
 msgid "**A worked example.** [`tune_gemm`](tune_gemm.md) applies all of this to blocked matrix multiplication."
 msgstr ""
 
-#: manual/tutorial/tune.md:150
+#: manual/tutorial/tune.md:134
 msgid "**Selecting on exploration data only.** The winner's curse makes it look better than it is."
 msgstr ""
 
-#: manual/tutorial/tune.md:152
+#: manual/tutorial/tune.md:136
 msgid "**A threshold of zero with noisy data.** Ties are then decided by noise."
 msgstr ""
 
-#: manual/tutorial/tune.md:153
+#: manual/tutorial/tune.md:137
 msgid "**Ids that are not unique.** Selection and ordering assume unique ids."
 msgstr ""
 
-#: manual/tutorial/tune.md:154
-msgid "**Ids that differ only at the end.** `seeded_order` keeps them clustered; put the varying part first."
+#: manual/tutorial/tune.md:138
+msgid "**Comparing subsets across versions.** The order for a seed changed when `seeded_order` gained its finalizer; regenerate recorded subsets."
 msgstr ""
 
-#: manual/tutorial/tune.md:156
+#: manual/tutorial/tune.md:140
 msgid "**Trusting the `exhaustive_scores` policy string.** `global:<id>` is the raw minimum, without practical ties or confirmation; decide with `select_best`."
 msgstr ""
 
-#: manual/tutorial/tune.md:161
+#: manual/tutorial/tune.md:145
 msgid "[tune API](../api/tune.md), [tune design](../design/tune.md)."
 msgstr ""
 
-#: manual/tutorial/tune.md:162
+#: manual/tutorial/tune.md:146
 msgid "[tune_gemm tutorial](tune_gemm.md)."
 msgstr ""
 
@@ -6996,7 +7010,7 @@ msgid "What the tests prove, and what they do not"
 msgstr ""
 
 #: manual/verification.md:75
-msgid "`stats`: robust summaries, decision thresholds, invalid-input errors, and that bootstrap intervals are deterministic and lie within the range of the deltas. Not: coverage of the intervals (the design page computes it for small samples), BCa or hierarchical resampling, or the threshold edge cases `0`, negative and `NaN`, which are documented but not rejected ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1))."
+msgid "`stats`: robust summaries, decision thresholds, invalid-input errors, and that bootstrap intervals are deterministic and lie within the range of the deltas, the decision for ties and for thresholds that are `0`, `NaN`, infinite or negative, and `NaN` propagation through `summarize` and `compare_paired`. Not: coverage of the intervals (the design page computes it for small samples), BCa or hierarchical resampling."
 msgstr ""
 
 #: manual/verification.md:81
@@ -7008,7 +7022,7 @@ msgid "`report`: projection rules, escaping, version gating, self-contained outp
 msgstr ""
 
 #: manual/verification.md:88
-msgid "`tune` and `tune_gemm`: median scoring, order-independent selection, Pareto filtering, candidate constraints, bitwise agreement of blocked and reference GEMM over all layouts with tails. Not: that a tuned candidate is fastest on another CPU, or that `seeded_order` behaves like a uniform random permutation (it does not for ids that differ only at the end)."
+msgid "`tune` and `tune_gemm`: median scoring, order-independent selection, Pareto filtering, candidate constraints, bitwise agreement of blocked and reference GEMM over all layouts with tails. Not: that a tuned candidate is fastest on another CPU. `seeded_order` is tested for spreading ids that differ only at the end, not for statistical randomness."
 msgstr ""
 
 #: manual/verification.md:93

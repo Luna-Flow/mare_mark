@@ -118,12 +118,12 @@ msgid "Options may appear anywhere after the command. Unknown options and more t
 msgstr "オプションはコマンドの後ならどこに置いても構いません。未知のオプションや 3 つ以上の位置引数はエラーになります。`replay` は入力として `-` を受け付けず、`--yes` なしでは実行を拒否します。"
 
 #: manual/api/cli.md:49
-msgid "Exit codes: `0` on success, `1` when a file cannot be read or written, the JSONL is invalid, or a replay fails or times out, and `2` for usage errors (unknown command or option, missing arguments, missing `--yes`). On targets other than native, `report` works through `render_jsonl_report`, and `replay` exits with `2`."
-msgstr "終了コード: 成功時は `0`、ファイルを読み書きできない場合、JSONL が不正な場合、リプレイが失敗またはタイムアウトした場合は `1`、使い方の誤り（未知のコマンドやオプション、引数の不足、`--yes` の欠落）では `2` です。native 以外のターゲットでは、`report` は `render_jsonl_report` を通じて動作し、`replay` は `2` で終了します。"
+msgid "Exit codes: `0` on success, `1` when a file cannot be read or written, the JSONL is invalid, or a replay fails or times out, and `2` for usage errors (unknown command or option, missing arguments, including `replay --dry-run` without an artifact, and missing `--yes`). On targets other than native, `report` works through `render_jsonl_report`, and `replay` exits with `2`."
+msgstr "終了コード: 成功時は `0`、ファイルを読み書きできない、JSONL が不正、リプレイが失敗またはタイムアウトした場合は `1`、使い方の誤り（未知のコマンドやオプション、引数の不足（成果物のない `replay --dry-run` を含む）、`--yes` の欠落）の場合は `2` です。native 以外のターゲットでは、`report` は `render_jsonl_report` を通して動作し、`replay` は `2` で終了します。"
 
-#: manual/api/cli.md:55
-msgid "After writing a file, `report` prints the absolute output path, the number of non-empty input lines and the elapsed time. The elapsed value is measured in microseconds but labelled `ms`."
-msgstr "ファイルを書き出した後、`report` は出力先の絶対パス、空でない入力行の数、経過時間を表示します。経過時間はマイクロ秒単位で計測されますが、ラベルは `ms` になっています。"
+#: manual/api/cli.md:56
+msgid "After writing a file, `report` prints the absolute output path, the number of non-empty input lines and the elapsed time in milliseconds."
+msgstr "ファイルを書き出した後、`report` は出力ファイルの絶対パス、空でない入力行の数、ミリ秒単位の経過時間を表示します。"
 
 #: manual/api/cli.md:60
 msgid "Requests"
@@ -274,8 +274,8 @@ msgid "Fields"
 msgstr "フィールド"
 
 #: manual/api/event.md:153
-msgid "`status`, `implementation`, `oracle`, `scale`; with evidence also `case`, `dataset_id`, `step_id`, `operation`, `operands`, `context`, `rounding`, `expected`, `actual`, `expected_kind`, `actual_kind`, `expected_flags`, `actual_flags`, `trap`, `stderr`, `exit_code` (when present), `fingerprint`, `implementation_version`, `replay_command`, `replay_arguments`, `replay_timeout_ms`"
-msgstr "`status`、`implementation`、`oracle`、`scale`。証拠がある場合はさらに `case`、`dataset_id`、`step_id`、`operation`、`operands`、`context`、`rounding`、`expected`、`actual`、`expected_kind`、`actual_kind`、`expected_flags`、`actual_flags`、`trap`、`stderr`、`exit_code`（存在する場合）、`fingerprint`、`implementation_version`、`replay_command`、`replay_arguments`、`replay_timeout_ms`"
+msgid "`status`, `reason` (for every status except `valid`), `implementation`, `oracle`, `scale`; with evidence also `case`, `dataset_id`, `step_id`, `operation`, `operands`, `context`, `rounding`, `expected`, `actual`, `expected_kind`, `actual_kind`, `expected_flags`, `actual_flags`, `trap`, `stderr`, `exit_code` (when present), `fingerprint`, `implementation_version`, `replay_command`, `replay_arguments`, `replay_timeout_ms`"
+msgstr "`status`、`reason`（`valid` 以外のすべての状態）、`implementation`、`oracle`、`scale`。証拠がある場合はさらに `case`、`dataset_id`、`step_id`、`operation`、`operands`、`context`、`rounding`、`expected`、`actual`、`expected_kind`、`actual_kind`、`expected_flags`、`actual_flags`、`trap`、`stderr`、`exit_code`（ある場合）、`fingerprint`、`implementation_version`、`replay_command`、`replay_arguments`、`replay_timeout_ms`"
 
 #: manual/api/event.md:154
 msgid "all fields of the validation, plus `seed` (a decimal string), `original_fingerprint`, `minimal_fingerprint`, `shrink_path`, `minimal_input`"
@@ -286,8 +286,8 @@ msgid "`run_id`, `observation_count`, `validation_count`, `calibration_count`, `
 msgstr "`run_id`、`observation_count`、`validation_count`、`calibration_count`、`complete`、`passed_count`、`failed_count`、`unsupported_count`、`expected_difference_count`、および判明している場合は `semantic`、`performance`、`provenance` オブジェクトを持つ `environment`"
 
 #: manual/api/event.md:158
-msgid "`status` is one of `valid`, `invalid`, `skipped`, `expected_difference`, `unsupported`, `infrastructure_failure`; the reason strings of the status are not written. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept` or `discarded:<reason>`. The observation's `setup_timing` is not written."
-msgstr "`status` は `valid`、`invalid`、`skipped`、`expected_difference`、`unsupported`、`infrastructure_failure` のいずれかで、ステータスの理由文字列は書き出されません。`phase` は `exploratory` または `confirmatory` で、`batch_sink` は `kept` または `discarded:<reason>` です。観測の `setup_timing` は書き出されません。"
+msgid "`status` is one of `valid`, `invalid`, `skipped`, `expected_difference`, `unsupported`, `infrastructure_failure`; `reason` is the string the status carries. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept` or `discarded:<reason>`; `setup_timing` is `excluded_from_measurement` or `included_in_measurement`. Both `reason` and `setup_timing` were added within `mmka_1` ([issue #8](https://github.com/Luna-Flow/mare_mark/issues/8)); older streams lack them, and readers must not require them."
+msgstr "`status` は `valid`、`invalid`、`skipped`、`expected_difference`、`unsupported`、`infrastructure_failure` のいずれかで、`reason` はその状態が持つ文字列です。`phase` は `exploratory` か `confirmatory`、`batch_sink` は `kept` か `discarded:<reason>`、`setup_timing` は `excluded_from_measurement` か `included_in_measurement` です。`reason` と `setup_timing` はどちらも `mmka_1` の中で追加されたフィールドです（[issue #8](https://github.com/Luna-Flow/mare_mark/issues/8)）。古いストリームにはないので、リーダーはこれらを必須にしてはなりません。"
 
 #: manual/api/experiment.md:1
 msgid "experiment API"
@@ -377,51 +377,43 @@ msgstr "クロスオーバー分析"
 msgid "`ScaleDomain` lists the scales of an analysis with their order and text."
 msgstr "`ScaleDomain` は分析対象のスケールを、その順序とテキストとともに列挙します。"
 
-#: manual/api/experiment.md:196
-msgid "`crossover_from_labels` reads `values` in the given order and does not sort them; pass them sorted."
-msgstr "`crossover_from_labels` は `values` を与えられた順序で読み、ソートしません。ソート済みで渡してください。"
-
-#: manual/api/experiment.md:201
+#: manual/api/experiment.md:210
 msgid "`comparator_label` turns a relative delta into a label for crossover analysis."
 msgstr "`comparator_label` は相対差をクロスオーバー分析用のラベルに変換します。"
 
-#: manual/api/experiment.md:207
-msgid "`comparator_label(r, t)` is `\"A\"` when $r \\le -t$, else `\"B\"` when $r \\ge t$, else `\"Unknown\"`, the same ordered chain as the decision of `@stats.compare_paired`. Pass the relative delta of A measured against B as the baseline, so that `\"A\"` means A is faster."
-msgstr "`comparator_label(r, t)` は $r \\le -t$ のとき `\"A\"`、そうでなく $r \\ge t$ のとき `\"B\"`、それ以外では `\"Unknown\"` です。これは `@stats.compare_paired` の判断と同じ順序付きの判定の連鎖です。B をベースラインとして測った A の相対差を渡してください。そうすれば `\"A\"` は A の方が速いことを意味します。"
+#: manual/api/experiment.md:216
+msgid "`comparator_label(r, t)` is `\"A\"` when $r < 0$ and $r \\le -t$, `\"B\"` when $r > 0$ and $r \\ge t$, and `\"Unknown\"` otherwise, the same rule as the decision of `@stats.compare_paired`. An exact tie is `\"Unknown\"` for every threshold, including `0`. A `NaN` delta and a threshold that is `NaN`, infinite or negative also give `\"Unknown\"`. Pass the relative delta of A measured against B as the baseline, so that `\"A\"` means A is faster."
+msgstr "`comparator_label(r, t)` は $r < 0$ かつ $r \\le -t$ のとき `\"A\"`、$r > 0$ かつ $r \\ge t$ のとき `\"B\"`、それ以外は `\"Unknown\"` で、`@stats.compare_paired` の判断と同じ規則です。完全な同値は `0` を含むどの閾値でも `\"Unknown\"` です。`NaN` の差や、`NaN`・無限大・負の閾値も `\"Unknown\"` になります。B をベースラインとして測った A の相対差を渡してください。そうすれば `\"A\"` は A の方が速いことを意味します。"
 
-#: manual/api/experiment.md:212
-msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie ($r = 0$) is `\"A\"`; with $t < 0$ small slowdowns of A are `\"A\"` too; with $t$ = `NaN` every delta is `\"Unknown\"`, so `crossover_from_labels` can only report `NoCrossover`. Pass a finite, positive threshold."
-msgstr "[!WARNING] 閾値は検証されません（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。$t = 0$ では完全な同値（$r = 0$）が `\"A\"` になり、$t < 0$ では A のわずかな低速化も `\"A\"` になります。$t$ = `NaN` ではすべての差が `\"Unknown\"` になるため、`crossover_from_labels` は `NoCrossover` しか報告できません。有限の正の閾値を渡してください。"
-
-#: manual/api/experiment.md:221
+#: manual/api/experiment.md:233
 msgid "`crossover_from_labels` finds the scale at which the preferred implementation changes."
 msgstr "`crossover_from_labels` は、優位な実装が切り替わるスケールを見つけます。"
 
-#: manual/api/experiment.md:228
-msgid "`labels[i]` is the verdict at `values[i]`. A transition is a pair of adjacent labels that differ and are both not `\"Unknown\"`."
-msgstr "`labels[i]` は `values[i]` における判定です。遷移とは、隣り合うラベルが異なり、どちらも `\"Unknown\"` でない組のことです。"
+#: manual/api/experiment.md:240
+msgid "`labels[i]` is the verdict at `values[i]`. The pairs (`values[i]`, `labels[i]`) are first sorted stably with `domain.compare`, so the values may be given in any order; below, `values` and `labels` mean the sorted sequences. A transition is a pair of adjacent labels that differ and are both not `\"Unknown\"`."
+msgstr "`labels[i]` は `values[i]` での判定です。組（`values[i]`, `labels[i]`）はまず `domain.compare` で安定ソートされるので、値はどの順序で与えてもかまいません。以下の `values` と `labels` はソート後の列を指します。遷移とは、隣り合う 2 つのラベルが異なり、どちらも `\"Unknown\"` でないものです。"
 
-#: manual/api/experiment.md:231
+#: manual/api/experiment.md:246
 msgid "Situation"
 msgstr "状況"
 
-#: manual/api/experiment.md:231
+#: manual/api/experiment.md:246
 msgid "Result"
 msgstr "結果"
 
-#: manual/api/experiment.md:233
+#: manual/api/experiment.md:248
 msgid "no labels, or a different number of labels and values"
 msgstr "ラベルがない、またはラベルと値の個数が異なる"
 
-#: manual/api/experiment.md:234
+#: manual/api/experiment.md:249
 msgid "no transition"
 msgstr "遷移がない"
 
-#: manual/api/experiment.md:235
+#: manual/api/experiment.md:250
 msgid "exactly one transition, between $i-1$ and $i$"
 msgstr "$i-1$ と $i$ の間にちょうど 1 つの遷移がある"
 
-#: manual/api/experiment.md:236
+#: manual/api/experiment.md:251
 msgid "more than one transition"
 msgstr "複数の遷移がある"
 
@@ -450,9 +442,9 @@ msgid "`Fixture` is the lifecycle of one kind of input."
 msgstr "`Fixture` は 1 種類の入力のライフサイクルです。"
 
 #: manual/api/fixture.md:46
-#: manual/api/runner.md:262
+#: manual/api/runner.md:259
 #: manual/api/stats.md:51
-#: manual/api/stats.md:162
+#: manual/api/stats.md:163
 msgid "Field"
 msgstr "フィールド"
 
@@ -846,8 +838,8 @@ msgstr "enum"
 #: manual/api/model.md:235
 #: manual/api/model.md:466
 #: manual/api/runner.md:40
-#: manual/api/stats.md:117
-#: manual/api/stats.md:162
+#: manual/api/stats.md:118
+#: manual/api/stats.md:163
 msgid "Meaning"
 msgstr "意味"
 
@@ -957,7 +949,7 @@ msgstr "`ExecutionOutcome` は 1 つの操作が生成したものです。"
 
 #: manual/api/model.md:466
 #: manual/api/model.md:789
-#: manual/api/stats.md:117
+#: manual/api/stats.md:118
 #: manual/api/stats.md:286
 #: manual/api/tune.md:115
 msgid "Constructor"
@@ -1009,7 +1001,7 @@ msgstr "`completed(v, c)` は `new(Value(v), Some(c))` です。`next_context = 
 
 #: manual/api/model.md:511
 #: manual/api/tune_gemm.md:329
-#: manual/index.md:135
+#: manual/index.md:127
 msgid "Validation"
 msgstr "検証"
 
@@ -1385,130 +1377,142 @@ msgid "Error"
 msgstr "エラー"
 
 #: manual/api/runner.md:186
-msgid "`warmup_time_us`, when set, `>= 0`"
-msgstr "`warmup_time_us` は、設定されている場合 `>= 0`"
+msgid "`warmup_time_us`, when set, finite and `>= 0`"
+msgstr "`warmup_time_us` は、設定されていれば有限かつ `>= 0`"
+
+#: manual/api/runner.md:189
+msgid "`target_batch_time_us` finite and `> 0`"
+msgstr "`target_batch_time_us` は有限かつ `> 0`"
+
+#: manual/api/runner.md:190
+msgid "`max_sample_time_us` finite and `> 0`"
+msgstr "`max_sample_time_us` は有限かつ `> 0`"
+
+#: manual/api/runner.md:193
+msgid "`practical_delta_pct` finite and `>= 0`"
+msgstr "`practical_delta_pct` は有限かつ `>= 0`"
 
 #: manual/api/runner.md:195
 msgid "All rules are checked; the errors are returned together, in this order."
 msgstr "すべての規則が検査され、エラーはこの順序でまとめて返されます。"
 
 #: manual/api/runner.md:197
-msgid "Each rule is implemented as a test for its violation (`x < 0.0`, `x <= 0.0`, `target > max`), and every comparison with `NaN` is false, so `NaN` passes all the `Double` rules. In particular a `NaN` `practical_delta_pct` is accepted and makes every `stats.compare_paired` decision on it `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)), a `NaN` `target_batch_time_us` disables calibration (the first batch is kept), and a `NaN` `warmup_time_us` leaves only the `warmup_iterations` count. Infinite durations pass as well, except a `target_batch_time_us` above a finite `max_sample_time_us`. A threshold of `0.0` is accepted although it reports exact ties as `Faster`."
-msgstr "各規則は違反の判定（`x < 0.0`、`x <= 0.0`、`target > max`）として実装されており、`NaN` との比較はすべて偽になるため、`NaN` は `Double` に関するすべての規則を通過します。特に、`NaN` の `practical_delta_pct` は受け入れられ、それを使う `stats.compare_paired` の判断はすべて `Equivalent` になります（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。`NaN` の `target_batch_time_us` はキャリブレーションを無効にし（最初のバッチがそのまま使われます）、`NaN` の `warmup_time_us` では `warmup_iterations` の回数だけが残ります。無限大の時間も通過します。ただし、有限の `max_sample_time_us` を超える `target_batch_time_us` は例外です。閾値 `0.0` も受け入れられますが、これは完全な同値を `Faster` と報告します。"
+msgid "\"Finite\" excludes `NaN` and both infinities. Without that requirement a `NaN` would pass every rule, because every comparison with `NaN` is false: a `NaN` `target_batch_time_us` would disable calibration and a `NaN` `practical_delta_pct` would make every later comparison meaningless. A threshold of `0.0` is valid; `stats.compare_paired` then reports every non-zero relative delta as `Faster` or `Slower` and an exact tie as `Equivalent`."
+msgstr "「有限」は `NaN` と正負の無限大を除きます。この要件がなければ、`NaN` との比較はすべて偽になるので `NaN` はすべての規則を通過し、`NaN` の `target_batch_time_us` はキャリブレーションを無効にし、`NaN` の `practical_delta_pct` はその後のすべての比較を無意味にします。閾値 `0.0` は有効です。そのとき `stats.compare_paired` はゼロでない相対差をすべて `Faster` か `Slower` と報告し、完全な同値を `Equivalent` と報告します。"
 
-#: manual/api/runner.md:232
+#: manual/api/runner.md:229
 msgid "`ProtocolConfigError` names one violated protocol rule."
 msgstr "`ProtocolConfigError` は違反した 1 つのプロトコル規則を表します。"
 
-#: manual/api/runner.md:243
+#: manual/api/runner.md:240
 msgid "The `String` payload is the field name; the number is the rejected value."
 msgstr "`String` のペイロードはフィールド名で、数値は拒否された値です。"
 
-#: manual/api/runner.md:247
+#: manual/api/runner.md:244
 msgid "`ProtocolPreset` names a ready-made protocol."
 msgstr "`ProtocolPreset` は既製のプロトコルを表します。"
 
-#: manual/api/runner.md:259
+#: manual/api/runner.md:256
 msgid "`validated` returns the preset's protocol (for `Custom`, the wrapped one). The presets are:"
 msgstr "`validated` はプリセットのプロトコルを返します（`Custom` の場合は包まれたもの）。プリセットは次のとおりです:"
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "batch iterations"
 msgstr "バッチの反復回数"
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "1 to 1000"
 msgstr "1 から 1000"
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "1 to 10000"
 msgstr "1 から 10000"
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "5 to 10000"
 msgstr "5 から 10000"
 
-#: manual/api/runner.md:278
+#: manual/api/runner.md:275
 msgid "The runner acts on the warmup, calibration, order and sample fields. `experiment_design`, `outlier_policy`, `validation_coverage` and `practical_delta_pct` are recorded intent: validation always runs once per dataset before timing, and outlier filtering and decisions happen in `stats`."
 msgstr "ランナーはウォームアップ、キャリブレーション、順序、サンプルのフィールドに基づいて動作します。`experiment_design`、`outlier_policy`、`validation_coverage`、`practical_delta_pct` は意図を記録したものです。検証は常に計時の前にデータセットごとに 1 回実行され、外れ値のフィルタリングと判断は `stats` で行われます。"
 
-#: manual/api/runner.md:283
+#: manual/api/runner.md:280
 msgid "Implementations"
 msgstr "実装"
 
-#: manual/api/runner.md:287
+#: manual/api/runner.md:284
 msgid "`Implementation` is one competitor in a benchmark."
 msgstr "`Implementation` はベンチマークにおける 1 つの競合相手です。"
 
-#: manual/api/runner.md:299
+#: manual/api/runner.md:296
 msgid "`id` names it in events and must be unique and non-empty within a case; `version` is copied into every observation and validation. `initial_context` starts each validation sequence and each measured batch. `synchronize` is called immediately before the clock starts and after it stops; use it to wait for queued asynchronous work (a GPU stream, a thread pool)."
 msgstr "`id` はイベント中での名前で、ケース内で一意かつ空でない必要があります。`version` はすべての観測と検証にコピーされます。`initial_context` は各検証系列と各計測バッチの開始点になります。`synchronize` は時計が動き出す直前と止まった直後に呼ばれます。キューに入った非同期処理（GPU ストリーム、スレッドプール）を待つのに使ってください。"
 
-#: manual/api/runner.md:307
+#: manual/api/runner.md:304
 msgid "`Implementation::stateless` wraps a function of the prepared input that needs no context."
 msgstr "`Implementation::stateless` は、コンテキストを必要としない、準備された入力の関数を包みます。"
 
-#: manual/api/runner.md:314
+#: manual/api/runner.md:311
 msgid "The `next_context` of the function's result is ignored and replaced by `Some(())`, so a stateless operation never ends a sequence early."
 msgstr "関数の結果の `next_context` は無視され `Some(())` に置き換えられるため、状態を持たない操作が系列を早期に終わらせることはありません。"
 
-#: manual/api/runner.md:319
+#: manual/api/runner.md:316
 msgid "`Implementation::in_process` builds an implementation that runs in the current process and threads a context."
 msgstr "`Implementation::in_process` は、現在のプロセス内で実行され、コンテキストを引き継ぐ実装を構築します。"
 
-#: manual/api/runner.md:326
+#: manual/api/runner.md:323
 msgid "Return `next_context = Some(c)` to continue with `c`; return `None` to end the sequence (in a timed batch this marks the observation invalid)."
 msgstr "`c` で続けるには `next_context = Some(c)` を返し、系列を終えるには `None` を返します（計時されるバッチ内では、これは観測を無効としてマークします）。"
 
-#: manual/api/runner.md:341
+#: manual/api/runner.md:338
 msgid "`Implementation::worker` builds an implementation that runs each operation in a separate process."
 msgstr "`Implementation::worker` は、各操作を別のプロセスで実行する実装を構築します。"
 
-#: manual/api/runner.md:348
+#: manual/api/runner.md:345
 msgid "Use it for code that may crash, hang or corrupt memory. A crash becomes an `Aborted` outcome instead of ending the benchmark."
 msgstr "クラッシュ、ハング、メモリ破壊を起こしうるコードに使ってください。クラッシュはベンチマークを終了させる代わりに `Aborted` という結果になります。"
 
-#: manual/api/runner.md:353
+#: manual/api/runner.md:350
 msgid "`ExecutionMode` says where an operation runs."
 msgstr "`ExecutionMode` は操作がどこで実行されるかを表します。"
 
-#: manual/api/runner.md:362
+#: manual/api/runner.md:359
 msgid "It is readonly outside the package; build it through the `Implementation` constructors."
 msgstr "パッケージ外からは読み取り専用です。`Implementation` のコンストラクタを通じて構築してください。"
 
-#: manual/api/runner.md:367
+#: manual/api/runner.md:364
 msgid "`WorkerSpec` describes how to run one operation as a subprocess."
 msgstr "`WorkerSpec` は 1 つの操作をサブプロセスとして実行する方法を記述します。"
 
-#: manual/api/runner.md:380
+#: manual/api/runner.md:377
 msgid "`build_arguments` produces the argument vector, `decode` turns the worker's stdout into a result, `timeout_ms` defaults to `5000`, and `cwd` defaults to the current directory."
 msgstr "`build_arguments` は引数ベクタを生成し、`decode` はワーカーの stdout を結果に変換します。`timeout_ms` の既定値は `5000`、`cwd` の既定値はカレントディレクトリです。"
 
-#: manual/api/runner.md:406
+#: manual/api/runner.md:403
 msgid "`execute_operation` runs one operation of an implementation."
 msgstr "`execute_operation` は実装の 1 つの操作を実行します。"
 
-#: manual/api/runner.md:412
+#: manual/api/runner.md:409
 msgid "For `InProcess` it calls the function. For `Subprocess` it starts the command, captures stdout and stderr, and maps the result:"
 msgstr "`InProcess` の場合は関数を呼び出します。`Subprocess` の場合はコマンドを起動し、stdout と stderr をキャプチャして、結果を次のように対応付けます:"
 
-#: manual/api/runner.md:415
+#: manual/api/runner.md:412
 msgid "Worker result"
 msgstr "ワーカーの結果"
 
-#: manual/api/runner.md:415
+#: manual/api/runner.md:412
 msgid "Outcome"
 msgstr "結果"
 
-#: manual/api/runner.md:417
+#: manual/api/runner.md:414
 msgid "exit code 0"
 msgstr "終了コード 0"
 
-#: manual/api/runner.md:417
+#: manual/api/runner.md:414
 msgid "the outcome and context returned by `decode(stdout)`, with stdout, stderr and exit code attached"
 msgstr "`decode(stdout)` が返す結果とコンテキスト。stdout、stderr、終了コードが付加されます"
 
-#: manual/api/runner.md:418
+#: manual/api/runner.md:415
 msgid ""
 "exit code $\\n"
 "e 0$"
@@ -1516,175 +1520,175 @@ msgstr ""
 "終了コード $\\n"
 "e 0$"
 
-#: manual/api/runner.md:418
+#: manual/api/runner.md:415
 msgid "`Aborted(code, stderr)`, no next context"
 msgstr "`Aborted(code, stderr)`、次のコンテキストなし"
 
-#: manual/api/runner.md:419
+#: manual/api/runner.md:416
 msgid "no exit within `timeout_ms`"
 msgstr "`timeout_ms` 以内に終了しない"
 
-#: manual/api/runner.md:419
+#: manual/api/runner.md:416
 msgid "`Timeout(timeout_ms, \"worker exceeded timeout\")`; the process is killed"
 msgstr "`Timeout(timeout_ms, \"worker exceeded timeout\")`。プロセスは強制終了されます"
 
-#: manual/api/runner.md:420
+#: manual/api/runner.md:417
 msgid "the process could not be started"
 msgstr "プロセスを起動できなかった"
 
-#: manual/api/runner.md:421
+#: manual/api/runner.md:418
 msgid "not on the native target"
 msgstr "native ターゲットでない"
 
-#: manual/api/runner.md:425
+#: manual/api/runner.md:422
 msgid "`OutputSink` folds the outputs of a batch so that the compiler cannot discard the work."
 msgstr "`OutputSink` は、コンパイラが処理を捨てられないように、バッチの出力を畳み込みます。"
 
-#: manual/api/runner.md:438
+#: manual/api/runner.md:435
 msgid "`fold` runs inside the timed region after every operation; `finish` runs after the clock stops and its value is passed to `@bench.Bench::keep`. `keep_last` keeps the last output. Use `OutputSink::new` with a cheap checksum when the output must be consumed:"
 msgstr "`fold` は計時区間内で各操作の後に実行されます。`finish` は時計が止まった後に実行され、その値は `@bench.Bench::keep` に渡されます。`keep_last` は最後の出力を保持します。出力を確実に消費する必要がある場合は、安価なチェックサムとともに `OutputSink::new` を使ってください:"
 
-#: manual/api/runner.md:455
+#: manual/api/runner.md:452
 msgid "Describing a case"
 msgstr "ケースの記述"
 
-#: manual/api/runner.md:459
+#: manual/api/runner.md:456
 msgid "`single_step` starts the short builder for a case with one operation per input."
 msgstr "`single_step` は、入力ごとに 1 つの操作を持つケースのための短いビルダーを開始します。"
 
-#: manual/api/runner.md:466
+#: manual/api/runner.md:463
 msgid "The builder chain is `single_step(id, scales)` `.with_immutable_input(generate, fingerprint)` `.compare(implementations)` `.against_equal(reference, comparator)` `.compile()`. Each step copies the arrays it receives."
 msgstr "ビルダーの連鎖は `single_step(id, scales)` `.with_immutable_input(generate, fingerprint)` `.compare(implementations)` `.against_equal(reference, comparator)` `.compile()` です。各ステップは受け取った配列をコピーします。"
 
-#: manual/api/runner.md:473
+#: manual/api/runner.md:470
 msgid "`Case` is a namespace for the builder entry point."
 msgstr "`Case` はビルダーの入口のための名前空間です。"
 
-#: manual/api/runner.md:482
+#: manual/api/runner.md:479
 msgid "`Case::single_step(id, scales)` is the same as `single_step(id, scales)`."
 msgstr "`Case::single_step(id, scales)` は `single_step(id, scales)` と同じです。"
 
-#: manual/api/runner.md:486
+#: manual/api/runner.md:483
 msgid "`SingleStepCase` is a case with an id and scales but no input yet."
 msgstr "`SingleStepCase` は ID とスケールを持ちますが、まだ入力を持たないケースです。"
 
-#: manual/api/runner.md:497
+#: manual/api/runner.md:494
 msgid "`compile` always fails at this stage and lists what is missing (`MissingFixture`, `EmptyImplementations`, `MissingOracle`, `MissingOutputSink`, plus `EmptyCaseId` and `EmptyScales` when they apply). `with_immutable_input` adds an immutable fixture named `id + \"-fixture\"`, version `\"1\"`, built with `@fixture.Fixture::immutable`."
 msgstr "この段階では `compile` は常に失敗し、不足しているもの（`MissingFixture`、`EmptyImplementations`、`MissingOracle`、`MissingOutputSink`、および該当する場合は `EmptyCaseId` と `EmptyScales`）を列挙します。`with_immutable_input` は、`@fixture.Fixture::immutable` で構築された、名前 `id + \"-fixture\"`、バージョン `\"1\"` の不変フィクスチャを追加します。"
 
-#: manual/api/runner.md:505
+#: manual/api/runner.md:502
 msgid "`ImmutableSingleStepCase` is a case with an immutable input."
 msgstr "`ImmutableSingleStepCase` は不変の入力を持つケースです。"
 
-#: manual/api/runner.md:516
+#: manual/api/runner.md:513
 msgid "`compare` adds the stateless implementations to compare."
 msgstr "`compare` は比較する状態を持たない実装を追加します。"
 
-#: manual/api/runner.md:520
+#: manual/api/runner.md:517
 msgid "`ComparedSingleStepCase` is a case with input and implementations."
 msgstr "`ComparedSingleStepCase` は入力と実装を持つケースです。"
 
-#: manual/api/runner.md:532
+#: manual/api/runner.md:529
 msgid "`against_equal(reference, comparator)` adds a reference oracle named `id + \"-reference\"` built with `@experiment.ReferenceOracle::equal`, an `OutputSink::keep_last` sink, a sequence length of 1, and placeholder text functions (`\"<scale>\"`, `\"<input>\"`, `\"<output>\"`). Its replay spec has an empty command and the implementation id as the only argument. Use `BenchSpec::advanced` when you need real text in events and replay artifacts."
 msgstr "`against_equal(reference, comparator)` は、`@experiment.ReferenceOracle::equal` で構築された名前 `id + \"-reference\"` の参照オラクル、`OutputSink::keep_last` シンク、系列長 1、およびプレースホルダーのテキスト関数（`\"<scale>\"`、`\"<input>\"`、`\"<output>\"`）を追加します。そのリプレイ仕様は空のコマンドを持ち、唯一の引数は実装 ID です。イベントやリプレイのアーティファクトに実際のテキストが必要な場合は `BenchSpec::advanced` を使ってください。"
 
-#: manual/api/runner.md:541
+#: manual/api/runner.md:538
 msgid "`BenchSpec` is a complete, not yet validated case description."
 msgstr "`BenchSpec` は、完全だがまだ検証されていないケースの記述です。"
 
-#: manual/api/runner.md:551
+#: manual/api/runner.md:548
 msgid "`BenchSpec::advanced` builds a case from all of its parts."
 msgstr "`BenchSpec::advanced` はすべての構成要素からケースを構築します。"
 
-#: manual/api/runner.md:557
+#: manual/api/runner.md:554
 msgid "Argument"
 msgstr "引数"
 
-#: manual/api/runner.md:557
+#: manual/api/runner.md:554
 msgid "Role"
 msgstr "役割"
 
-#: manual/api/runner.md:559
+#: manual/api/runner.md:556
 msgid "case id, copied into every event"
 msgstr "ケース ID。すべてのイベントにコピーされます"
 
-#: manual/api/runner.md:560
+#: manual/api/runner.md:557
 msgid "materializes, clones, prepares and resets the input"
 msgstr "入力を実体化、クローン、準備、リセットします"
 
-#: manual/api/runner.md:561
+#: manual/api/runner.md:558
 msgid "the competitors (the array is copied)"
 msgstr "競合相手（配列はコピーされます）"
 
-#: manual/api/runner.md:562
+#: manual/api/runner.md:559
 msgid "folds outputs inside timed batches"
 msgstr "計時されるバッチ内で出力を畳み込みます"
 
-#: manual/api/runner.md:563
+#: manual/api/runner.md:560
 msgid "reference and/or relational validation"
 msgstr "参照検証および／または関係検証"
 
-#: manual/api/runner.md:564
+#: manual/api/runner.md:561
 msgid "one dataset per scale, in this order (copied)"
 msgstr "スケールごとに 1 つのデータセット。この順序で（コピーされます）"
 
-#: manual/api/runner.md:565
+#: manual/api/runner.md:562
 msgid "text of a scale in validation events"
 msgstr "検証イベントにおけるスケールのテキスト"
 
-#: manual/api/runner.md:566
+#: manual/api/runner.md:563
 msgid "number of operations validated per implementation and dataset"
 msgstr "実装とデータセットごとに検証される操作の数"
 
-#: manual/api/runner.md:567
+#: manual/api/runner.md:564
 msgid "operation, operands, context and rounding of step $i$ for evidence"
 msgstr "証拠のための、ステップ $i$ の操作、オペランド、コンテキスト、丸め"
 
-#: manual/api/runner.md:568
+#: manual/api/runner.md:565
 msgid "text forms used in evidence and failure artifacts"
 msgstr "証拠と失敗アーティファクトで使われるテキスト形式"
 
-#: manual/api/runner.md:569
+#: manual/api/runner.md:566
 msgid "the command that reproduces input and implementation id"
 msgstr "入力と実装 ID を再現するコマンド"
 
-#: manual/api/runner.md:570
+#: manual/api/runner.md:567
 msgid "optional; minimizes failing inputs"
 msgstr "省略可能。失敗した入力を最小化します"
 
-#: manual/api/runner.md:574
+#: manual/api/runner.md:571
 msgid "`with_sequence_length` returns a copy of the spec with another sequence length."
 msgstr "`with_sequence_length` は、別の系列長を持つ仕様のコピーを返します。"
 
-#: manual/api/runner.md:582
+#: manual/api/runner.md:579
 msgid "`compile` validates a spec and returns a plan or every configuration error."
 msgstr "`compile` は仕様を検証し、プランか、すべての設定エラーを返します。"
 
-#: manual/api/runner.md:588
+#: manual/api/runner.md:585
 msgid "It checks, in order: a non-empty case id, at least one scale, at least one implementation, a positive sequence length, and non-empty, unique implementation ids."
 msgstr "次の項目を順に検査します。空でないケース ID、少なくとも 1 つのスケール、少なくとも 1 つの実装、正の系列長、そして空でなく一意な実装 ID です。"
 
-#: manual/api/runner.md:612
+#: manual/api/runner.md:609
 msgid "`BenchConfigError` names one problem in a case description."
 msgstr "`BenchConfigError` はケースの記述における 1 つの問題を表します。"
 
-#: manual/api/runner.md:629
+#: manual/api/runner.md:626
 msgid "`EmptyImplementationId` carries the index of the implementation, `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the rejected length. The `Missing*` constructors come from `SingleStepCase::compile`; `MissingSerializer` is reserved and not produced by the current code."
 msgstr "`EmptyImplementationId` は実装のインデックスを、`DuplicateImplementationId` は重複した ID を、`InvalidSequenceLength` は拒否された長さを持ちます。`Missing*` のコンストラクタは `SingleStepCase::compile` から来ます。`MissingSerializer` は予約済みで、現在のコードでは生成されません。"
 
-#: manual/api/runner.md:637
+#: manual/api/runner.md:634
 msgid "`DifferentialCase` is the record behind a spec or a plan."
 msgstr "`DifferentialCase` は仕様やプランの背後にあるレコードです。"
 
-#: manual/api/runner.md:658
+#: manual/api/runner.md:655
 msgid "Its fields mirror the arguments of `BenchSpec::advanced`."
 msgstr "そのフィールドは `BenchSpec::advanced` の引数に対応します。"
 
-#: manual/api/runner.md:662
+#: manual/api/runner.md:659
 msgid "`ValidatedBenchPlan` is a case that passed `BenchSpec::compile`."
 msgstr "`ValidatedBenchPlan` は `BenchSpec::compile` を通過したケースです。"
 
-#: manual/api/runner.md:670
+#: manual/api/runner.md:667
 msgid "It can only be created by `compile`, and `run` accepts nothing else."
 msgstr "これは `compile` によってしか作成できず、`run` はそれ以外を受け付けません。"
 
@@ -1741,116 +1745,140 @@ msgid "`summarize` computes a `SummaryStats` for an array of values."
 msgstr "`summarize` は値の配列に対する `SummaryStats` を計算します。"
 
 #: manual/api/stats.md:80
-msgid "The input is copied before sorting, so the caller's array keeps its order. An empty array gives `count == 0` and every other field `0.0`; test `count` before reading the other fields. Non-finite values are not rejected: a `NaN` makes the mean and standard deviation `NaN` and gives the sort an unspecified position for it. Cost: $O(n \\log n)$ time for the two sorts, $O(n)$ extra space."
-msgstr "入力はソートの前にコピーされるため、呼び出し側の配列の順序は保たれます。空の配列では `count == 0` となり、他のフィールドはすべて `0.0` になります。他のフィールドを読む前に `count` を確認してください。有限でない値は拒否されません。`NaN` があると平均と標準偏差は `NaN` になり、ソートにおけるその位置は未規定になります。コスト: 2 回のソートに $O(n \\log n)$ の時間、$O(n)$ の追加領域。"
+msgid "The input is copied before sorting, so the caller's array keeps its order. An empty array gives `count == 0` and every other field `0.0`; test `count` before reading the other fields. A `NaN` anywhere in the input propagates: every field except `count` is then `NaN`, wherever the `NaN` sits. Infinite values are sorted normally (and can make `mean` and `std_dev` infinite or `NaN`). Cost: $O(n \\log n)$ time for the two sorts, $O(n)$ extra space."
+msgstr "入力はソートの前にコピーされるので、呼び出し側の配列の順序は保たれます。空の配列では `count == 0` となり、他のフィールドはすべて `0.0` です。他のフィールドを読む前に `count` を確認してください。入力のどこかに `NaN` があると伝播し、その位置にかかわらず `count` 以外のすべてのフィールドが `NaN` になります。無限大の値は通常どおりソートされます（`mean` と `std_dev` が無限大や `NaN` になることがあります）。コスト: 2 回のソートで $O(n \\log n)$ の時間、$O(n)$ の追加領域。"
 
-#: manual/api/stats.md:98
+#: manual/api/stats.md:99
 msgid "The mean is pulled to `22` by one slow value; the median, quartiles and MAD are not. That is why the comparisons below are built on medians."
 msgstr "平均は 1 つの遅い値に引っ張られて `22` になりますが、中央値、四分位数、MAD はそうなりません。以下の比較が中央値に基づいて構築されているのはそのためです。"
 
-#: manual/api/stats.md:101
+#: manual/api/stats.md:102
 msgid "Paired comparisons"
 msgstr "対応のある比較"
 
-#: manual/api/stats.md:105
+#: manual/api/stats.md:106
 msgid "`Decision` is the verdict of a paired comparison."
 msgstr "`Decision` は対応のある比較の判定です。"
 
-#: manual/api/stats.md:119
-msgid "the relative median delta is at or below $-t$"
-msgstr "中央値の相対差が $-t$ 以下"
-
 #: manual/api/stats.md:120
-msgid "the relative median delta is at or above $t$"
-msgstr "中央値の相対差が $t$ 以上"
+msgid "the relative median delta is negative and at or below $-t$"
+msgstr "相対的な中央値の差が負で、$-t$ 以下"
 
 #: manual/api/stats.md:121
-msgid "the relative median delta lies strictly between $-t$ and $t$"
-msgstr "中央値の相対差が $-t$ と $t$ の間に厳密に収まる"
+msgid "the relative median delta is positive and at or above $t$"
+msgstr "相対的な中央値の差が正で、$t$ 以上"
 
 #: manual/api/stats.md:122
-msgid "the two arrays have different lengths"
-msgstr "2 つの配列の長さが異なる"
+msgid "anything else, including an exact tie"
+msgstr "それ以外のすべて（完全な同値を含む）"
 
 #: manual/api/stats.md:123
+msgid "the arrays have different lengths, the threshold is not finite and non-negative, or the relative delta is `NaN`"
+msgstr "配列の長さが異なる、閾値が有限かつ非負でない、または相対差が `NaN`"
+
+#: manual/api/stats.md:124
 msgid "there are no pairs"
 msgstr "ペアが 1 つもない"
 
-#: manual/api/stats.md:125
+#: manual/api/stats.md:126
 msgid "Here $t$ is the practical threshold passed as `practical_delta_pct`. `Decision` is readonly outside the package: you match on it, you do not build it."
 msgstr "ここで $t$ は `practical_delta_pct` として渡される実用的な閾値です。`Decision` はパッケージ外からは読み取り専用です。パターンマッチはできますが、構築はできません。"
 
-#: manual/api/stats.md:131
+#: manual/api/stats.md:132
 msgid "`Interval` is a pair of bounds labelled with the phase it belongs to."
 msgstr "`Interval` は、属するフェーズのラベルが付いた上下限の組です。"
 
-#: manual/api/stats.md:141
+#: manual/api/stats.md:142
 msgid "`compare_paired` fills it with the interquartile range of the paired deltas; `bootstrap_interval` and `compare_paired_with_bootstrap` fill it with a percentile bootstrap interval. `mode` is a label copied from the caller; it does not change the computation."
 msgstr "`compare_paired` はこれをペアごとの差の四分位範囲で埋めます。`bootstrap_interval` と `compare_paired_with_bootstrap` はパーセンタイル・ブートストラップ区間で埋めます。`mode` は呼び出し側からコピーされるラベルで、計算には影響しません。"
 
-#: manual/api/stats.md:148
+#: manual/api/stats.md:149
 msgid "`Comparison` is the result of comparing a candidate against a baseline."
 msgstr "`Comparison` は候補をベースラインと比較した結果です。"
 
-#: manual/api/stats.md:164
+#: manual/api/stats.md:165
 msgid "$r = 100 \\cdot \\operatorname{med}(d) / \\operatorname{med}(b)$, or `0.0` when $\\operatorname{med}(b) = 0$"
 msgstr "$r = 100 \\cdot \\operatorname{med}(d) / \\operatorname{med}(b)$。$\\operatorname{med}(b) = 0$ のときは `0.0`"
 
-#: manual/api/stats.md:165
+#: manual/api/stats.md:166
 msgid "$\\operatorname{med}(b) / (\\operatorname{med}(b) + \\operatorname{med}(d))$, or `1.0` when $\\operatorname{med}(d) = 0$"
 msgstr "$\\operatorname{med}(b) / (\\operatorname{med}(b) + \\operatorname{med}(d))$。$\\operatorname{med}(d) = 0$ のときは `1.0`"
 
-#: manual/api/stats.md:166
+#: manual/api/stats.md:167
 msgid "bounds on the paired deltas, in the unit of the input (for example µs)"
 msgstr "ペアごとの差に対する上下限。単位は入力と同じです（例えば µs）"
 
-#: manual/api/stats.md:167
+#: manual/api/stats.md:168
 msgid "the `Decision` described above"
 msgstr "上で説明した `Decision`"
 
-#: manual/api/stats.md:168
+#: manual/api/stats.md:169
 msgid "number of pairs, $\\min(\\lvert b\\rvert, \\lvert c\\rvert)$"
 msgstr "ペアの数 $\\min(\\lvert b\\rvert, \\lvert c\\rvert)$"
 
-#: manual/api/stats.md:170
+#: manual/api/stats.md:171
 msgid "$b$ is the baseline array, $c$ the candidate array and $d_i = c_i - b_i$ the paired deltas. A `speedup` above `1.0` means the candidate is faster."
 msgstr "$b$ はベースラインの配列、$c$ は候補の配列、$d_i = c_i - b_i$ はペアごとの差です。`speedup` が `1.0` を上回るのは、候補の方が速いことを意味します。"
 
-#: manual/api/stats.md:175
+#: manual/api/stats.md:176
 msgid "`paired_deltas` subtracts each baseline value from the candidate value at the same index."
 msgstr "`paired_deltas` は、同じインデックスにある候補の値から各ベースラインの値を引きます。"
 
-#: manual/api/stats.md:182
+#: manual/api/stats.md:183
 msgid "The first argument is the baseline, the second the candidate. The result has $\\min(\\lvert b\\rvert, \\lvert c\\rvert)$ elements: surplus values of the longer array are ignored, so check the lengths yourself when a mismatch is an error."
 msgstr "第 1 引数がベースライン、第 2 引数が候補です。結果は $\\min(\\lvert b\\rvert, \\lvert c\\rvert)$ 個の要素を持ちます。長い方の配列の余った値は無視されるため、長さの不一致をエラーとしたい場合は自分で長さを確認してください。"
 
-#: manual/api/stats.md:188
+#: manual/api/stats.md:189
 msgid "`compare_paired` compares two aligned arrays of timings with a practical threshold."
 msgstr "`compare_paired` は、揃えられた 2 つの計時値の配列を実用的な閾値を用いて比較します。"
 
-#: manual/api/stats.md:195
+#: manual/api/stats.md:196
 msgid "Arguments: baseline id, candidate id, baseline values, candidate values, the practical threshold $t$ in percent, and the interval label. Index $i$ of both arrays must describe the same dataset, repetition and block. The decision uses the point estimate $r$ only; the interval is the interquartile range $[Q_d(0.25), Q_d(0.75)]$ of the deltas and is descriptive, not a confidence interval."
 msgstr "引数: ベースライン ID、候補 ID、ベースラインの値、候補の値、パーセント単位の実用的な閾値 $t$、区間のラベル。両方の配列のインデックス $i$ は、同じデータセット、反復、ブロックを表していなければなりません。判断には点推定値 $r$ だけを使います。区間は差の四分位範囲 $[Q_d(0.25), Q_d(0.75)]$ で、記述的なものであり信頼区間ではありません。"
 
-#: manual/api/stats.md:202
-msgid "The decision is the first test that holds: `Invalid` if the lengths differ, `Unknown` if there are no pairs, `Faster` if $r \\le -t$, `Slower` if $r \\ge t$, `Equivalent` otherwise. Other edge cases:"
-msgstr "判断は最初に成り立った判定で決まります。長さが異なれば `Invalid`、ペアがなければ `Unknown`、$r \\le -t$ なら `Faster`、$r \\ge t$ なら `Slower`、それ以外は `Equivalent` です。その他の境界ケース:"
+#: manual/api/stats.md:203
+msgid "The decision is the first test that holds:"
+msgstr "判断は最初に成り立った判定で決まります。"
+
+#: manual/api/stats.md:205
+msgid "`Invalid` if the lengths differ;"
+msgstr "長さが異なれば `Invalid`"
 
 #: manual/api/stats.md:206
+msgid "`Unknown` if there are no pairs;"
+msgstr "ペアがなければ `Unknown`"
+
+#: manual/api/stats.md:207
+msgid "`Invalid` if $t$ is `NaN`, infinite or negative, or if $r$ is `NaN`;"
+msgstr "$t$ が `NaN`、無限大、負のいずれか、または $r$ が `NaN` なら `Invalid`"
+
+#: manual/api/stats.md:208
+msgid "`Faster` if $r < 0$ and $r \\le -t$;"
+msgstr "$r < 0$ かつ $r \\le -t$ なら `Faster`"
+
+#: manual/api/stats.md:209
+msgid "`Slower` if $r > 0$ and $r \\ge t$;"
+msgstr "$r > 0$ かつ $r \\ge t$ なら `Slower`"
+
+#: manual/api/stats.md:210
+msgid "`Equivalent` otherwise."
+msgstr "それ以外は `Equivalent`"
+
+#: manual/api/stats.md:212
+msgid "An exact tie ($r = 0$) is therefore `Equivalent` for every valid threshold, including $t = 0$. Other edge cases:"
+msgstr "したがって、完全な同値（$r = 0$）は $t = 0$ を含むどの有効な閾値でも `Equivalent` です。その他の境界ケース:"
+
+#: manual/api/stats.md:215
 msgid "When the lengths differ, $r$ and `speedup` mix the median of the truncated deltas with the median of the whole baseline; ignore them for `Invalid`."
 msgstr "長さが異なる場合、$r$ と `speedup` は切り詰めた差の中央値とベースライン全体の中央値を混ぜて計算されます。`Invalid` のときは無視してください。"
 
-#: manual/api/stats.md:208
-msgid "When $\\operatorname{med}(b) = 0$, $r$ is `0.0` (so the decision is `Equivalent` for $t > 0$) and `speedup` is `0.0` unless $\\operatorname{med}(d) = 0$."
-msgstr "$\\operatorname{med}(b) = 0$ のとき、$r$ は `0.0` になり（したがって $t > 0$ では判断は `Equivalent`）、`speedup` は $\\operatorname{med}(d) = 0$ でない限り `0.0` になります。"
+#: manual/api/stats.md:217
+msgid "When $\\operatorname{med}(b) = 0$, $r$ is `0.0` (so the decision is `Equivalent`) and `speedup` is `0.0` unless $\\operatorname{med}(d) = 0$."
+msgstr "$\\operatorname{med}(b) = 0$ のとき、$r$ は `0.0` になり（したがって判断は `Equivalent`）、`speedup` は $\\operatorname{med}(d) = 0$ でない限り `0.0` になります。"
 
-#: manual/api/stats.md:211
-msgid "A `NaN` in either array is not rejected; it lands at an unspecified position of the sort and can produce any decision. Filter non-finite values first."
-msgstr "どちらかの配列に含まれる `NaN` は拒否されません。ソート中の未規定の位置に入り、どのような判断も生じえます。先に非有限値を取り除いてください。"
-
-#: manual/api/stats.md:214
-msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie is `Faster`, because $0 \\le -0$. With $t < 0$ every slowdown smaller than $\\lvert t\\rvert$ percent is `Faster`. With $t$ = `NaN` (or $+\\infty$) every comparison is `Equivalent`, even a twofold slowdown. Pass a finite, positive threshold."
-msgstr "[!WARNING] 閾値は検証されません（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。$t = 0$ では $0 \\le -0$ なので、完全な同値が `Faster` になります。$t < 0$ では $\\lvert t\\rvert$ パーセント未満の低速化がすべて `Faster` になります。$t$ = `NaN`（または $+\\infty$）では、2 倍の低速化であってもすべての比較が `Equivalent` になります。有限の正の閾値を渡してください。"
+#: manual/api/stats.md:219
+msgid "A `NaN` in either array propagates through `summarize` to $r$, so the decision is `Invalid`."
+msgstr "どちらかの配列の `NaN` は `summarize` を通して $r$ に伝播するので、判断は `Invalid` になります。"
 
 #: manual/api/stats.md:260
 msgid "`is_faster` reports whether a comparison's decision is `Faster`."
@@ -1913,32 +1941,32 @@ msgid "`compare_paired_with_bootstrap` is `compare_paired` with the interquartil
 msgstr "`compare_paired_with_bootstrap` は、`compare_paired` の四分位区間を、ペアごとの差の中央値に対するブートストラップ区間に置き換えたものです。"
 
 #: manual/api/stats.md:354
-msgid "The first six arguments are those of `compare_paired`; the last three are the seed, the resample count and the confidence in percent. Unlike `compare_paired`, unequal lengths are an error (`MismatchedPairs`) and so are empty arrays (`EmptySamples`). `relative_delta_pct`, `speedup`, `decision` and `valid_samples` are the same as from `compare_paired`; only `interval` changes, and it does not influence the decision. The interval is in the unit of the input, while the decision is in percent. The threshold is not validated here either: the warning under `compare_paired` applies unchanged."
-msgstr "最初の 6 つの引数は `compare_paired` と同じで、最後の 3 つはシード、再標本化の回数、パーセント単位の信頼水準です。`compare_paired` と異なり、長さの不一致はエラー（`MismatchedPairs`）になり、空の配列もエラー（`EmptySamples`）になります。`relative_delta_pct`、`speedup`、`decision`、`valid_samples` は `compare_paired` と同じで、変わるのは `interval` だけであり、それは判断に影響しません。区間は入力の単位ですが、判断はパーセント単位です。ここでも閾値は検証されません。`compare_paired` の警告がそのまま当てはまります。"
+msgid "The first six arguments are those of `compare_paired`; the last three are the seed, the resample count and the confidence in percent. Unlike `compare_paired`, unequal lengths are an error (`MismatchedPairs`) and so are empty arrays (`EmptySamples`). `relative_delta_pct`, `speedup`, `decision` and `valid_samples` are the same as from `compare_paired`; only `interval` changes, and it does not influence the decision. The interval is in the unit of the input, while the decision is in percent. A threshold that is not finite and non-negative gives `Ok` with the decision `Invalid`, as in `compare_paired`; a `NaN` or infinite delta is rejected by the bootstrap with `NonFiniteSample`."
+msgstr "最初の 6 つの引数は `compare_paired` と同じで、最後の 3 つはシード、再標本化の回数、パーセント単位の信頼水準です。`compare_paired` と異なり、長さの不一致はエラー（`MismatchedPairs`）になり、空の配列もエラー（`EmptySamples`）になります。`relative_delta_pct`、`speedup`、`decision`、`valid_samples` は `compare_paired` と同じで、変わるのは `interval` だけであり、それは判断に影響しません。区間は入力の単位ですが、判断はパーセント単位です。有限かつ非負でない閾値は、`compare_paired` と同じく判断が `Invalid` の `Ok` を返します。`NaN` や無限大の差はブートストラップが `NonFiniteSample` で拒否します。"
 
-#: manual/api/stats.md:384
+#: manual/api/stats.md:386
 msgid "Outlier views"
 msgstr "外れ値のビュー"
 
-#: manual/api/stats.md:388
+#: manual/api/stats.md:390
 msgid "`filter_outliers` returns the values that an outlier policy keeps, in their original order."
 msgstr "`filter_outliers` は、外れ値ポリシーが残す値を元の順序で返します。"
 
-#: manual/api/stats.md:395
+#: manual/api/stats.md:397
 msgid "Policy"
 msgstr "ポリシー"
 
-#: manual/api/stats.md:395
+#: manual/api/stats.md:397
 msgid "Kept values"
 msgstr "残る値"
 
-#: manual/api/stats.md:397
+#: manual/api/stats.md:399
 msgid "all values (a copy)"
 msgstr "すべての値（コピー）"
 
-#: manual/api/stats.md:401
-msgid "The input array is never modified. When more than half of the values are equal, the MAD is `0` and `MADTrim` keeps only the values equal to the median. Use the result for a derived view; keep the raw observations."
-msgstr "入力の配列は決して変更されません。値の半数を超えるものが等しい場合、MAD は `0` となり、`MADTrim` は中央値と等しい値だけを残します。結果は派生したビューとして使い、生の観測は保持してください。"
+#: manual/api/stats.md:403
+msgid "The input array is never modified. `TukeyFence` and `MADTrim` compute their fences from the values that are not `NaN` and never keep a `NaN`; `ReportOnly` keeps it. When more than half of the values are equal, the MAD is `0` and `MADTrim` keeps only the values equal to the median. Use the result for a derived view; keep the raw observations."
+msgstr "入力配列は変更されません。`TukeyFence` と `MADTrim` は `NaN` でない値からフェンスを計算し、`NaN` を残すことはありません。`ReportOnly` は残します。値の半数を超えるものが等しいと MAD は `0` になり、`MADTrim` は中央値に等しい値だけを残します。結果は派生ビューとして使い、生の観測は保持してください。"
 
 #: manual/api/tune.md:1
 msgid "tune API"
@@ -2079,34 +2107,34 @@ msgid "It takes the first $\\min(\\text{budget}, \\lvert\\text{space}\\rvert)$ c
 msgstr "`enumerate()` の先頭から $\\min(\\text{budget}, \\lvert\\text{space}\\rvert)$ 個の候補を取ります。有効な候補はそれぞれコールバックで採点され、無効な候補は採点されません。ポリシー文字列は、使用可能な主指標が最小のもの（同値なら最初のもの）の `\"global:<id>\"`、使用可能なものがなければ `\"global:\"` です。この ID はスコアから取られ、ビルドイベントは候補空間の `candidate_id` を使います。"
 
 #: manual/api/tune.md:251
-msgid "This winner is the raw minimum of the measured scores: it ignores the practical threshold and the secondary metric, and it is subject to the winner's curse derived in the [tune design](../design/tune.md). For a decision, call `select_best` on `result.scores` and confirm the finalists with fresh measurements."
-msgstr "この勝者は測定されたスコアの生の最小値です。実用的な閾値と副次的な指標を無視し、[tune の設計](../design/tune.md) で導出した勝者の呪いの影響を受けます。判断には `result.scores` に対して `select_best` を呼び出し、最終候補を新しい測定で確認してください。"
+msgid "This winner is the raw minimum of the measured scores: it ignores the practical threshold and the secondary metric, and it is subject to the winner's curse derived in the [tune design](../design/tune.md). For a decision, call `select_best` on `result.scores` and confirm the finalists with fresh measurements. Whether the policy string should follow `select_best` is open ([issue #12](https://github.com/Luna-Flow/mare_mark/issues/12)); it would need a threshold and a secondary preference that `exhaustive_scores` does not take today."
+msgstr "この勝者は測定されたスコアの生の最小値です。実用的な閾値と副次的な指標を無視し、[tune の設計](../design/tune.md) で導出した勝者の呪いの影響を受けます。判断には `result.scores` に対して `select_best` を呼び出し、最終候補を新しい測定で確認してください。ポリシー文字列が `select_best` に従うべきかどうかは未決です（[issue #12](https://github.com/Luna-Flow/mare_mark/issues/12)）。そのためには閾値と副次的な指標の好みが必要ですが、`exhaustive_scores` は現在それらを受け取りません。"
 
-#: manual/api/tune.md:277
+#: manual/api/tune.md:280
 msgid "`TuningResult` is the outcome of `exhaustive_scores`."
 msgstr "`TuningResult` は `exhaustive_scores` の結果です。"
 
-#: manual/api/tune.md:287
+#: manual/api/tune.md:290
 msgid "`scores` holds the scores of valid candidates (usable or not), `build_events` one event per examined candidate."
 msgstr "`scores` は有効な候補のスコア（使用可能かどうかを問わない）を保持し、`build_events` は調べた候補ごとに 1 つのイベントを保持します。"
 
-#: manual/api/tune.md:292
+#: manual/api/tune.md:295
 msgid "`seeded_order` permutes candidates by a seeded hash of their ids."
 msgstr "`seeded_order` は、ID のシード付きハッシュによって候補を並べ替えます。"
 
-#: manual/api/tune.md:298
-msgid "Each id is hashed with FNV-1a keyed by the seed; candidates are sorted by hash, then by id. When ids are unique, the result depends on the set of ids and the seed, not on the input order. Use a prefix of it as a reproducible subset."
-msgstr "各 ID はシードを鍵とする FNV-1a でハッシュされ、候補はハッシュ、次に ID でソートされます。ID が一意であれば、結果は ID の集合とシードに依存し、入力の順序には依存しません。その先頭部分を再現可能な部分集合として使ってください。"
+#: manual/api/tune.md:301
+msgid "Each id is hashed with FNV-1a keyed by the seed, and the hash is passed through the SplitMix64 output finalizer; candidates are sorted by that key, then by id. When ids are unique, the result depends on the set of ids and the seed, not on the input order. Use a prefix of it as a reproducible random subset. The finalizer makes every character of an id, including the last one, affect the high bits that decide the sort, so ids that differ only at the end are spread over the order."
+msgstr "各 ID はシードを鍵とする FNV-1a でハッシュされ、そのハッシュは SplitMix64 の出力ファイナライザを通されます。候補はそのキー、次に ID でソートされます。ID が一意であれば、結果は ID の集合とシードに依存し、入力の順序には依存しません。その先頭部分を再現可能なランダム部分集合として使ってください。ファイナライザによって、最後の文字を含む ID のすべての文字がソートを決める上位ビットに影響するので、末尾だけが異なる ID も順序全体に散らばります。"
 
-#: manual/api/tune.md:302
-msgid "[!WARNING] The hash has no final mixing step, and its high bits, which decide the sort, depend only weakly on the last characters of an id. Ids that differ only at the end stay clustered: for the ids `\"c0\"` to `\"c99\"` and seed `1` the order starts `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …`. A prefix is then far from a random subset. Ids with a long common suffix after the varying part, such as the `tune_gemm` ids, are mixed much better. Put the varying part first in your ids, or shuffle with your own well-mixed hash."
-msgstr "[!WARNING] このハッシュには最後の混合ステップがなく、ソートを決める上位ビットは ID の末尾の文字にわずかにしか依存しません。末尾だけが異なる ID はまとまったままになります。ID `\"c0\"` から `\"c99\"` とシード `1` では、順序は `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …` で始まります。その先頭部分はランダムな部分集合とはほど遠いものです。`tune_gemm` の ID のように、変化する部分の後に長い共通の接尾辞がある ID ははるかによく混ざります。ID の変化する部分を先頭に置くか、よく混ざる独自のハッシュでシャッフルしてください。"
+#: manual/api/tune.md:309
+msgid "The order changed in the release that added the finalizer ([issue #10](https://github.com/Luna-Flow/mare_mark/issues/10)): a subset recorded with an earlier version is not reproduced by the same seed."
+msgstr "ファイナライザを追加したリリースで順序が変わりました（[issue #10](https://github.com/Luna-Flow/mare_mark/issues/10)）。以前のバージョンで記録した部分集合は、同じシードでは再現されません。"
 
-#: manual/api/tune.md:321
+#: manual/api/tune.md:323
 msgid "`confirmation_count` scales the number of confirmation samples with the measured uncertainty."
 msgstr "`confirmation_count` は、計測された不確かさに応じて確認サンプルの数を増減させます。"
 
-#: manual/api/tune.md:328
+#: manual/api/tune.md:330
 msgid "`confirmation_count(base, u, budget)` is `base` times 1, 2 or 3 for $u \\le 0.05$, $0.05 < u \\le 0.2$ and $u > 0.2$, then clamped: the result is $\\max(0, \\min(\\text{budget}, m \\cdot \\text{base}))$, so a negative budget gives `0`. A `NaN` uncertainty counts as $u \\le 0.05$. `u` is a relative uncertainty of your choice, for example IQR divided by median."
 msgstr "`confirmation_count(base, u, budget)` は、$u \\le 0.05$、$0.05 < u \\le 0.2$、$u > 0.2$ に対してそれぞれ `base` の 1、2、3 倍で、その後に切り詰められます。結果は $\\max(0, \\min(\\text{budget}, m \\cdot \\text{base}))$ なので、負の予算では `0` になります。`NaN` の不確かさは $u \\le 0.05$ として数えられます。`u` は任意に選んだ相対的な不確かさで、たとえば IQR を中央値で割ったものです。"
 
@@ -2616,7 +2644,7 @@ msgstr "`parse_args` は決して失敗しません。どのベクタもリク�
 
 #: manual/design/cli.md:32
 #: manual/design/event.md:38
-#: manual/design/experiment.md:91
+#: manual/design/experiment.md:96
 #: manual/design/fixture.md:59
 #: manual/design/generator.md:96
 #: manual/design/ir_model.md:30
@@ -2625,7 +2653,7 @@ msgstr "`parse_args` は決して失敗しません。どのベクタもリク�
 #: manual/design/report.md:74
 #: manual/design/runner.md:152
 #: manual/design/stats.md:218
-#: manual/design/tune.md:108
+#: manual/design/tune.md:124
 #: manual/design/tune_gemm.md:116
 msgid "Design decisions"
 msgstr "設計上の決定"
@@ -2664,7 +2692,7 @@ msgstr "`report` は入力全体を読み込み、ターゲットラベル `nati
 
 #: manual/design/cli.md:65
 #: manual/design/event.md:74
-#: manual/design/experiment.md:124
+#: manual/design/experiment.md:129
 #: manual/design/fixture.md:89
 #: manual/design/generator.md:135
 #: manual/design/ir_model.md:56
@@ -2672,8 +2700,8 @@ msgstr "`report` は入力全体を読み込み、ターゲットラベル `nati
 #: manual/design/model.md:109
 #: manual/design/report.md:131
 #: manual/design/runner.md:279
-#: manual/design/stats.md:406
-#: manual/design/tune.md:143
+#: manual/design/stats.md:422
+#: manual/design/tune.md:159
 #: manual/design/tune_gemm.md:150
 msgid "Correctness and invariants"
 msgstr "正しさと不変条件"
@@ -2696,7 +2724,7 @@ msgstr "イベントの解析に失敗した場合、`report` は何も書き出
 
 #: manual/design/cli.md:72
 #: manual/design/event.md:85
-#: manual/design/experiment.md:137
+#: manual/design/experiment.md:145
 #: manual/design/fixture.md:98
 #: manual/design/generator.md:143
 #: manual/design/ir_model.md:62
@@ -2704,8 +2732,8 @@ msgstr "イベントの解析に失敗した場合、`report` は何も書き出
 #: manual/design/model.md:121
 #: manual/design/report.md:145
 #: manual/design/runner.md:300
-#: manual/design/stats.md:433
-#: manual/design/tune.md:156
+#: manual/design/stats.md:449
+#: manual/design/tune.md:172
 #: manual/design/tune_gemm.md:162
 msgid "Alternatives rejected"
 msgstr "採用しなかった代替案"
@@ -2724,7 +2752,7 @@ msgstr "**CLI のロジックを `report` に埋め込む。** 純粋なパッ�
 
 #: manual/design/cli.md:79
 #: manual/design/event.md:92
-#: manual/design/experiment.md:146
+#: manual/design/experiment.md:154
 #: manual/design/fixture.md:105
 #: manual/design/generator.md:151
 #: manual/design/ir_model.md:68
@@ -2732,8 +2760,8 @@ msgstr "**CLI のロジックを `report` に埋め込む。** 純粋なパッ�
 #: manual/design/model.md:130
 #: manual/design/report.md:154
 #: manual/design/runner.md:315
-#: manual/design/stats.md:451
-#: manual/design/tune.md:165
+#: manual/design/stats.md:467
+#: manual/design/tune.md:181
 #: manual/design/tune_gemm.md:170
 msgid "Boundaries"
 msgstr "境界"
@@ -2751,10 +2779,6 @@ msgid "`replay` reads files only, executes the first failure only, and passes th
 msgstr "`replay` はファイルだけを読み、最初の失敗だけを実行し、コマンドを（シェルを介さず）直接プロセス API に渡します。"
 
 #: manual/design/cli.md:86
-msgid "The progress line prints a microsecond value labelled `ms`."
-msgstr "進捗行は、`ms` とラベル付けされたマイクロ秒の値を表示します。"
-
-#: manual/design/cli.md:87
 msgid "The version string is fixed in the source."
 msgstr "バージョン文字列はソースに固定されています。"
 
@@ -2883,10 +2907,6 @@ msgid "`InMemorySink` does not keep the summary."
 msgstr "`InMemorySink` は要約を保持しません。"
 
 #: manual/design/event.md:97
-msgid "The JSONL writer omits the reason strings of validation statuses and the observation's `setup_timing`."
-msgstr "JSONL ライターは、検証ステータスの理由文字列と観測の `setup_timing` を省略します。"
-
-#: manual/design/event.md:99
 msgid "No reader lives here; `report` and `cli` parse the stream."
 msgstr "リーダーはここにはありません。ストリームを解析するのは `report` と `cli` です。"
 
@@ -2963,82 +2983,90 @@ msgid "If the relative delta $r(s)$ is monotone in the scale, the labels $\\text
 msgstr "相対差 $r(s)$ がスケールについて単調であれば、ラベル $\\text{label}(r(s_i))$ は単調な系列 $A \\dots A\\, U \\dots U\\, B \\dots B$（またはその逆）をなすため、素直な優位性には遷移が高々 1 つしかありません。$T = 1$ なら唯一の遷移の境界 $(s_{i-1}, s_i)$ が得られます。$T > 1$ は優位性が 2 回以上反転し、1 つの閾値では表現できないことを意味します。$T = 0$ は、確定的で互いに異なるラベルの隣接ペアがないことを意味します。"
 
 #: manual/design/experiment.md:81
-msgid "`comparator_label(r, t)` maps the relative delta to the labels with the same threshold rule as `stats`: $A$ if $r \\le -t$, $B$ if $r \\ge t$, `Unknown` otherwise, tested in this order. The `Unknown` band of width $2t$ keeps noise around $r = 0$ from creating spurious transitions. The band exists only for $0 < t < \\infty$: with $t = 0$ the first test catches $r = 0$ and a tie becomes $A$, with $t < 0$ every $r \\le \\lvert t\\rvert$ becomes $A$, and with $t = \\mathrm{NaN}$ every label is `Unknown`, so $T = 0$ whatever the data. The function does not reject such thresholds; see [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)."
-msgstr "`comparator_label(r, t)` は `stats` と同じ閾値規則で相対差をラベルに写します。$r \\le -t$ なら $A$、$r \\ge t$ なら $B$、それ以外は `Unknown` で、この順に判定します。幅 $2t$ の `Unknown` の帯は、$r = 0$ 付近のノイズが見かけの遷移を作るのを防ぎます。この帯が存在するのは $0 < t < \\infty$ のときだけです。$t = 0$ では最初の判定が $r = 0$ を捕らえて同値が $A$ になり、$t < 0$ ではすべての $r \\le \\lvert t\\rvert$ が $A$ になり、$t = \\mathrm{NaN}$ ではすべてのラベルが `Unknown` になるため、データにかかわらず $T = 0$ です。この関数はそのような閾値を拒否しません。[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1) を参照してください。"
+msgid "`comparator_label(r, t)` maps the relative delta to the labels with the same threshold rule as `stats`: $A$ if $r < 0$ and $r \\le -t$, $B$ if $r > 0$ and $r \\ge t$, `Unknown` otherwise. The `Unknown` band $(-t, t)$ keeps noise around $r = 0$ from creating spurious transitions; for $t = 0$ it shrinks to the single point $r = 0$, so an exact tie never counts as a preference. A threshold that is `NaN`, infinite or negative has no band at all and yields `Unknown` for every $r$ (and so $T = 0$); `runner.validate_protocol` rejects such thresholds before a run."
+msgstr "`comparator_label(r, t)` は `stats` と同じ閾値規則で相対差をラベルに写します。$r < 0$ かつ $r \\le -t$ なら $A$、$r > 0$ かつ $r \\ge t$ なら $B$、それ以外は `Unknown` です。`Unknown` の帯 $(-t, t)$ は、$r = 0$ 付近のノイズが見かけの遷移を作るのを防ぎます。$t = 0$ ではこの帯は 1 点 $r = 0$ に縮むので、完全な同値が好みとして数えられることはありません。`NaN`、無限大、負の閾値には帯がまったくなく、どの $r$ にも `Unknown` を与えます（したがって $T = 0$）。`runner.validate_protocol` は実行前にそのような閾値を拒否します。"
 
-#: manual/design/experiment.md:93
+#: manual/design/experiment.md:90
+msgid "The labels are counted in scale order. `crossover_from_labels` first sorts the pairs $(s_i, \\ell_i)$ stably with `ScaleDomain.compare`, so the sequence above is defined by the comparator and not by the order in which the caller listed the scales. Without the sort, a single crossover measured in the order $64, 16, 256$ with labels $B, A, B$ would count two transitions."
+msgstr "ラベルはスケールの順に数えます。`crossover_from_labels` はまず組 $(s_i, \\ell_i)$ を `ScaleDomain.compare` で安定ソートするので、上の列は呼び出し側がスケールを並べた順序ではなく、比較関数によって決まります。ソートしなければ、$64, 16, 256$ の順に測定されラベルが $B, A, B$ の単一のクロスオーバーは 2 つの遷移として数えられてしまいます。"
+
+#: manual/design/experiment.md:98
 msgid "Oracles are values"
 msgstr "オラクルは値である"
 
-#: manual/design/experiment.md:95
+#: manual/design/experiment.md:100
 msgid "*Problem.* Each case needs its own notion of correctness. *Choice.* Oracles are records of functions with an id. *Why.* They can capture tolerances and contexts, are named in every validation event, and can be built inline."
 msgstr "*問題。* 各ケースには独自の正しさの概念が必要です。*選択。* オラクルは ID を持つ関数のレコードです。*理由。* 許容誤差やコンテキストを捕捉でき、すべての検証イベントで名前が示され、その場で構築できます。"
 
-#: manual/design/experiment.md:99
+#: manual/design/experiment.md:104
 msgid "Outcomes, not just values, reach the oracle"
 msgstr "オラクルに届くのは値だけでなく結果"
 
-#: manual/design/experiment.md:101
+#: manual/design/experiment.md:106
 msgid "The oracle sees `ExecutionOutcome`s, so it can accept a documented `ExpectedDifference`, compare raised flags, or require that both sides trap. The runner pre-classifies worker crashes, timeouts, decoding errors and `Unsupported` before the oracle is called, so oracles only judge real results."
 msgstr "オラクルは `ExecutionOutcome` を受け取るため、文書化された `ExpectedDifference` を受け入れたり、発生したフラグを比較したり、両側がトラップすることを要求したりできます。ランナーはオラクルを呼び出す前に、ワーカーのクラッシュ、タイムアウト、デコードエラー、`Unsupported` を事前に分類するため、オラクルは本物の結果だけを判定します。"
 
-#: manual/design/experiment.md:106
+#: manual/design/experiment.md:111
 msgid "Greedy, first-improvement shrinking"
 msgstr "貪欲で最初に改善したものを採る縮小"
 
-#: manual/design/experiment.md:108
+#: manual/design/experiment.md:113
 msgid "*Options.* Exhaustive search for the smallest failing input; delta debugging; greedy descent. *Choice.* Greedy descent with an explicit candidate function and an evaluation budget. *Why.* Each evaluation may run a whole operation sequence, so the budget is what bounds the cost; the candidate function lets the user encode the structure of the input (halve a size, drop an element). The accepted path is recorded so a reader can see how the counterexample was reached."
 msgstr "*選択肢。* 失敗する最小の入力の全探索、デルタデバッギング、貪欲な降下。*選択。* 明示的な候補関数と評価予算を伴う貪欲な降下。*理由。* 各評価は操作系列全体を実行しうるため、コストを抑えるのは予算です。候補関数により、ユーザーは入力の構造（サイズを半分にする、要素を取り除く）を表現できます。受理されたパスは記録されるため、読み手は反例にどうたどり着いたかを確認できます。"
 
-#: manual/design/experiment.md:116
+#: manual/design/experiment.md:121
 msgid "Conservative crossover"
 msgstr "保守的なクロスオーバー"
 
-#: manual/design/experiment.md:118
+#: manual/design/experiment.md:123
 msgid "*Problem.* A crossover becomes a deployment rule (`DeploymentPolicy::Piecewise`) that will be applied to inputs never measured. *Choice.* Accept a boundary only for exactly one transition; report `NonMonotonic` otherwise and leave the policy to the user. *Why.* A rule built from a noisy, flipping preference would encode noise."
 msgstr "*問題。* クロスオーバーは、一度も計測されていない入力にも適用されるデプロイの規則（`DeploymentPolicy::Piecewise`）になります。*選択。* 遷移がちょうど 1 つの場合にのみ境界を受け入れ、それ以外は `NonMonotonic` を報告してポリシーはユーザーに委ねます。*理由。* ノイズが多く反転する優位性から作った規則は、ノイズを符号化することになるからです。"
 
-#: manual/design/experiment.md:126
+#: manual/design/experiment.md:131
 msgid "`shrink` evaluates the predicate at most `max_steps` times and returns an input satisfying it whenever the initial input does."
 msgstr "`shrink` は述語を最大 `max_steps` 回評価し、最初の入力が述語を満たすなら、必ず述語を満たす入力を返します。"
 
-#: manual/design/experiment.md:128
+#: manual/design/experiment.md:133
 msgid "`crossover_from_labels` returns `Found` only when there is exactly one transition, and its boundary consists of the two adjacent scales of that transition."
 msgstr "`crossover_from_labels` は遷移がちょうど 1 つの場合にのみ `Found` を返し、その境界はその遷移の隣り合う 2 つのスケールからなります。"
 
-#: manual/design/experiment.md:131
+#: manual/design/experiment.md:136
 msgid "`ReferenceOracle::equal` returns `Valid` only for two `Value` outcomes accepted by the comparator."
 msgstr "`ReferenceOracle::equal` は、比較関数が受け入れた 2 つの `Value` 結果に対してのみ `Valid` を返します。"
 
-#: manual/design/experiment.md:133
-msgid "`comparator_label` partitions the real line into $(-\\infty, -t]$, $(-t, t)$, $[t, \\infty)$ for $0 < t < \\infty$; other thresholds are accepted and behave as described above."
-msgstr "$0 < t < \\infty$ のとき、`comparator_label` は実数直線を $(-\\infty, -t]$、$(-t, t)$、$[t, \\infty)$ に分割します。その他の閾値も受け入れられ、上で述べたとおりに振る舞います。"
+#: manual/design/experiment.md:138
+msgid "For a finite $t \\ge 0$, `comparator_label` partitions the real line into $(-\\infty, -t] \\setminus \\{0\\}$ (`A`), $[t, \\infty) \\setminus \\{0\\}$ (`B`) and the rest (`Unknown`); for any other $t$ every label is `Unknown`."
+msgstr "有限の $t \\ge 0$ では、`comparator_label` は実数直線を $(-\\infty, -t] \\setminus \\{0\\}$（`A`）、$[t, \\infty) \\setminus \\{0\\}$（`B`）、残り（`Unknown`）に分割します。それ以外の $t$ ではすべてのラベルが `Unknown` です。"
 
-#: manual/design/experiment.md:139
+#: manual/design/experiment.md:141
+msgid "`crossover_from_labels` depends only on the multiset of (scale, label) pairs and the comparator, except for the order of pairs whose scales compare equal, which the stable sort keeps."
+msgstr "`crossover_from_labels` は（スケール, ラベル）の組の多重集合と比較関数だけに依存します。例外は比較で等しいスケールを持つ組の順序で、安定ソートがそれを保ちます。"
+
+#: manual/design/experiment.md:147
 msgid "**Statistical change-point detection on raw timings.** Needs a noise model; labels from practical thresholds are explainable."
 msgstr "**生の計時値に対する統計的な変化点検出。** ノイズモデルが必要です。実用的な閾値に基づくラベルは説明可能です。"
 
-#: manual/design/experiment.md:141
+#: manual/design/experiment.md:149
 msgid "**Interpolating the boundary.** The scales between two measured ones were not measured; the result names the two measured scales instead."
 msgstr "**境界を補間する。** 計測された 2 つのスケールの間のスケールは計測されていません。代わりに、結果は計測された 2 つのスケールを示します。"
 
-#: manual/design/experiment.md:143
+#: manual/design/experiment.md:151
 msgid "**Delta debugging.** Powerful for sequences, but needs a fixed input representation; the candidate function is more general."
 msgstr "**デルタデバッギング。** 系列に対しては強力ですが、固定された入力表現が必要です。候補関数の方がより汎用的です。"
 
-#: manual/design/experiment.md:148
-msgid "`crossover_from_labels` does not sort the domain and does not use `ScaleDomain.compare`; pass sorted values."
-msgstr "`crossover_from_labels` はドメインをソートせず、`ScaleDomain.compare` も使いません。ソート済みの値を渡してください。"
+#: manual/design/experiment.md:156
+msgid "`crossover_from_labels` uses `ScaleDomain.compare` only to sort; equal scales are not merged, and their labels stay in input order."
+msgstr "`crossover_from_labels` は `ScaleDomain.compare` をソートにだけ使います。等しいスケールはまとめられず、そのラベルは入力の順序のままです。"
 
-#: manual/design/experiment.md:150
+#: manual/design/experiment.md:158
 msgid "A transition across an `Unknown` label (A, Unknown, B) is not counted, so such a sequence reports `NoCrossover`."
 msgstr "`Unknown` ラベルをまたぐ遷移（A, Unknown, B）は数えられないため、そのような系列は `NoCrossover` を報告します。"
 
-#: manual/design/experiment.md:152
+#: manual/design/experiment.md:160
 msgid "Oracles are not run here; the runner runs them. `ReferenceOracle.sequence_length` is not used by the runner."
 msgstr "オラクルはここでは実行されず、ランナーが実行します。`ReferenceOracle.sequence_length` はランナーでは使われません。"
 
-#: manual/design/experiment.md:154
+#: manual/design/experiment.md:162
 msgid "`shrink` does not check that the initial input fails."
 msgstr "`shrink` は最初の入力が失敗することを検査しません。"
 
@@ -4135,14 +4163,10 @@ msgid "`protocol_identity`, and hence `run_id`, covers only the warmup count, th
 msgstr "`protocol_identity`、したがって `run_id` が含むのは、ウォームアップ回数、確認サンプル数、実用的な閾値だけです。"
 
 #: manual/design/runner.md:326
-msgid "`validate_protocol` does not reject `NaN` durations or a `NaN` threshold: a `NaN` target disables calibration and a `NaN` warmup time disables the time criterion of the warmup."
-msgstr "`validate_protocol` は `NaN` の時間や `NaN` の閾値を拒否しません。`NaN` の目標はキャリブレーションを無効にし、`NaN` のウォームアップ時間はウォームアップの時間条件を無効にします。"
-
-#: manual/design/runner.md:329
 msgid "Subprocess workers need the native target; `run` itself needs an async runtime (native, JS or wasm, not wasm-gc)."
 msgstr "サブプロセスワーカーには native ターゲットが必要です。`run` 自体には非同期ランタイム（native、JS、wasm。wasm-gc は不可）が必要です。"
 
-#: manual/design/runner.md:331
+#: manual/design/runner.md:328
 msgid "First-order carryover between implementations is not balanced."
 msgstr "実装間の一次の持ち越し効果はバランスされません。"
 
@@ -4363,44 +4387,32 @@ msgid "A practical threshold instead of a significance test"
 msgstr "有意性検定ではなく実用的な閾値"
 
 #: manual/design/stats.md:277
-msgid "*Problem.* With enough repetitions any difference becomes statistically significant, including a 0.1 % change nobody would act on. *Options.* A $t$-test or Wilcoxon test; an equivalence test (TOST); a practical threshold on the point estimate. *Choice.* The decision is the three-way rule"
-msgstr "*問題。* 反復を十分に増やせば、誰も対処しないような 0.1 % の変化も含め、どんな差も統計的に有意になります。*選択肢。* $t$ 検定や Wilcoxon 検定、同等性検定（TOST）、点推定値に対する実用的な閾値。*選択。* 判断は次の 3 分岐の規則です"
+msgid "*Problem.* With enough repetitions any difference becomes statistically significant, including a 0.1 % change nobody would act on. *Options.* A $t$-test or Wilcoxon test; an equivalence test (TOST); a practical threshold on the point estimate. *Choice.* For $t > 0$ the decision is the three-way rule"
+msgstr "*問題。* 反復を十分に増やせば、誰も気にしない 0.1 % の変化を含め、どんな差も統計的に有意になります。*選択肢。* $t$ 検定や Wilcoxon 検定、同等性検定（TOST）、点推定に対する実用的な閾値。*選択。* $t > 0$ では、判断は次の三分規則です"
 
 #: manual/design/stats.md:288
 msgid "checked after `Invalid` (unequal lengths) and `Unknown` (no pairs). *Why.* The threshold states the question the user is asking (\"is it at least 2 % faster?\") in the unit of the decision, the rule is reproducible from two medians, and it does not reward running more repetitions. Uncertainty is reported next to the decision through the interval, not folded into it."
 msgstr "これは `Invalid`（長さの不一致）と `Unknown`（ペアなし）の後に検査されます。*理由。* 閾値は、ユーザーが問うている問い（「少なくとも 2 % 速いか？」）を判断の単位で述べるものであり、規則は 2 つの中央値から再現でき、反復を増やすことに報いることもありません。不確かさは判断に織り込まれるのではなく、区間として判断の隣に報告されます。"
 
 #: manual/design/stats.md:294
-msgid "The code evaluates the rule as an ordered chain, `Faster` first:"
-msgstr "コードはこの規則を、`Faster` を先頭とする順序付きの判定の連鎖として評価します。"
+msgid ""
+"The rule is meaningful only for a threshold $t \\in [0, \\infty)$ and a relative delta $r \\n"
+"e \\mathrm{NaN}$; `compare_paired` returns `Invalid` otherwise. For valid inputs the code evaluates"
+msgstr ""
+"この規則が意味を持つのは閾値 $t \\in [0, \\infty)$ と相対差 $r \\n"
+"e \\mathrm{NaN}$ の場合だけで、それ以外では `compare_paired` は `Invalid` を返します。有効な入力に対しては、コードは次を評価します"
 
-#: manual/design/stats.md:305
-msgid "For $0 < t < \\infty$ the three regions $(-\\infty, -t]$, $[t, \\infty)$ and $(-t, t)$ partition $\\mathbb R$ and the chain is the rule above. For other thresholds it is not, and `compare_paired` does not reject them:[^issue1]"
-msgstr "$0 < t < \\infty$ では、3 つの領域 $(-\\infty, -t]$、$[t, \\infty)$、$(-t, t)$ が $\\mathbb R$ を分割し、連鎖は上の規則と一致します。それ以外の閾値ではそうならず、`compare_paired` はそれらを拒否しません。[^issue1]"
-
-#: manual/design/stats.md:309
-msgid "$t = 0$: $r \\le -0$ holds at $r = 0$, so an exact tie is `Faster` and `Equivalent` is never returned."
-msgstr "$t = 0$: $r = 0$ で $r \\le -0$ が成り立つので、完全な同値は `Faster` になり、`Equivalent` は決して返されません。"
-
-#: manual/design/stats.md:311
-msgid "$t < 0$: the first test is $r \\le \\lvert t\\rvert$, so every slowdown smaller than $\\lvert t\\rvert$ percent is reported as `Faster`, and `Equivalent` is never returned."
-msgstr "$t < 0$: 最初の判定は $r \\le \\lvert t\\rvert$ なので、$\\lvert t\\rvert$ パーセント未満の低速化はすべて `Faster` と報告され、`Equivalent` は決して返されません。"
-
-#: manual/design/stats.md:314
-msgid "$t = \\mathrm{NaN}$: every comparison with `NaN` is false, so every pair of arrays, including a twofold slowdown, is `Equivalent`."
-msgstr "$t = \\mathrm{NaN}$: `NaN` との比較はすべて偽なので、2 倍の低速化を含め、どの配列の組も `Equivalent` になります。"
+#: manual/design/stats.md:307
+msgid "The sign conditions make the first two regions disjoint for every $t \\ge 0$: $\\{r < 0,\\ r \\le -t\\} = (-\\infty, -t] \\setminus \\{0\\}$ and $\\{r > 0,\\ r \\ge t\\} = [t, \\infty) \\setminus \\{0\\}$, so together with the rest of the line they partition $\\mathbb R$. For $t > 0$ the sign conditions are implied by the threshold tests and the rule is exactly the one above. For $t = 0$ they matter: an exact tie $r = 0$ lies in neither of the first two regions and is `Equivalent`, while every other $r$ is `Faster` or `Slower`. Without them, $0 \\le -0$ would make a tie `Faster`.[^issue1]"
+msgstr "符号の条件により、最初の 2 つの領域はどの $t \\ge 0$ でも互いに素になります。$\\{r < 0,\\ r \\le -t\\} = (-\\infty, -t] \\setminus \\{0\\}$、$\\{r > 0,\\ r \\ge t\\} = [t, \\infty) \\setminus \\{0\\}$ なので、直線の残りと合わせて $\\mathbb R$ を分割します。$t > 0$ では符号の条件は閾値の判定から導かれ、規則は上のものとちょうど同じです。$t = 0$ では符号の条件が効きます。完全な同値 $r = 0$ は最初の 2 つの領域のどちらにも属さず `Equivalent` になり、それ以外の $r$ はすべて `Faster` か `Slower` です。符号の条件がなければ、$0 \\le -0$ によって同値が `Faster` になってしまいます。[^issue1]"
 
 #: manual/design/stats.md:316
-msgid "$t = +\\infty$: every finite $r$ is `Equivalent`."
-msgstr "$t = +\\infty$: 有限の $r$ はすべて `Equivalent` です。"
-
-#: manual/design/stats.md:318
-msgid "A `NaN` relative delta (for example from a `NaN` in the input) is also `Equivalent`. `runner.validate_protocol` rejects $t < 0$ but accepts `NaN`, and `stats` is called with any `Double`. Use a finite, positive threshold."
-msgstr "`NaN` の相対差（たとえば入力中の `NaN` から生じたもの）も `Equivalent` です。`runner.validate_protocol` は $t < 0$ を拒否しますが `NaN` は受け入れ、`stats` は任意の `Double` で呼び出されます。有限の正の閾値を使ってください。"
+msgid "A threshold that is `NaN`, infinite or negative has no meaning as \"the smallest change you care about\", and every comparison with `NaN` is false, so such a threshold would silently classify everything as `Equivalent` (or, for $t < 0$, small slowdowns as `Faster`). Returning `Invalid` makes the mistake visible. `runner.validate_protocol` rejects the same thresholds before a run."
+msgstr "`NaN`、無限大、負の閾値は「気にする最小の変化」として意味を持たず、`NaN` との比較はすべて偽なので、そのような閾値はすべてを黙って `Equivalent` に分類します（$t < 0$ ではわずかな低速化を `Faster` に分類します）。`Invalid` を返すことでこの誤りが見えるようになります。`runner.validate_protocol` は実行前に同じ閾値を拒否します。"
 
 #: manual/design/stats.md:322
-msgid "Reported as [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1). `experiment.comparator_label` uses the same chain and has the same behaviour."
-msgstr "[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1) として報告されています。`experiment.comparator_label` も同じ連鎖を使い、同じ振る舞いをします。"
+msgid "Fixed in [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1). `experiment.comparator_label` uses the same rule and returns `\"Unknown\"` where `compare_paired` returns `Equivalent` or `Invalid`."
+msgstr "[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1) で修正されました。`experiment.comparator_label` も同じ規則を使い、`compare_paired` が `Equivalent` または `Invalid` を返すところで `\"Unknown\"` を返します。"
 
 #: manual/design/stats.md:324
 msgid "Seeded percentile bootstrap of the median delta"
@@ -4439,94 +4451,98 @@ msgid "*Problem.* Reports want plots without one 50 ms page-fault spike; decisio
 msgstr "*問題。* レポートでは 50 ms のページフォールトのスパイク 1 つに邪魔されないプロットが欲しい一方で、判断が、誰かが隠すことにした点に依存してはなりません。*選択。* `filter_outliers` は明示的な `OutlierPolicy` の下でフィルタリングしたコピーを返し、ランナーやイベントストリームでそれを適用するものは何もありません。*理由。* 生のデータは監査可能なまま残り、ポリシーは記録できる名前付きの値になります。2 つの自明でないポリシーは、きれいな正規分布のデータに対して既知の誤検出率を持ちます:"
 
 #: manual/design/stats.md:392
-msgid "Because the MAD is unscaled, the MAD trim removes about six times as many points as the Tukey fence from clean normal data ($4.3\\,\\%$ against $0.70\\,\\%$). It is also degenerate when more than half of the values coincide: the MAD is then $0$ and only values equal to the median survive. Both filters drop `NaN` values, because every comparison with `NaN` is false, but a `NaN` also corrupts the quartiles they are computed from."
-msgstr "MAD はスケーリングされていないため、きれいな正規分布のデータでは、MAD トリムは Tukey のフェンスのおよそ 6 倍の点を取り除きます（$4.3\\,\\%$ 対 $0.70\\,\\%$）。また、値の半数を超えるものが一致すると退化します。そのとき MAD は $0$ となり、中央値に等しい値だけが残ります。`NaN` との比較はすべて偽なので、どちらのフィルタも `NaN` の値を落としますが、`NaN` はそれらの計算に使う四分位数も壊します。"
+msgid "Because the MAD is unscaled, the MAD trim removes about six times as many points as the Tukey fence from clean normal data ($4.3\\,\\%$ against $0.70\\,\\%$). It is also degenerate when more than half of the values coincide: the MAD is then $0$ and only values equal to the median survive. Both filters compute their fences from the values that are not `NaN` and never keep a `NaN`."
+msgstr "MAD はスケーリングされていないため、きれいな正規分布のデータでは、MAD トリムは Tukey のフェンスのおよそ 6 倍の点を取り除きます（$4.3\\,\\%$ 対 $0.70\\,\\%$）。また、値の半数を超えるものが一致すると退化します。そのとき MAD は $0$ となり、中央値に等しい値だけが残ります。どちらのフィルタも `NaN` でない値からフェンスを計算し、`NaN` を残すことはありません。"
 
 #: manual/design/stats.md:399
+msgid "`NaN` propagates"
+msgstr "`NaN` は伝播する"
+
+#: manual/design/stats.md:401
+msgid "*Problem.* The default `Double` order puts a `NaN` at an unspecified position of a sort, so order statistics computed after sorting a sample with a `NaN` are inconsistent (a minimum above the maximum) and depend on the position of the `NaN` in the input. *Options.* Reject `NaN` with an error; drop it silently; propagate it. *Choice.* `summarize` returns `NaN` for every statistic except `count` when the input contains a `NaN`, and `compare_paired` turns the resulting `NaN` relative delta into `Invalid`. *Why.* Both functions are total and have no error channel; propagation keeps the result honest without changing their signatures, and `count` still shows how many values were passed. Dropping values would change $n$ and the pairing silently. The bootstrap functions, which already return `Result`, keep rejecting non-finite values with `NonFiniteSample`."
+msgstr "*問題。* 既定の `Double` の順序は `NaN` をソート中の未規定の位置に置くので、`NaN` を含む標本をソートしてから計算した順序統計量は互いに矛盾し（最小値が最大値を上回る）、入力中の `NaN` の位置に依存します。*選択肢。* `NaN` をエラーで拒否する、黙って取り除く、伝播させる。*選択。* 入力に `NaN` が含まれるとき、`summarize` は `count` 以外のすべての統計量に `NaN` を返し、`compare_paired` はその結果生じた `NaN` の相対差を `Invalid` にします。*理由。* どちらの関数も全域関数でエラーの経路がありません。伝播ならシグネチャを変えずに結果を正直に保て、`count` は渡された値の個数を示し続けます。値を取り除くと $n$ とペアの対応が黙って変わってしまいます。すでに `Result` を返すブートストラップの関数は、引き続き非有限値を `NonFiniteSample` で拒否します。"
+
+#: manual/design/stats.md:414
 msgid "Errors as values"
 msgstr "値としてのエラー"
 
-#: manual/design/stats.md:401
-msgid "Invalid bootstrap input returns `Err(BootstrapError)`. An empty or non-finite sample would otherwise yield a plausible-looking interval of zeros or `NaN`. `summarize` and `compare_paired` stay total: they return neutral values (`count == 0`, `Unknown`, `Invalid`) that a caller can test."
-msgstr "不正なブートストラップの入力は `Err(BootstrapError)` を返します。そうしなければ、空の標本や有限でない標本から、ゼロや `NaN` からなるもっともらしく見える区間が得られてしまいます。`summarize` と `compare_paired` は全域関数のままです。呼び出し側が検査できる中立的な値（`count == 0`、`Unknown`、`Invalid`）を返します。"
+#: manual/design/stats.md:416
+msgid "Invalid bootstrap input returns `Err(BootstrapError)`. An empty or non-finite sample would otherwise yield a plausible-looking interval of zeros or `NaN`. `summarize` and `compare_paired` stay total: they return neutral values (`count == 0`, `NaN` statistics, `Unknown`, `Invalid`) that a caller can test."
+msgstr "ブートストラップへの不正な入力は `Err(BootstrapError)` を返します。そうしなければ、空や非有限の標本からもっともらしく見えるゼロや `NaN` の区間が得られてしまいます。`summarize` と `compare_paired` は全域関数のままで、呼び出し側が検査できる中立的な値（`count == 0`、`NaN` の統計量、`Unknown`、`Invalid`）を返します。"
 
-#: manual/design/stats.md:408
+#: manual/design/stats.md:424
 msgid "**Inputs are not modified.** `summarize` sorts a copy; `filter_outliers` returns a new array; the bootstrap sorts each resample, never the input."
 msgstr "**入力は変更されません。** `summarize` はコピーをソートし、`filter_outliers` は新しい配列を返し、ブートストラップは各再標本をソートして入力はソートしません。"
 
-#: manual/design/stats.md:410
+#: manual/design/stats.md:426
 msgid "**Range.** By the range property of $Q$, `median`, `q1` and `q3` lie in $[x_{(1)}, x_{(n)}]$. Every resampled median lies in $[\\min d, \\max d]$ because it is a quantile of values drawn from $d$; the interval endpoints are quantiles of those medians, hence $\\min d \\le$ `low` $\\le$ `high` $\\le \\max d$."
 msgstr "**値域。** $Q$ の値域の性質により、`median`、`q1`、`q3` は $[x_{(1)}, x_{(n)}]$ に収まります。再標本化した中央値はどれも $d$ から引いた値の分位点なので $[\\min d, \\max d]$ に収まります。区間の端点はそれらの中央値の分位点なので、$\\min d \\le$ `low` $\\le$ `high` $\\le \\max d$ です。"
 
-#: manual/design/stats.md:415
+#: manual/design/stats.md:431
 msgid "**Order.** For $0 < \\gamma < 100$, $\\alpha/2 < 1 - \\alpha/2$, and monotonicity of $Q$ gives `low` $\\le$ `high`."
 msgstr "**順序。** $0 < \\gamma < 100$ では $\\alpha/2 < 1 - \\alpha/2$ であり、$Q$ の単調性から `low` $\\le$ `high` が得られます。"
 
-#: manual/design/stats.md:417
+#: manual/design/stats.md:433
 msgid "**Determinism.** The bootstrap is a function of (values, seed, $B$, $\\gamma$). Sorting finite doubles is deterministic, and the generator uses wrapping integer arithmetic, so the same inputs give bit-identical bounds on every target."
 msgstr "**決定性。** ブートストラップは（値、シード、$B$、$\\gamma$）の関数です。有限の倍精度浮動小数点数のソートは決定的で、生成器はラップアラウンドする整数算術を使うため、同じ入力からはどのターゲットでもビット単位で同一の上下限が得られます。"
 
-#: manual/design/stats.md:421
+#: manual/design/stats.md:437
 msgid "**Floating-point error.** The mean is a left-to-right sum. With $u = 2^{-53}$ and $\\gamma_k = ku/(1-ku)$, the standard bound $\\lvert \\mathrm{fl}(\\sum x_i) - \\sum x_i\\rvert \\le \\gamma_{n-1}\\sum \\lvert x_i\\rvert$ becomes a relative error of at most $\\gamma_{n-1} \\approx n u$ for positive timings. The variance uses the two-pass formula $\\sum (x_i - \\bar x)^2$, which avoids the cancellation of the one-pass $\\sum x_i^2 - n\\bar x^2$.[^higham]"
 msgstr "**浮動小数点誤差。** 平均は左から右への和です。$u = 2^{-53}$、$\\gamma_k = ku/(1-ku)$ とすると、標準的な上界 $\\lvert \\mathrm{fl}(\\sum x_i) - \\sum x_i\\rvert \\le \\gamma_{n-1}\\sum \\lvert x_i\\rvert$ は、正の計時値について高々 $\\gamma_{n-1} \\approx n u$ の相対誤差になります。分散は 2 パスの式 $\\sum (x_i - \\bar x)^2$ を使い、1 パスの $\\sum x_i^2 - n\\bar x^2$ で生じる桁落ちを避けます。[^higham]"
 
-#: manual/design/stats.md:427
+#: manual/design/stats.md:443
 msgid "**Complexity.** `summarize` is $O(n\\log n)$; `compare_paired` is $O(n\\log n)$; `bootstrap_interval` is $O(B\\,n\\log n + B\\log B)$; `filter_outliers` is $O(n\\log n)$."
 msgstr "**計算量。** `summarize` は $O(n\\log n)$、`compare_paired` は $O(n\\log n)$、`bootstrap_interval` は $O(B\\,n\\log n + B\\log B)$、`filter_outliers` は $O(n\\log n)$ です。"
 
-#: manual/design/stats.md:431
+#: manual/design/stats.md:447
 msgid "N. J. Higham, *Accuracy and Stability of Numerical Algorithms*, 2nd ed., SIAM, 2002, §4.2 and §1.9."
 msgstr "N. J. Higham, *Accuracy and Stability of Numerical Algorithms*, 2nd ed., SIAM, 2002, §4.2 and §1.9."
 
-#: manual/design/stats.md:435
+#: manual/design/stats.md:451
 msgid "**BCa and studentized bootstrap.** For smooth statistics they reduce the one-sided coverage error from $O(n^{-1/2})$ to $O(n^{-1})$, but they need a jackknife acceleration estimate or a variance estimate for every resample; for the median both are unstable with the small $n$ that benchmarks have, and neither removes the discreteness derived above. Not implemented."
 msgstr "**BCa とスチューデント化ブートストラップ。** 滑らかな統計量については片側の被覆誤差を $O(n^{-1/2})$ から $O(n^{-1})$ に減らしますが、再標本ごとにジャックナイフによる加速の推定や分散の推定が必要です。中央値については、ベンチマークの小さな $n$ ではどちらも不安定であり、どちらも上で導いた離散性を取り除きません。実装していません。"
 
-#: manual/design/stats.md:440
+#: manual/design/stats.md:456
 msgid "**Hierarchical bootstrap.** Resampling datasets, then repetitions, matches `HierarchicalDatasetsAndRepeats` better, but the comparison functions take flat arrays. Callers can still resample per dataset themselves."
 msgstr "**階層的ブートストラップ。** データセットを再標本化し、次に反復を再標本化する方法は `HierarchicalDatasetsAndRepeats` によりよく合致しますが、比較関数はフラットな配列を受け取ります。呼び出し側が自分でデータセットごとに再標本化することはできます。"
 
-#: manual/design/stats.md:443
+#: manual/design/stats.md:459
 msgid "**Hodges–Lehmann estimator.** The median of pairwise Walsh averages is more efficient under symmetry, but costs $O(n^2)$ and is harder to explain in a report."
 msgstr "**Hodges–Lehmann 推定量。** ペアごとの Walsh 平均の中央値は対称性の下ではより効率的ですが、$O(n^2)$ のコストがかかり、レポートで説明するのも難しくなります。"
 
-#: manual/design/stats.md:446
+#: manual/design/stats.md:462
 msgid "**Hypothesis tests ($t$, Welch, Mann–Whitney).** Rejected for the decision as explained above; their $p$-values answer a different question."
 msgstr "**仮説検定（$t$、Welch、Mann–Whitney）。** 上で説明したとおり、判断には採用しませんでした。それらの $p$ 値は別の問いに答えるものです。"
 
-#: manual/design/stats.md:448
+#: manual/design/stats.md:464
 msgid "**Scaled MAD.** Multiplying by 1.4826 assumes normality; the unscaled value is reported and the factor is documented instead."
 msgstr "**スケーリングした MAD。** 1.4826 を掛けることは正規性を仮定します。代わりにスケーリングしない値を報告し、係数を文書化しています。"
 
-#: manual/design/stats.md:453
+#: manual/design/stats.md:469
 msgid "The decision uses the point estimate and the threshold only; the interval is reported, not used to decide. There is no equivalence test."
 msgstr "判断は点推定値と閾値だけを使います。区間は報告されますが、判断には使われません。同等性検定はありません。"
 
-#: manual/design/stats.md:455
+#: manual/design/stats.md:471
 msgid "Comparisons take flat arrays. Pairing, phase separation (exploratory or confirmatory) and environment compatibility are the caller's job."
 msgstr "比較関数はフラットな配列を受け取ります。ペアの対応付け、フェーズの分離（探索的または確認的）、環境の互換性は呼び出し側の役割です。"
 
-#: manual/design/stats.md:457
+#: manual/design/stats.md:473
 msgid "The bootstrap interval is in the unit of the deltas; the decision is in percent. Divide by $\\operatorname{med}(b)$ to compare them."
 msgstr "ブートストラップ区間は差の単位で、判断はパーセント単位です。両者を比較するには $\\operatorname{med}(b)$ で割ってください。"
 
-#: manual/design/stats.md:459
+#: manual/design/stats.md:475
 msgid "The bootstrap assumes exchangeable deltas. Rotation order makes neighbouring blocks dependent; the interval does not model that."
 msgstr "ブートストラップは差が交換可能であることを仮定します。ローテーションの順序により隣り合うブロックは従属しますが、区間はそれをモデル化しません。"
 
-#: manual/design/stats.md:461
+#: manual/design/stats.md:477
 msgid "`filter_outliers` is never applied automatically, and `OutlierPolicy` in a `RunProtocol` is a recorded intent, not an action."
 msgstr "`filter_outliers` が自動的に適用されることはなく、`RunProtocol` 内の `OutlierPolicy` は記録された意図であって動作ではありません。"
 
-#: manual/design/stats.md:463
-msgid "Non-finite values are rejected only by the bootstrap functions. A `NaN` in the input of `summarize` or `compare_paired` lands at an unspecified position of the sort and can produce any decision."
-msgstr "非有限値を拒否するのはブートストラップの関数だけです。`summarize` や `compare_paired` の入力に含まれる `NaN` は、ソート中の未規定の位置に入り、どのような判断も生じえます。"
+#: manual/design/stats.md:479
+msgid "Non-finite values are rejected with an error only by the bootstrap functions; `summarize` and `compare_paired` propagate `NaN` as derived above."
+msgstr "非有限値をエラーで拒否するのはブートストラップの関数だけです。`summarize` と `compare_paired` は上で導いたとおり `NaN` を伝播させます。"
 
-#: manual/design/stats.md:466
-msgid "The practical threshold is not validated: `0`, negative values and `NaN` give the decisions listed under the decision rule above."
-msgstr "実用的な閾値は検証されません。`0`、負の値、`NaN` は、上の判断規則の下に挙げた判断を与えます。"
-
-#: manual/design/stats.md:468
+#: manual/design/stats.md:482
 msgid "The bootstrap interval has no coverage guarantee for small $n$ (see the coverage table). An interval with guaranteed coverage for the median is the order-statistic interval $[d_{(i)}, d_{(j)}]$ with $i$ and $j$ chosen from $\\mathrm{Bin}(n, \\tfrac12)$; it is not provided."
 msgstr "ブートストラップ区間には、小さな $n$ では被覆率の保証がありません（被覆率の表を参照）。中央値について被覆率が保証される区間は、$\\mathrm{Bin}(n, \\tfrac12)$ から $i$ と $j$ を選んだ順序統計量の区間 $[d_{(i)}, d_{(j)}]$ ですが、これは提供していません。"
 
@@ -4605,96 +4621,104 @@ msgid "because each factor is at most $1 - q$. So the prefix contains at least o
 msgstr "です。各因子は高々 $1 - q$ だからです。したがって $N$ が何であっても、先頭部分が良い候補を少なくとも 1 つ含む確率は少なくとも $1 - (1 - q)^{B}$ です。$B = 60$ で、上位 5 % についてすでに $1 - 0.95^{60} \\approx 0.954$ になります。これはグリッドよりランダム探索を支持する古典的な議論です。[^random]"
 
 #: manual/design/tune.md:93
-msgid "`seeded_order` approximates such an order by sorting candidates on a seeded 64-bit FNV-1a hash of their ids. The argument needs the hash order to behave like a random permutation, and FNV-1a without a final mixing step does so only partly. The last character $c$ of an id enters as $h' = (h \\oplus c)\\cdot(2^{40} + 435)$: it changes the low byte of $h \\oplus c$, which the factor $2^{40}$ moves to bits 40–47, and reaches the top bits, which decide the sort, only through carries. Ids that differ only in their last characters therefore stay next to each other in the order (for `\"c0\"` to `\"c99\"` and seed `1`, the first ten are `c0` to `c9` in an XOR-permuted order). Ids whose varying part is followed by a long common suffix, like the `tune_gemm` ids, go through many more multiplications after the difference and are well mixed."
-msgstr "`seeded_order` は、候補の ID のシード付き 64 ビット FNV-1a ハッシュで候補をソートすることで、このような順序を近似します。この議論にはハッシュの順序がランダムな置換のように振る舞うことが必要ですが、最後の混合ステップのない FNV-1a は部分的にしかそうなりません。ID の最後の文字 $c$ は $h' = (h \\oplus c)\\cdot(2^{40} + 435)$ として入ります。これは $h \\oplus c$ の下位バイトを変え、係数 $2^{40}$ がそれをビット 40–47 に移し、ソートを決める上位ビットには桁上がりを通してしか届きません。そのため、最後の数文字だけが異なる ID は順序の中で隣り合ったままになります（`\"c0\"` から `\"c99\"` とシード `1` では、最初の 10 個は XOR で並べ替えられた `c0` から `c9` です）。`tune_gemm` の ID のように、変化する部分の後に長い共通の接尾辞が続く ID は、違いの後にはるかに多くの乗算を経るので、よく混ざります。"
+msgid "`seeded_order` approximates such an order by sorting candidates on a seeded key $k = \\mathrm{mix}(h)$, where $h$ is the 64-bit FNV-1a hash of the id with the seed folded into the offset basis and $\\mathrm{mix}$ is the SplitMix64 output finalizer"
+msgstr "`seeded_order` は、シード付きのキー $k = \\mathrm{mix}(h)$ で候補をソートすることでこのような順序を近似します。ここで $h$ はシードをオフセット基数に組み込んだ ID の 64 ビット FNV-1a ハッシュ、$\\mathrm{mix}$ は SplitMix64 の出力ファイナライザです"
 
 #: manual/design/tune.md:106
+msgid "The argument needs the key order to behave like a random permutation, and FNV-1a alone does so only partly. The last character $c$ of an id enters as $h' = (h \\oplus c)\\cdot(2^{40} + 435)$: it changes the low byte of $h \\oplus c$, which the factor $2^{40}$ moves to bits 40–47, and reaches the top bits, which decide the sort, only through carries. Sorting on $h$ itself kept ids that differ only in their last characters next to each other (for `\"c0\"` to `\"c99\"` and seed `1`, the first ten were `c0` to `c9`).[^issue10] Each step of $\\mathrm{mix}$ is a bijection (an xorshift and a multiplication by an odd constant), so distinct hashes keep distinct keys, and the right shifts feed the high bits back into the low ones before each multiplication carries them up again: one changed input bit changes each output bit with probability close to $1/2$. The key order is then a pseudo-random permutation for every pattern of ids."
+msgstr "この議論にはキーの順序がランダムな置換のように振る舞うことが必要ですが、FNV-1a だけでは部分的にしかそうなりません。ID の最後の文字 $c$ は $h' = (h \\oplus c)\\cdot(2^{40} + 435)$ として入ります。これは $h \\oplus c$ の下位バイトを変え、係数 $2^{40}$ がそれをビット 40–47 に移し、ソートを決める上位ビットには桁上がりを通してしか届きません。$h$ そのものでソートすると、最後の数文字だけが異なる ID は隣り合ったままでした（`\"c0\"` から `\"c99\"` とシード `1` では、最初の 10 個が `c0` から `c9` でした）。[^issue10] $\\mathrm{mix}$ の各ステップは全単射（xorshift と奇数の定数による乗算）なので、異なるハッシュは異なるキーを保ちます。また右シフトは、乗算が下位ビットを上位へ桁上げする前に上位ビットを下位へ戻すので、入力の 1 ビットを変えると各出力ビットがほぼ $1/2$ の確率で変わります。こうしてキーの順序は、どのような ID の並びに対しても擬似ランダムな置換になります。"
+
+#: manual/design/tune.md:120
+msgid "[Issue #10](https://github.com/Luna-Flow/mare_mark/issues/10). Adding the finalizer changed the order for every seed."
+msgstr "[Issue #10](https://github.com/Luna-Flow/mare_mark/issues/10)。ファイナライザの追加により、すべてのシードで順序が変わりました。"
+
+#: manual/design/tune.md:122
 msgid "J. Bergstra and Y. Bengio, \"Random search for hyper-parameter optimization\", *JMLR* 13, 2012."
 msgstr "J. Bergstra and Y. Bengio, \"Random search for hyper-parameter optimization\", *JMLR* 13, 2012."
 
-#: manual/design/tune.md:110
+#: manual/design/tune.md:126
 msgid "Policy here, effects in the application"
 msgstr "ポリシーはここに、副作用はアプリケーションに"
 
-#: manual/design/tune.md:112
+#: manual/design/tune.md:128
 msgid "*Problem.* Building a candidate may mean compiling a kernel; running it must be validated and timed under a protocol. *Choice.* `tune` takes scores as input and never runs anything; `BuiltCandidate` carries a `runner.Implementation`. *Why.* Tuning measurements then go through the same validation, calibration and event stream as every other benchmark, and the tuning policy is testable with made-up numbers."
 msgstr "*問題。* 候補のビルドはカーネルのコンパイルを意味することがあり、その実行はプロトコルの下で検証・計時されなければなりません。*選択。* `tune` はスコアを入力として受け取り、何も実行しません。`BuiltCandidate` は `runner.Implementation` を持ちます。*理由。* そうすることでチューニングの計測は、他のすべてのベンチマークと同じ検証、キャリブレーション、イベントストリームを通り、チューニングのポリシーは作り物の数値でテストできます。"
 
-#: manual/design/tune.md:119
+#: manual/design/tune.md:135
 msgid "Median scores"
 msgstr "中央値によるスコア"
 
-#: manual/design/tune.md:121
+#: manual/design/tune.md:137
 msgid "`score_samples` takes the median of usable samples and marks a candidate with no usable sample invalid, so a candidate cannot win because a broken measurement returned `0` or `NaN`."
 msgstr "`score_samples` は使用可能なサンプルの中央値を取り、使用可能なサンプルのない候補を無効とします。そのため、壊れた計測が `0` や `NaN` を返したことで候補が勝つことはありません。"
 
-#: manual/design/tune.md:125
+#: manual/design/tune.md:141
 msgid "Exhaustive search over a bounded prefix"
 msgstr "有界な先頭部分に対する全探索"
 
-#: manual/design/tune.md:127
+#: manual/design/tune.md:143
 msgid "`exhaustive_scores` scores the first `budget` candidates of the enumeration and records a `BuildEvent` for each, including rejected ones. Combined with `seeded_order`, the prefix is a reproducible subset (random to the extent discussed above); with the natural order and a large budget, it is a full grid search. The policy string `global:<id>` names the candidate with the smallest measured primary score, the first one on ties. That is the raw minimum, which the winner's curse argument above warns against: treat it as a shortlist entry, not a decision. Decisions (with practical ties, per shape, Pareto) are built with `select_best`, `pareto_frontier` and `@model.DeploymentPolicy`."
 msgstr "`exhaustive_scores` は列挙の最初の `budget` 個の候補をスコア付けし、却下されたものも含めてそれぞれに `BuildEvent` を記録します。`seeded_order` と組み合わせると、先頭部分は再現可能な部分集合になります（ランダムさの程度は上で述べたとおりです）。自然な順序と大きな予算では、完全なグリッド探索になります。ポリシー文字列 `global:<id>` は、測定された主スコアが最小の候補（同値なら最初のもの）を示します。これは生の最小値であり、上の勝者の呪いの議論が警告しているものです。判断ではなく、候補リストの 1 項目として扱ってください。判断（実用的な同率判定、形状ごと、パレート）は `select_best`、`pareto_frontier`、`@model.DeploymentPolicy` で構築します。"
 
-#: manual/design/tune.md:137
+#: manual/design/tune.md:153
 msgid "Adaptive confirmation"
 msgstr "適応的な確認"
 
-#: manual/design/tune.md:139
+#: manual/design/tune.md:155
 msgid "`confirmation_count` multiplies the base confirmation count by 1, 2 or 3 as the relative uncertainty crosses 5 % and 20 %, clamped to the budget. Noisy finalists get more samples, quiet ones do not waste time."
 msgstr "`confirmation_count` は、相対的な不確かさが 5 % と 20 % を超えるのに応じて基本の確認回数を 1 倍、2 倍、3 倍にし、予算に制限します。ノイズの多い最終候補はより多くのサンプルを得て、静かなものは時間を無駄にしません。"
 
-#: manual/design/tune.md:145
+#: manual/design/tune.md:161
 msgid "`select_best` returns `None` exactly when no score is usable; otherwise its result is usable, within the threshold of the fastest, and independent of input order (derived above)."
 msgstr "`select_best` は使用可能なスコアがないときにちょうど `None` を返します。それ以外の場合、その結果は使用可能で、最速のものから閾値以内にあり、入力の順序に依存しません（上で導いたとおり）。"
 
-#: manual/design/tune.md:148
+#: manual/design/tune.md:164
 msgid "`pareto_frontier` returns only usable, non-dominated scores, sorted by primary, secondary, id."
 msgstr "`pareto_frontier` は使用可能で支配されないスコアだけを、主指標、副次的指標、ID の順にソートして返します。"
 
-#: manual/design/tune.md:150
+#: manual/design/tune.md:166
 msgid "`exhaustive_scores` examines at most `budget` candidates and calls the score callback only for valid ones."
 msgstr "`exhaustive_scores` は高々 `budget` 個の候補を調べ、有効な候補に対してのみスコアのコールバックを呼び出します。"
 
-#: manual/design/tune.md:152
+#: manual/design/tune.md:168
 msgid "`seeded_order` is a permutation of its input that depends only on the ids and the seed."
 msgstr "`seeded_order` は入力の置換であり、ID とシードだけに依存します。"
 
-#: manual/design/tune.md:154
+#: manual/design/tune.md:170
 msgid "`confirmation_count` lies in $[0, \\max(\\text{budget}, 0)]$."
 msgstr "`confirmation_count` は $[0, \\max(\\text{budget}, 0)]$ に収まります。"
 
-#: manual/design/tune.md:158
+#: manual/design/tune.md:174
 msgid "**Bayesian optimization or evolutionary search.** Effective, but needs a model of the space and makes results harder to reproduce; the hooks (`neighbors`, `seeded_order`) allow a user-written search."
 msgstr "**ベイズ最適化や進化的探索。** 効果的ですが、空間のモデルが必要で、結果の再現が難しくなります。フック（`neighbors`、`seeded_order`）によりユーザーが探索を書くことはできます。"
 
-#: manual/design/tune.md:161
+#: manual/design/tune.md:177
 msgid "**Mean scores.** One preempted run would decide."
 msgstr "**平均によるスコア。** 1 回のプリエンプトされた実行が結果を決めてしまいます。"
 
-#: manual/design/tune.md:162
+#: manual/design/tune.md:178
 msgid "**Selecting the raw minimum.** Subject to the winner's curse. Only the informational policy string of `exhaustive_scores` uses it."
 msgstr "**生の最小値を選ぶ。** 勝者の呪いの影響を受けます。これを使うのは `exhaustive_scores` の参考用のポリシー文字列だけです。"
 
-#: manual/design/tune.md:167
+#: manual/design/tune.md:183
 msgid "No candidate is built, run or validated here."
 msgstr "ここでは候補のビルド、実行、検証は行いません。"
 
-#: manual/design/tune.md:168
+#: manual/design/tune.md:184
 msgid "`TuningBudget`, `TuningObjective` and `HoldoutPlan` are data; no function enforces them."
 msgstr "`TuningBudget`、`TuningObjective`、`HoldoutPlan` はデータであり、それらを強制する関数はありません。"
 
-#: manual/design/tune.md:170
+#: manual/design/tune.md:186
 msgid "`CandidateSpace.neighbors` is not used by any function in the package."
 msgstr "`CandidateSpace.neighbors` はパッケージ内のどの関数でも使われません。"
 
-#: manual/design/tune.md:171
+#: manual/design/tune.md:187
 msgid "`exhaustive_scores` does not use `seeded_order` itself; reorder the space first if you want a random subset."
 msgstr "`exhaustive_scores` 自体は `seeded_order` を使いません。ランダムな部分集合が欲しい場合は、先に空間を並べ替えてください。"
 
-#: manual/design/tune.md:173
-msgid "`seeded_order` is not a uniform random permutation; ids that differ only in their last characters stay clustered."
-msgstr "`seeded_order` は一様ランダムな置換ではありません。最後の数文字だけが異なる ID はまとまったままになります。"
+#: manual/design/tune.md:189
+msgid "`seeded_order` is pseudo-random, not cryptographic: the order is a fixed function of the ids and the seed."
+msgstr "`seeded_order` は擬似ランダムであって暗号学的ではありません。順序は ID とシードの固定の関数です。"
 
 #: manual/design/tune_gemm.md:1
 msgid "tune_gemm design"
@@ -5345,30 +5369,26 @@ msgid "mare_mark is pre-1.0. The versioned contracts are the protocol vocabulary
 msgstr "mare_mark は 1.0 より前の段階です。バージョン付きの契約は、プロトコルの語彙 `mmkp_1`、JSONL アーティファクト `mmka_1`、Plot IR スキーマ `mmks_1`、GEMM チューニング設定 `mmkts_1` です。リーダーはそれ以外のバージョンを拒否します。計時の閾値、候補の列挙、HTML のスタイル、非公開のレイアウトは互換性の約束の対象ではありません。各設計ページはパッケージの境界で締めくくります。"
 
 #: manual/index.md:110
-msgid "[!WARNING] `stats.compare_paired` and `experiment.comparator_label` do not validate the practical threshold: `0` reports an exact tie as `Faster` (`\"A\"`), and `NaN` reports every comparison as `Equivalent` (`\"Unknown\"`) ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold. The [stats API](api/stats.md) lists the exact behaviour."
-msgstr "[!WARNING] `stats.compare_paired` と `experiment.comparator_label` は実用的な閾値を検証しません。`0` は完全な同値を `Faster`（`\"A\"`）と報告し、`NaN` はすべての比較を `Equivalent`（`\"Unknown\"`）と報告します（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。有限の正の閾値を使ってください。正確な振る舞いは [stats API](api/stats.md) にあります。"
-
-#: manual/index.md:118
 msgid "Where to read next"
 msgstr "次に読むもの"
 
-#: manual/index.md:120
+#: manual/index.md:112
 msgid "New to benchmarking with mare_mark: read [getting started](getting_started.md), then the [runner tutorial](tutorial/runner.md) and the [stats tutorial](tutorial/stats.md). Publish with the [report tutorial](tutorial/report.md)."
 msgstr "mare_mark でのベンチマークが初めての場合: [はじめに](getting_started.md)を読み、次に [runner のチュートリアル](tutorial/runner.md)と [stats のチュートリアル](tutorial/stats.md)を読んでください。公開には [report のチュートリアル](tutorial/report.md)を使います。"
 
-#: manual/index.md:124
+#: manual/index.md:116
 msgid "Using it in a project: keep the API pages of [`runner`](api/runner.md), [`stats`](api/stats.md) and [`model`](api/model.md) at hand; read the [fixture](tutorial/fixture.md) and [generator](tutorial/generator.md) tutorials for realistic inputs, and the [experiment tutorial](tutorial/experiment.md) for oracles and crossovers. For tuning, read [tune](tutorial/tune.md) and [tune_gemm](tutorial/tune_gemm.md)."
 msgstr "プロジェクトで使う場合: [`runner`](api/runner.md)、[`stats`](api/stats.md)、[`model`](api/model.md) の API ページを手元に置いてください。現実的な入力については [fixture](tutorial/fixture.md) と [generator](tutorial/generator.md) のチュートリアルを、オラクルとクロスオーバーについては [experiment のチュートリアル](tutorial/experiment.md)を読んでください。チューニングについては [tune](tutorial/tune.md) と [tune_gemm](tutorial/tune_gemm.md) を読んでください。"
 
-#: manual/index.md:130
+#: manual/index.md:122
 msgid "Reviewing results or contributing: read the [architecture](architecture.md) and the design pages, starting with [runner](design/runner.md) (experimental design and calibration) and [stats](design/stats.md) (estimators, bootstrap and decision rule), then [verification](verification.md)."
 msgstr "結果をレビューする場合やコントリビュートする場合: [アーキテクチャ](architecture.md)と設計ページを、[runner](design/runner.md)（実験計画とキャリブレーション）と [stats](design/stats.md)（推定量、ブートストラップ、判断規則）から順に読み、その後 [検証](verification.md)を読んでください。"
 
-#: manual/index.md:137
+#: manual/index.md:129
 msgid "Recommended release checks:"
 msgstr "推奨されるリリース前のチェック:"
 
-#: manual/index.md:145
+#: manual/index.md:137
 msgid "The [verification](verification.md) guide lists the full matrix, the artifact smoke tests and how the examples of this manual are compiled and run."
 msgstr "[検証](verification.md)ガイドには、完全なマトリクス、成果物のスモークテスト、このマニュアルの例をコンパイルして実行する方法が載っています。"
 
@@ -5503,7 +5523,7 @@ msgstr "[runner のチュートリアル](runner.md)に、そのようなイベ�
 #: manual/tutorial/report.md:143
 #: manual/tutorial/runner.md:322
 #: manual/tutorial/stats.md:225
-#: manual/tutorial/tune.md:134
+#: manual/tutorial/tune.md:118
 #: manual/tutorial/tune_gemm.md:157
 msgid "Going further"
 msgstr "さらに先へ"
@@ -5527,7 +5547,7 @@ msgstr "その他のターゲットでは、このコマンドはファイルパ
 #: manual/tutorial/report.md:154
 #: manual/tutorial/runner.md:345
 #: manual/tutorial/stats.md:257
-#: manual/tutorial/tune.md:148
+#: manual/tutorial/tune.md:132
 #: manual/tutorial/tune_gemm.md:165
 msgid "Common pitfalls"
 msgstr "よくある落とし穴"
@@ -5544,9 +5564,13 @@ msgstr "**`--yes` を忘れる。** これ（および `--dry-run`）がない�
 msgid "**Extra arguments.** A third positional argument is a usage error."
 msgstr "**余分な引数。** 3 つ目の位置引数は使い方の誤りです。"
 
-#: manual/tutorial/cli.md:100
+#: manual/tutorial/cli.md:99
+msgid "**Forgetting the artifact.** `replay` needs an artifact path even with `--dry-run`; without one it exits with `2`."
+msgstr "**成果物を忘れる。** `replay` は `--dry-run` でも成果物のパスを必要とし、なければ `2` で終了します。"
+
+#: manual/tutorial/cli.md:102
 #: manual/tutorial/event.md:139
-#: manual/tutorial/experiment.md:151
+#: manual/tutorial/experiment.md:153
 #: manual/tutorial/fixture.md:137
 #: manual/tutorial/generator.md:137
 #: manual/tutorial/ir_model.md:89
@@ -5555,16 +5579,16 @@ msgstr "**余分な引数。** 3 つ目の位置引数は使い方の誤りで�
 #: manual/tutorial/report.md:163
 #: manual/tutorial/runner.md:363
 #: manual/tutorial/stats.md:281
-#: manual/tutorial/tune.md:159
+#: manual/tutorial/tune.md:143
 #: manual/tutorial/tune_gemm.md:175
 msgid "Next steps"
 msgstr "次のステップ"
 
-#: manual/tutorial/cli.md:102
+#: manual/tutorial/cli.md:104
 msgid "[cli API](../api/cli.md), [cli design](../design/cli.md)."
 msgstr "[cli API](../api/cli.md)、[cli の設計](../design/cli.md)。"
 
-#: manual/tutorial/cli.md:103
+#: manual/tutorial/cli.md:105
 msgid "[report tutorial](report.md) for the report itself."
 msgstr "レポート自体については [report のチュートリアル](report.md)。"
 
@@ -5773,30 +5797,30 @@ msgid "The [experiment design](../design/experiment.md) proves that shrinking te
 msgstr "[experiment の設計](../design/experiment.md)で、縮小が停止し失敗を保つことを証明しています。"
 
 #: manual/tutorial/experiment.md:141
-msgid "**Unsorted scales.** `crossover_from_labels` uses the order you give."
-msgstr "**ソートされていないスケール。** `crossover_from_labels` は与えられた順序を使います。"
+msgid "**A comparator that disagrees with your scale order.** `crossover_from_labels` sorts by `ScaleDomain.compare`; the boundary is reported in that order."
+msgstr "**スケールの順序と食い違う比較関数。** `crossover_from_labels` は `ScaleDomain.compare` でソートし、境界はその順序で報告されます。"
 
-#: manual/tutorial/experiment.md:142
+#: manual/tutorial/experiment.md:143
 msgid "**Equality for floating-point results.** Use a tolerance that matches the algorithm's error bound."
 msgstr "**浮動小数点の結果に等価性を使う。** アルゴリズムの誤差上界に合った許容誤差を使ってください。"
 
-#: manual/tutorial/experiment.md:144
+#: manual/tutorial/experiment.md:145
 msgid "**Shrinkers that grow the input.** Candidates should be smaller, or the budget is spent without progress."
 msgstr "**入力を大きくするシュリンカー。** 候補はより小さくなければなりません。そうでないと進展なしに予算を使い果たします。"
 
-#: manual/tutorial/experiment.md:146
+#: manual/tutorial/experiment.md:147
 msgid "**Reading `NonMonotonic` as a crossover.** It is not; the preference flips."
 msgstr "**`NonMonotonic` をクロスオーバーと読む。** そうではありません。優位性が反転しているのです。"
 
-#: manual/tutorial/experiment.md:147
-msgid "**A zero or `NaN` threshold in `comparator_label`.** With `0.0` a tie is labelled `\"A\"`; with `NaN` every label is `\"Unknown\"` and no crossover can be found. Use a finite, positive threshold."
-msgstr "**`comparator_label` にゼロや `NaN` の閾値を渡す。** `0.0` では同値に `\"A\"` のラベルが付き、`NaN` ではすべてのラベルが `\"Unknown\"` になってクロスオーバーは見つかりません。有限の正の閾値を使ってください。"
+#: manual/tutorial/experiment.md:148
+msgid "**A zero or unusable threshold in `comparator_label`.** With `0.0` only an exact tie is `\"Unknown\"`, so noise decides every other label; with `NaN`, an infinite or a negative threshold every label is `\"Unknown\"` and no crossover can be found. Use a finite, positive threshold."
+msgstr "**`comparator_label` にゼロや使えない閾値を渡す。** `0.0` では完全な同値だけが `\"Unknown\"` で、それ以外のラベルはすべてノイズで決まります。`NaN`、無限大、負の閾値ではすべてのラベルが `\"Unknown\"` になり、クロスオーバーは見つかりません。有限の正の閾値を使ってください。"
 
-#: manual/tutorial/experiment.md:153
+#: manual/tutorial/experiment.md:155
 msgid "[experiment API](../api/experiment.md), [experiment design](../design/experiment.md)."
 msgstr "[experiment API](../api/experiment.md)、[experiment の設計](../design/experiment.md)。"
 
-#: manual/tutorial/experiment.md:154
+#: manual/tutorial/experiment.md:156
 msgid "[runner tutorial](runner.md) for oracles inside a run."
 msgstr "実行内でのオラクルについては [runner のチュートリアル](runner.md)。"
 
@@ -6513,8 +6537,8 @@ msgid "**Calling `run` outside an async context.** It is an `async fn`."
 msgstr "**非同期コンテキストの外で `run` を呼ぶ。** これは `async fn` です。"
 
 #: manual/tutorial/runner.md:359
-msgid "**Relying on `validate_protocol` to catch `NaN`.** It rejects negative and zero values but not `NaN`; a `NaN` threshold makes every later comparison `Equivalent`."
-msgstr "**`validate_protocol` が `NaN` を捕まえると思い込む。** 負の値やゼロの値は拒否しますが、`NaN` は拒否しません。`NaN` の閾値では、その後のすべての比較が `Equivalent` になります。"
+msgid "**A zero threshold with noisy data.** `validate_protocol` accepts `0.0`, and `stats.compare_paired` then calls every non-zero difference `Faster` or `Slower`. Choose the smallest change you care about."
+msgstr "**ノイズのあるデータでゼロの閾値を使う。** `validate_protocol` は `0.0` を受け入れ、そのとき `stats.compare_paired` はゼロでない差をすべて `Faster` か `Slower` とします。気にする最小の変化を選んでください。"
 
 #: manual/tutorial/runner.md:365
 msgid "[runner API](../api/runner.md) and [runner design](../design/runner.md)."
@@ -6665,16 +6689,16 @@ msgid "**Mixing phases or targets.** Exploratory and confirmatory observations, 
 msgstr "**フェーズやターゲットを混在させる。** 探索的な観測と確認的な観測、native と JS の計時値は、それぞれ異なる母集団です。ペアにする前にフィルタリングしてください。"
 
 #: manual/tutorial/stats.md:263
-msgid "**A zero, negative or `NaN` threshold.** The threshold is not validated. With `practical_delta_pct = 0.0` an exact tie is reported as `Faster`; a negative threshold reports small slowdowns as `Faster`; `NaN` reports everything, even a twofold slowdown, as `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold such as `2.0`."
-msgstr "**ゼロ、負、`NaN` の閾値。** 閾値は検証されません。`practical_delta_pct = 0.0` では完全な同値が `Faster` と報告され、負の閾値ではわずかな低速化が `Faster` と報告され、`NaN` では 2 倍の低速化を含むすべてが `Equivalent` と報告されます（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。`2.0` のような有限の正の閾値を使ってください。"
+msgid "**A zero threshold.** With `practical_delta_pct = 0.0` only an exact tie is `Equivalent`; every other difference, however small, is `Faster` or `Slower`. A `NaN`, infinite or negative threshold gives `Invalid`. Use a finite, positive threshold such as `2.0`."
+msgstr "**ゼロの閾値。** `practical_delta_pct = 0.0` では完全な同値だけが `Equivalent` で、それ以外の差はどれほど小さくても `Faster` か `Slower` になります。`NaN`、無限大、負の閾値は `Invalid` を与えます。`2.0` のような有限の正の閾値を使ってください。"
 
-#: manual/tutorial/stats.md:269
+#: manual/tutorial/stats.md:267
 msgid "**Trusting the interval of a short run.** With a handful of blocks the bootstrap interval of the median covers the true median less often than its nominal level (87.5 % instead of 95 % for seven pairs); the [stats design](../design/stats.md) has the table."
 msgstr "**短い実行の区間を信用する。** ブロックが数個しかないと、中央値のブートストラップ区間が真の中央値を含む頻度は名目の水準より低くなります（7 ペアでは 95 % ではなく 87.5 %）。表は [stats の設計](../design/stats.md) にあります。"
 
-#: manual/tutorial/stats.md:273
-msgid "**`NaN` timings.** `compare_paired` does not reject them and can return any decision; the bootstrap functions return `NonFiniteSample`."
-msgstr "**`NaN` の計時値。** `compare_paired` はそれらを拒否せず、どのような判断も返しえます。ブートストラップの関数は `NonFiniteSample` を返します。"
+#: manual/tutorial/stats.md:271
+msgid "**`NaN` timings.** A single `NaN` makes every statistic of `summarize` `NaN` and the decision of `compare_paired` `Invalid`; the bootstrap functions return `NonFiniteSample`. Find and drop the broken observation instead of filtering `NaN` silently."
+msgstr "**`NaN` の計時値。** `NaN` が 1 つあるだけで `summarize` のすべての統計量が `NaN` になり、`compare_paired` の判断は `Invalid` になります。ブートストラップの関数は `NonFiniteSample` を返します。`NaN` を黙って除外するのではなく、壊れた観測を見つけて取り除いてください。"
 
 #: manual/tutorial/stats.md:275
 msgid "**Reading `summarize([])`.** An empty sample returns zeros; check `count`."
@@ -6769,58 +6793,50 @@ msgid "Sample a large space reproducibly"
 msgstr "大きな空間から再現可能にサンプリングする"
 
 #: manual/tutorial/tune.md:114
-msgid "The same seed gives the same candidates whatever order the space is listed in. Record the seed with the result."
-msgstr "同じシードからは、空間がどの順序で列挙されていても同じ候補が得られます。シードを結果とともに記録してください。"
+msgid "The same seed gives the same candidates whatever order the space is listed in, and the candidates are spread over the whole space even though the ids differ only in their last characters. Record the seed with the result."
+msgstr "同じシードからは、空間がどの順序で列挙されていても同じ候補が得られます。ID が末尾の数文字しか違わなくても、候補は空間全体に散らばります。シードを結果とともに記録してください。"
 
-#: manual/tutorial/tune.md:117
-msgid "Put the varying part of an id first. The hash behind `seeded_order` mixes the last characters of an id poorly, so ids that differ only at the end stay together:"
-msgstr "ID の変化する部分は先頭に置いてください。`seeded_order` の背後にあるハッシュは ID の末尾の文字をうまく混ぜないので、末尾だけが異なる ID はまとまったままになります。"
-
-#: manual/tutorial/tune.md:131
-msgid "With these ids the first ten are `candidate-90` to `candidate-99`, which is not a random subset. The [tune API](../api/tune.md) explains why."
-msgstr "これらの ID では最初の 10 個が `candidate-90` から `candidate-99` になり、ランダムな部分集合ではありません。理由は [tune API](../api/tune.md) で説明しています。"
-
-#: manual/tutorial/tune.md:136
+#: manual/tutorial/tune.md:120
 msgid "**Confirm finalists.** Re-measure the best few with `@tune.confirmation_count(base, relative_iqr, budget)` fresh samples and select again on those; the [tune design](../design/tune.md) explains why the first selection is optimistic."
 msgstr "**最終候補を確認する。** 上位のいくつかを `@tune.confirmation_count(base, relative_iqr, budget)` 個の新しいサンプルで再計測し、それに基づいて改めて選択します。最初の選択が楽観的になる理由は [tune の設計](../design/tune.md)で説明しています。"
 
-#: manual/tutorial/tune.md:140
+#: manual/tutorial/tune.md:124
 msgid "**Hold out shapes.** Choose with some shapes, then check the winner on a `ShapeHoldout`."
 msgstr "**形状をホールドアウトする。** いくつかの形状で選び、その後 `ShapeHoldout` で勝者を検査します。"
 
-#: manual/tutorial/tune.md:142
+#: manual/tutorial/tune.md:126
 msgid "**Measure with the runner.** Wrap each candidate in a `@runner.Implementation`, run them in one case so they share blocks, and feed per-candidate confirmatory medians to `score_samples`."
 msgstr "**ランナーで計測する。** 各候補を `@runner.Implementation` に包み、ブロックを共有するよう 1 つのケースで実行し、候補ごとの確認的な中央値を `score_samples` に渡します。"
 
-#: manual/tutorial/tune.md:145
+#: manual/tutorial/tune.md:129
 msgid "**A worked example.** [`tune_gemm`](tune_gemm.md) applies all of this to blocked matrix multiplication."
 msgstr "**実例。** [`tune_gemm`](tune_gemm.md) はこれらすべてをブロック化された行列積に適用しています。"
 
-#: manual/tutorial/tune.md:150
+#: manual/tutorial/tune.md:134
 msgid "**Selecting on exploration data only.** The winner's curse makes it look better than it is."
 msgstr "**探索データだけで選択する。** 勝者の呪いにより、実際より良く見えてしまいます。"
 
-#: manual/tutorial/tune.md:152
+#: manual/tutorial/tune.md:136
 msgid "**A threshold of zero with noisy data.** Ties are then decided by noise."
 msgstr "**ノイズの多いデータでゼロの閾値を使う。** 同率がノイズによって決まってしまいます。"
 
-#: manual/tutorial/tune.md:153
+#: manual/tutorial/tune.md:137
 msgid "**Ids that are not unique.** Selection and ordering assume unique ids."
 msgstr "**一意でない ID。** 選択と順序付けは ID が一意であることを前提とします。"
 
-#: manual/tutorial/tune.md:154
-msgid "**Ids that differ only at the end.** `seeded_order` keeps them clustered; put the varying part first."
-msgstr "**末尾だけが異なる ID。** `seeded_order` ではまとまったままになります。変化する部分を先頭に置いてください。"
+#: manual/tutorial/tune.md:138
+msgid "**Comparing subsets across versions.** The order for a seed changed when `seeded_order` gained its finalizer; regenerate recorded subsets."
+msgstr "**バージョンをまたいで部分集合を比較する。** `seeded_order` にファイナライザが加わったとき、シードに対する順序が変わりました。記録した部分集合は作り直してください。"
 
-#: manual/tutorial/tune.md:156
+#: manual/tutorial/tune.md:140
 msgid "**Trusting the `exhaustive_scores` policy string.** `global:<id>` is the raw minimum, without practical ties or confirmation; decide with `select_best`."
 msgstr "**`exhaustive_scores` のポリシー文字列を信用する。** `global:<id>` は実用的な同率判定も確認もない生の最小値です。判断には `select_best` を使ってください。"
 
-#: manual/tutorial/tune.md:161
+#: manual/tutorial/tune.md:145
 msgid "[tune API](../api/tune.md), [tune design](../design/tune.md)."
 msgstr "[tune API](../api/tune.md)、[tune の設計](../design/tune.md)。"
 
-#: manual/tutorial/tune.md:162
+#: manual/tutorial/tune.md:146
 msgid "[tune_gemm tutorial](tune_gemm.md)."
 msgstr "[tune_gemm のチュートリアル](tune_gemm.md)。"
 
@@ -7009,8 +7025,8 @@ msgid "What the tests prove, and what they do not"
 msgstr "テストが証明すること、しないこと"
 
 #: manual/verification.md:75
-msgid "`stats`: robust summaries, decision thresholds, invalid-input errors, and that bootstrap intervals are deterministic and lie within the range of the deltas. Not: coverage of the intervals (the design page computes it for small samples), BCa or hierarchical resampling, or the threshold edge cases `0`, negative and `NaN`, which are documented but not rejected ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1))."
-msgstr "`stats`: 頑健な要約、判断の閾値、不正な入力に対するエラー、そしてブートストラップ区間が決定的で差の範囲内に収まること。証明しないこと: 区間の被覆確率（小標本については設計ページで計算しています）、BCa や階層的な再標本化、そして文書化されているが拒否されない閾値の境界ケース `0`、負の値、`NaN`（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。"
+msgid "`stats`: robust summaries, decision thresholds, invalid-input errors, and that bootstrap intervals are deterministic and lie within the range of the deltas, the decision for ties and for thresholds that are `0`, `NaN`, infinite or negative, and `NaN` propagation through `summarize` and `compare_paired`. Not: coverage of the intervals (the design page computes it for small samples), BCa or hierarchical resampling."
+msgstr "`stats`: 頑健な要約、判断の閾値、不正な入力に対するエラー、ブートストラップ区間が決定的で差の範囲内に収まること、同値および `0`・`NaN`・無限大・負の閾値に対する判断、そして `summarize` と `compare_paired` での `NaN` の伝播。証明しないこと: 区間の被覆確率（小標本については設計ページで計算しています）、BCa や階層的な再標本化。"
 
 #: manual/verification.md:81
 msgid "`runner`: validation before timing, timing boundaries per setup policy (synchronization, reset exclusion), calibration bounds, balanced order, worker abort and timeout, minimized replayable failures, relational mismatches, outcome counting. Not: the quality of a machine's timer or the absence of interference from other processes."
@@ -7021,12 +7037,111 @@ msgid "`report`: projection rules, escaping, version gating, self-contained outp
 msgstr "`report`: 射影の規則、エスケープ、バージョンによる関門、自己完結型の出力。証明しないこと: 特定のブラウザでの描画。"
 
 #: manual/verification.md:88
-msgid "`tune` and `tune_gemm`: median scoring, order-independent selection, Pareto filtering, candidate constraints, bitwise agreement of blocked and reference GEMM over all layouts with tails. Not: that a tuned candidate is fastest on another CPU, or that `seeded_order` behaves like a uniform random permutation (it does not for ids that differ only at the end)."
-msgstr "`tune` と `tune_gemm`: 中央値によるスコア付け、順序に依存しない選択、パレートのフィルタリング、候補の制約、端数を含むすべてのレイアウトにおけるブロック化 GEMM と参照 GEMM のビット単位の一致。証明しないこと: チューニングした候補が別の CPU でも最速であること、また `seeded_order` が一様ランダムな置換のように振る舞うこと（末尾だけが異なる ID ではそうなりません）。"
+msgid "`tune` and `tune_gemm`: median scoring, order-independent selection, Pareto filtering, candidate constraints, bitwise agreement of blocked and reference GEMM over all layouts with tails. Not: that a tuned candidate is fastest on another CPU. `seeded_order` is tested for spreading ids that differ only at the end, not for statistical randomness."
+msgstr "`tune` と `tune_gemm`: 中央値によるスコア付け、順序に依存しない選択、パレートのフィルタリング、候補の制約、端数を含むすべてのレイアウトにおけるブロック化 GEMM と参照 GEMM のビット単位の一致。証明しないこと: チューニングした候補が別の CPU でも最速であること。`seeded_order` については末尾だけが異なる ID を散らばらせることをテストしており、統計的なランダム性はテストしていません。"
 
 #: manual/verification.md:93
 msgid "`cli`: argument parsing, help texts, replay extraction. The native `main` is exercised by the smoke tests only."
 msgstr "`cli`: 引数の解析、ヘルプテキスト、リプレイ情報の抽出。native の `main` はスモークテストでのみ実行されます。"
+
+#~ msgid "`status` is one of `valid`, `invalid`, `skipped`, `expected_difference`, `unsupported`, `infrastructure_failure`; the reason strings of the status are not written. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept` or `discarded:<reason>`. The observation's `setup_timing` is not written."
+#~ msgstr "`status` は `valid`、`invalid`、`skipped`、`expected_difference`、`unsupported`、`infrastructure_failure` のいずれかで、ステータスの理由文字列は書き出されません。`phase` は `exploratory` または `confirmatory` で、`batch_sink` は `kept` または `discarded:<reason>` です。観測の `setup_timing` は書き出されません。"
+
+#~ msgid "`crossover_from_labels` reads `values` in the given order and does not sort them; pass them sorted."
+#~ msgstr "`crossover_from_labels` は `values` を与えられた順序で読み、ソートしません。ソート済みで渡してください。"
+
+#~ msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie ($r = 0$) is `\"A\"`; with $t < 0$ small slowdowns of A are `\"A\"` too; with $t$ = `NaN` every delta is `\"Unknown\"`, so `crossover_from_labels` can only report `NoCrossover`. Pass a finite, positive threshold."
+#~ msgstr "[!WARNING] 閾値は検証されません（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。$t = 0$ では完全な同値（$r = 0$）が `\"A\"` になり、$t < 0$ では A のわずかな低速化も `\"A\"` になります。$t$ = `NaN` ではすべての差が `\"Unknown\"` になるため、`crossover_from_labels` は `NoCrossover` しか報告できません。有限の正の閾値を渡してください。"
+
+#~ msgid "Each rule is implemented as a test for its violation (`x < 0.0`, `x <= 0.0`, `target > max`), and every comparison with `NaN` is false, so `NaN` passes all the `Double` rules. In particular a `NaN` `practical_delta_pct` is accepted and makes every `stats.compare_paired` decision on it `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)), a `NaN` `target_batch_time_us` disables calibration (the first batch is kept), and a `NaN` `warmup_time_us` leaves only the `warmup_iterations` count. Infinite durations pass as well, except a `target_batch_time_us` above a finite `max_sample_time_us`. A threshold of `0.0` is accepted although it reports exact ties as `Faster`."
+#~ msgstr "各規則は違反の判定（`x < 0.0`、`x <= 0.0`、`target > max`）として実装されており、`NaN` との比較はすべて偽になるため、`NaN` は `Double` に関するすべての規則を通過します。特に、`NaN` の `practical_delta_pct` は受け入れられ、それを使う `stats.compare_paired` の判断はすべて `Equivalent` になります（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。`NaN` の `target_batch_time_us` はキャリブレーションを無効にし（最初のバッチがそのまま使われます）、`NaN` の `warmup_time_us` では `warmup_iterations` の回数だけが残ります。無限大の時間も通過します。ただし、有限の `max_sample_time_us` を超える `target_batch_time_us` は例外です。閾値 `0.0` も受け入れられますが、これは完全な同値を `Faster` と報告します。"
+
+#~ msgid "the relative median delta lies strictly between $-t$ and $t$"
+#~ msgstr "中央値の相対差が $-t$ と $t$ の間に厳密に収まる"
+
+#~ msgid "the two arrays have different lengths"
+#~ msgstr "2 つの配列の長さが異なる"
+
+#~ msgid "The decision is the first test that holds: `Invalid` if the lengths differ, `Unknown` if there are no pairs, `Faster` if $r \\le -t$, `Slower` if $r \\ge t$, `Equivalent` otherwise. Other edge cases:"
+#~ msgstr "判断は最初に成り立った判定で決まります。長さが異なれば `Invalid`、ペアがなければ `Unknown`、$r \\le -t$ なら `Faster`、$r \\ge t$ なら `Slower`、それ以外は `Equivalent` です。その他の境界ケース:"
+
+#~ msgid "A `NaN` in either array is not rejected; it lands at an unspecified position of the sort and can produce any decision. Filter non-finite values first."
+#~ msgstr "どちらかの配列に含まれる `NaN` は拒否されません。ソート中の未規定の位置に入り、どのような判断も生じえます。先に非有限値を取り除いてください。"
+
+#~ msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie is `Faster`, because $0 \\le -0$. With $t < 0$ every slowdown smaller than $\\lvert t\\rvert$ percent is `Faster`. With $t$ = `NaN` (or $+\\infty$) every comparison is `Equivalent`, even a twofold slowdown. Pass a finite, positive threshold."
+#~ msgstr "[!WARNING] 閾値は検証されません（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。$t = 0$ では $0 \\le -0$ なので、完全な同値が `Faster` になります。$t < 0$ では $\\lvert t\\rvert$ パーセント未満の低速化がすべて `Faster` になります。$t$ = `NaN`（または $+\\infty$）では、2 倍の低速化であってもすべての比較が `Equivalent` になります。有限の正の閾値を渡してください。"
+
+#~ msgid "[!WARNING] The hash has no final mixing step, and its high bits, which decide the sort, depend only weakly on the last characters of an id. Ids that differ only at the end stay clustered: for the ids `\"c0\"` to `\"c99\"` and seed `1` the order starts `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …`. A prefix is then far from a random subset. Ids with a long common suffix after the varying part, such as the `tune_gemm` ids, are mixed much better. Put the varying part first in your ids, or shuffle with your own well-mixed hash."
+#~ msgstr "[!WARNING] このハッシュには最後の混合ステップがなく、ソートを決める上位ビットは ID の末尾の文字にわずかにしか依存しません。末尾だけが異なる ID はまとまったままになります。ID `\"c0\"` から `\"c99\"` とシード `1` では、順序は `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …` で始まります。その先頭部分はランダムな部分集合とはほど遠いものです。`tune_gemm` の ID のように、変化する部分の後に長い共通の接尾辞がある ID ははるかによく混ざります。ID の変化する部分を先頭に置くか、よく混ざる独自のハッシュでシャッフルしてください。"
+
+#~ msgid "The progress line prints a microsecond value labelled `ms`."
+#~ msgstr "進捗行は、`ms` とラベル付けされたマイクロ秒の値を表示します。"
+
+#~ msgid "The JSONL writer omits the reason strings of validation statuses and the observation's `setup_timing`."
+#~ msgstr "JSONL ライターは、検証ステータスの理由文字列と観測の `setup_timing` を省略します。"
+
+#~ msgid "`comparator_label` partitions the real line into $(-\\infty, -t]$, $(-t, t)$, $[t, \\infty)$ for $0 < t < \\infty$; other thresholds are accepted and behave as described above."
+#~ msgstr "$0 < t < \\infty$ のとき、`comparator_label` は実数直線を $(-\\infty, -t]$、$(-t, t)$、$[t, \\infty)$ に分割します。その他の閾値も受け入れられ、上で述べたとおりに振る舞います。"
+
+#~ msgid "`crossover_from_labels` does not sort the domain and does not use `ScaleDomain.compare`; pass sorted values."
+#~ msgstr "`crossover_from_labels` はドメインをソートせず、`ScaleDomain.compare` も使いません。ソート済みの値を渡してください。"
+
+#~ msgid "`validate_protocol` does not reject `NaN` durations or a `NaN` threshold: a `NaN` target disables calibration and a `NaN` warmup time disables the time criterion of the warmup."
+#~ msgstr "`validate_protocol` は `NaN` の時間や `NaN` の閾値を拒否しません。`NaN` の目標はキャリブレーションを無効にし、`NaN` のウォームアップ時間はウォームアップの時間条件を無効にします。"
+
+#~ msgid "The code evaluates the rule as an ordered chain, `Faster` first:"
+#~ msgstr "コードはこの規則を、`Faster` を先頭とする順序付きの判定の連鎖として評価します。"
+
+#~ msgid "For $0 < t < \\infty$ the three regions $(-\\infty, -t]$, $[t, \\infty)$ and $(-t, t)$ partition $\\mathbb R$ and the chain is the rule above. For other thresholds it is not, and `compare_paired` does not reject them:[^issue1]"
+#~ msgstr "$0 < t < \\infty$ では、3 つの領域 $(-\\infty, -t]$、$[t, \\infty)$、$(-t, t)$ が $\\mathbb R$ を分割し、連鎖は上の規則と一致します。それ以外の閾値ではそうならず、`compare_paired` はそれらを拒否しません。[^issue1]"
+
+#~ msgid "$t = 0$: $r \\le -0$ holds at $r = 0$, so an exact tie is `Faster` and `Equivalent` is never returned."
+#~ msgstr "$t = 0$: $r = 0$ で $r \\le -0$ が成り立つので、完全な同値は `Faster` になり、`Equivalent` は決して返されません。"
+
+#~ msgid "$t < 0$: the first test is $r \\le \\lvert t\\rvert$, so every slowdown smaller than $\\lvert t\\rvert$ percent is reported as `Faster`, and `Equivalent` is never returned."
+#~ msgstr "$t < 0$: 最初の判定は $r \\le \\lvert t\\rvert$ なので、$\\lvert t\\rvert$ パーセント未満の低速化はすべて `Faster` と報告され、`Equivalent` は決して返されません。"
+
+#~ msgid "$t = \\mathrm{NaN}$: every comparison with `NaN` is false, so every pair of arrays, including a twofold slowdown, is `Equivalent`."
+#~ msgstr "$t = \\mathrm{NaN}$: `NaN` との比較はすべて偽なので、2 倍の低速化を含め、どの配列の組も `Equivalent` になります。"
+
+#~ msgid "$t = +\\infty$: every finite $r$ is `Equivalent`."
+#~ msgstr "$t = +\\infty$: 有限の $r$ はすべて `Equivalent` です。"
+
+#~ msgid "A `NaN` relative delta (for example from a `NaN` in the input) is also `Equivalent`. `runner.validate_protocol` rejects $t < 0$ but accepts `NaN`, and `stats` is called with any `Double`. Use a finite, positive threshold."
+#~ msgstr "`NaN` の相対差（たとえば入力中の `NaN` から生じたもの）も `Equivalent` です。`runner.validate_protocol` は $t < 0$ を拒否しますが `NaN` は受け入れ、`stats` は任意の `Double` で呼び出されます。有限の正の閾値を使ってください。"
+
+#~ msgid "Non-finite values are rejected only by the bootstrap functions. A `NaN` in the input of `summarize` or `compare_paired` lands at an unspecified position of the sort and can produce any decision."
+#~ msgstr "非有限値を拒否するのはブートストラップの関数だけです。`summarize` や `compare_paired` の入力に含まれる `NaN` は、ソート中の未規定の位置に入り、どのような判断も生じえます。"
+
+#~ msgid "The practical threshold is not validated: `0`, negative values and `NaN` give the decisions listed under the decision rule above."
+#~ msgstr "実用的な閾値は検証されません。`0`、負の値、`NaN` は、上の判断規則の下に挙げた判断を与えます。"
+
+#~ msgid "`seeded_order` is not a uniform random permutation; ids that differ only in their last characters stay clustered."
+#~ msgstr "`seeded_order` は一様ランダムな置換ではありません。最後の数文字だけが異なる ID はまとまったままになります。"
+
+#~ msgid "[!WARNING] `stats.compare_paired` and `experiment.comparator_label` do not validate the practical threshold: `0` reports an exact tie as `Faster` (`\"A\"`), and `NaN` reports every comparison as `Equivalent` (`\"Unknown\"`) ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold. The [stats API](api/stats.md) lists the exact behaviour."
+#~ msgstr "[!WARNING] `stats.compare_paired` と `experiment.comparator_label` は実用的な閾値を検証しません。`0` は完全な同値を `Faster`（`\"A\"`）と報告し、`NaN` はすべての比較を `Equivalent`（`\"Unknown\"`）と報告します（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。有限の正の閾値を使ってください。正確な振る舞いは [stats API](api/stats.md) にあります。"
+
+#~ msgid "**Unsorted scales.** `crossover_from_labels` uses the order you give."
+#~ msgstr "**ソートされていないスケール。** `crossover_from_labels` は与えられた順序を使います。"
+
+#~ msgid "**Relying on `validate_protocol` to catch `NaN`.** It rejects negative and zero values but not `NaN`; a `NaN` threshold makes every later comparison `Equivalent`."
+#~ msgstr "**`validate_protocol` が `NaN` を捕まえると思い込む。** 負の値やゼロの値は拒否しますが、`NaN` は拒否しません。`NaN` の閾値では、その後のすべての比較が `Equivalent` になります。"
+
+#~ msgid "**A zero, negative or `NaN` threshold.** The threshold is not validated. With `practical_delta_pct = 0.0` an exact tie is reported as `Faster`; a negative threshold reports small slowdowns as `Faster`; `NaN` reports everything, even a twofold slowdown, as `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold such as `2.0`."
+#~ msgstr "**ゼロ、負、`NaN` の閾値。** 閾値は検証されません。`practical_delta_pct = 0.0` では完全な同値が `Faster` と報告され、負の閾値ではわずかな低速化が `Faster` と報告され、`NaN` では 2 倍の低速化を含むすべてが `Equivalent` と報告されます（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。`2.0` のような有限の正の閾値を使ってください。"
+
+#~ msgid "**`NaN` timings.** `compare_paired` does not reject them and can return any decision; the bootstrap functions return `NonFiniteSample`."
+#~ msgstr "**`NaN` の計時値。** `compare_paired` はそれらを拒否せず、どのような判断も返しえます。ブートストラップの関数は `NonFiniteSample` を返します。"
+
+#~ msgid "Put the varying part of an id first. The hash behind `seeded_order` mixes the last characters of an id poorly, so ids that differ only at the end stay together:"
+#~ msgstr "ID の変化する部分は先頭に置いてください。`seeded_order` の背後にあるハッシュは ID の末尾の文字をうまく混ぜないので、末尾だけが異なる ID はまとまったままになります。"
+
+#~ msgid "With these ids the first ten are `candidate-90` to `candidate-99`, which is not a random subset. The [tune API](../api/tune.md) explains why."
+#~ msgstr "これらの ID では最初の 10 個が `candidate-90` から `candidate-99` になり、ランダムな部分集合ではありません。理由は [tune API](../api/tune.md) で説明しています。"
+
+#~ msgid "**Ids that differ only at the end.** `seeded_order` keeps them clustered; put the varying part first."
+#~ msgstr "**末尾だけが異なる ID。** `seeded_order` ではまとまったままになります。変化する部分を先頭に置いてください。"
 
 #~ msgid "Run it from a checkout with `moon run src/cli --target native -- <arguments>`."
 #~ msgstr "チェックアウトしたリポジトリから `moon run src/cli --target native -- <arguments>` で実行します。"
@@ -7057,9 +7172,6 @@ msgstr "`cli`: 引数の解析、ヘルプテキスト、リプレイ情報の�
 
 #~ msgid "$\\hat G$ is a step function on the data points (on midpoints of adjacent order statistics when $n$ is even). The interval endpoints therefore land on, or between, observed deltas, and with few blocks they move in coarse steps."
 #~ msgstr "$\\hat G$ はデータ点上の階段関数です（$n$ が偶数の場合は隣り合う順序統計量の中点上）。したがって区間の端点は観測された差の上、またはその間に位置し、ブロックが少ない場合は粗い刻みで動きます。"
-
-#~ msgid "Non-finite values are rejected only by the bootstrap functions."
-#~ msgstr "有限でない値を拒否するのはブートストラップの関数だけです。"
 
 #~ msgid "`seeded_order` sorts candidates by a seeded 64-bit FNV-1a hash of their ids, which acts as a pseudo-random permutation. Take its first $B$ candidates. If the ids are unrelated to quality, every candidate is equally likely to land in the prefix, and the probability that the prefix contains at least one candidate from the best fraction $q$ of the space is"
 #~ msgstr "`seeded_order` は、ID のシード付き 64 ビット FNV-1a ハッシュで候補をソートします。これは擬似ランダムな置換として働きます。その最初の $B$ 個の候補を取ります。ID が品質と無関係なら、どの候補も同じ確率で先頭部分に入り、空間の上位割合 $q$ に属する候補を先頭部分が少なくとも 1 つ含む確率は次のとおりです"

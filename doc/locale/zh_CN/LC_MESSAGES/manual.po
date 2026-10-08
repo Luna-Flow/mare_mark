@@ -118,12 +118,12 @@ msgid "Options may appear anywhere after the command. Unknown options and more t
 msgstr "选项可以出现在命令之后的任何位置。未知选项以及多于两个的位置参数都是错误。`replay` 拒绝以 `-` 作为输入，并且没有 `--yes` 时拒绝执行。"
 
 #: manual/api/cli.md:49
-msgid "Exit codes: `0` on success, `1` when a file cannot be read or written, the JSONL is invalid, or a replay fails or times out, and `2` for usage errors (unknown command or option, missing arguments, missing `--yes`). On targets other than native, `report` works through `render_jsonl_report`, and `replay` exits with `2`."
-msgstr "退出码：成功时为 `0`；文件无法读写、JSONL 无效、或重放失败或超时时为 `1`；用法错误（未知命令或选项、缺少参数、缺少 `--yes`）时为 `2`。在 native 以外的目标上，`report` 通过 `render_jsonl_report` 工作，而 `replay` 以 `2` 退出。"
+msgid "Exit codes: `0` on success, `1` when a file cannot be read or written, the JSONL is invalid, or a replay fails or times out, and `2` for usage errors (unknown command or option, missing arguments, including `replay --dry-run` without an artifact, and missing `--yes`). On targets other than native, `report` works through `render_jsonl_report`, and `replay` exits with `2`."
+msgstr "退出码：成功时为 `0`；文件无法读取或写入、JSONL 无效、重放失败或超时时为 `1`；用法错误（未知命令或选项、缺少参数，包括没有产物的 `replay --dry-run`，以及缺少 `--yes`）时为 `2`。在 native 以外的目标上，`report` 通过 `render_jsonl_report` 工作，而 `replay` 以 `2` 退出。"
 
-#: manual/api/cli.md:55
-msgid "After writing a file, `report` prints the absolute output path, the number of non-empty input lines and the elapsed time. The elapsed value is measured in microseconds but labelled `ms`."
-msgstr "写出文件后，`report` 会打印输出文件的绝对路径、非空输入行数和耗时。耗时以微秒为单位测量，但标注为 `ms`。"
+#: manual/api/cli.md:56
+msgid "After writing a file, `report` prints the absolute output path, the number of non-empty input lines and the elapsed time in milliseconds."
+msgstr "写入文件之后，`report` 会打印输出文件的绝对路径、非空输入行数以及以毫秒计的耗时。"
 
 #: manual/api/cli.md:60
 msgid "Requests"
@@ -274,8 +274,8 @@ msgid "Fields"
 msgstr "字段"
 
 #: manual/api/event.md:153
-msgid "`status`, `implementation`, `oracle`, `scale`; with evidence also `case`, `dataset_id`, `step_id`, `operation`, `operands`, `context`, `rounding`, `expected`, `actual`, `expected_kind`, `actual_kind`, `expected_flags`, `actual_flags`, `trap`, `stderr`, `exit_code` (when present), `fingerprint`, `implementation_version`, `replay_command`, `replay_arguments`, `replay_timeout_ms`"
-msgstr "`status`、`implementation`、`oracle`、`scale`；带证据时还有 `case`、`dataset_id`、`step_id`、`operation`、`operands`、`context`、`rounding`、`expected`、`actual`、`expected_kind`、`actual_kind`、`expected_flags`、`actual_flags`、`trap`、`stderr`、`exit_code`（存在时）、`fingerprint`、`implementation_version`、`replay_command`、`replay_arguments`、`replay_timeout_ms`"
+msgid "`status`, `reason` (for every status except `valid`), `implementation`, `oracle`, `scale`; with evidence also `case`, `dataset_id`, `step_id`, `operation`, `operands`, `context`, `rounding`, `expected`, `actual`, `expected_kind`, `actual_kind`, `expected_flags`, `actual_flags`, `trap`, `stderr`, `exit_code` (when present), `fingerprint`, `implementation_version`, `replay_command`, `replay_arguments`, `replay_timeout_ms`"
+msgstr "`status`、`reason`（除 `valid` 外的每种状态）、`implementation`、`oracle`、`scale`；带有证据时还有 `case`、`dataset_id`、`step_id`、`operation`、`operands`、`context`、`rounding`、`expected`、`actual`、`expected_kind`、`actual_kind`、`expected_flags`、`actual_flags`、`trap`、`stderr`、`exit_code`（存在时）、`fingerprint`、`implementation_version`、`replay_command`、`replay_arguments`、`replay_timeout_ms`"
 
 #: manual/api/event.md:154
 msgid "all fields of the validation, plus `seed` (a decimal string), `original_fingerprint`, `minimal_fingerprint`, `shrink_path`, `minimal_input`"
@@ -286,8 +286,8 @@ msgid "`run_id`, `observation_count`, `validation_count`, `calibration_count`, `
 msgstr "`run_id`、`observation_count`、`validation_count`、`calibration_count`、`complete`、`passed_count`、`failed_count`、`unsupported_count`、`expected_difference_count`，以及已知时带有 `semantic`、`performance` 和 `provenance` 对象的 `environment`"
 
 #: manual/api/event.md:158
-msgid "`status` is one of `valid`, `invalid`, `skipped`, `expected_difference`, `unsupported`, `infrastructure_failure`; the reason strings of the status are not written. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept` or `discarded:<reason>`. The observation's `setup_timing` is not written."
-msgstr "`status` 取 `valid`、`invalid`、`skipped`、`expected_difference`、`unsupported`、`infrastructure_failure` 之一；状态的原因字符串不会写出。`phase` 为 `exploratory` 或 `confirmatory`；`batch_sink` 为 `kept` 或 `discarded:<reason>`。观测的 `setup_timing` 不会写出。"
+msgid "`status` is one of `valid`, `invalid`, `skipped`, `expected_difference`, `unsupported`, `infrastructure_failure`; `reason` is the string the status carries. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept` or `discarded:<reason>`; `setup_timing` is `excluded_from_measurement` or `included_in_measurement`. Both `reason` and `setup_timing` were added within `mmka_1` ([issue #8](https://github.com/Luna-Flow/mare_mark/issues/8)); older streams lack them, and readers must not require them."
+msgstr "`status` 是 `valid`、`invalid`、`skipped`、`expected_difference`、`unsupported`、`infrastructure_failure` 之一；`reason` 是该状态携带的字符串。`phase` 为 `exploratory` 或 `confirmatory`；`batch_sink` 为 `kept` 或 `discarded:<reason>`；`setup_timing` 为 `excluded_from_measurement` 或 `included_in_measurement`。`reason` 和 `setup_timing` 都是在 `mmka_1` 内新增的字段（[issue #8](https://github.com/Luna-Flow/mare_mark/issues/8)）；较旧的流没有它们，读取器不得要求它们存在。"
 
 #: manual/api/experiment.md:1
 msgid "experiment API"
@@ -377,51 +377,43 @@ msgstr "交叉点分析"
 msgid "`ScaleDomain` lists the scales of an analysis with their order and text."
 msgstr "`ScaleDomain` 列出分析所用的规模及其顺序和文本。"
 
-#: manual/api/experiment.md:196
-msgid "`crossover_from_labels` reads `values` in the given order and does not sort them; pass them sorted."
-msgstr "`crossover_from_labels` 按给定顺序读取 `values`，不会对其排序；请传入已排序的值。"
-
-#: manual/api/experiment.md:201
+#: manual/api/experiment.md:210
 msgid "`comparator_label` turns a relative delta into a label for crossover analysis."
 msgstr "`comparator_label` 把相对差值转换为交叉点分析所用的标签。"
 
-#: manual/api/experiment.md:207
-msgid "`comparator_label(r, t)` is `\"A\"` when $r \\le -t$, else `\"B\"` when $r \\ge t$, else `\"Unknown\"`, the same ordered chain as the decision of `@stats.compare_paired`. Pass the relative delta of A measured against B as the baseline, so that `\"A\"` means A is faster."
-msgstr "当 $r \\le -t$ 时 `comparator_label(r, t)` 为 `\"A\"`，否则当 $r \\ge t$ 时为 `\"B\"`，否则为 `\"Unknown\"`，这与 `@stats.compare_paired` 的决策是同一条有序判断链。请传入以 B 为基线测得的 A 的相对差值，这样 `\"A\"` 就表示 A 更快。"
+#: manual/api/experiment.md:216
+msgid "`comparator_label(r, t)` is `\"A\"` when $r < 0$ and $r \\le -t$, `\"B\"` when $r > 0$ and $r \\ge t$, and `\"Unknown\"` otherwise, the same rule as the decision of `@stats.compare_paired`. An exact tie is `\"Unknown\"` for every threshold, including `0`. A `NaN` delta and a threshold that is `NaN`, infinite or negative also give `\"Unknown\"`. Pass the relative delta of A measured against B as the baseline, so that `\"A\"` means A is faster."
+msgstr "当 $r < 0$ 且 $r \\le -t$ 时 `comparator_label(r, t)` 为 `\"A\"`，当 $r > 0$ 且 $r \\ge t$ 时为 `\"B\"`，否则为 `\"Unknown\"`，这与 `@stats.compare_paired` 的决策规则相同。对于每个阈值（包括 `0`），完全持平都是 `\"Unknown\"`。`NaN` 的差值，以及为 `NaN`、无穷大或负数的阈值，也都给出 `\"Unknown\"`。请传入以 B 为基线测得的 A 的相对差值，这样 `\"A\"` 就表示 A 更快。"
 
-#: manual/api/experiment.md:212
-msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie ($r = 0$) is `\"A\"`; with $t < 0$ small slowdowns of A are `\"A\"` too; with $t$ = `NaN` every delta is `\"Unknown\"`, so `crossover_from_labels` can only report `NoCrossover`. Pass a finite, positive threshold."
-msgstr "[!WARNING] 阈值不会被校验（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。当 $t = 0$ 时，完全持平（$r = 0$）为 `\"A\"`；当 $t < 0$ 时，A 的小幅变慢也为 `\"A\"`；当 $t$ = `NaN` 时，每个差值都是 `\"Unknown\"`，因此 `crossover_from_labels` 只能报告 `NoCrossover`。请传入有限的正阈值。"
-
-#: manual/api/experiment.md:221
+#: manual/api/experiment.md:233
 msgid "`crossover_from_labels` finds the scale at which the preferred implementation changes."
 msgstr "`crossover_from_labels` 找出首选实现发生变化的规模。"
 
-#: manual/api/experiment.md:228
-msgid "`labels[i]` is the verdict at `values[i]`. A transition is a pair of adjacent labels that differ and are both not `\"Unknown\"`."
-msgstr "`labels[i]` 是 `values[i]` 处的判定结果。一次转变是指一对相邻、彼此不同且都不是 `\"Unknown\"` 的标签。"
+#: manual/api/experiment.md:240
+msgid "`labels[i]` is the verdict at `values[i]`. The pairs (`values[i]`, `labels[i]`) are first sorted stably with `domain.compare`, so the values may be given in any order; below, `values` and `labels` mean the sorted sequences. A transition is a pair of adjacent labels that differ and are both not `\"Unknown\"`."
+msgstr "`labels[i]` 是在 `values[i]` 处的判定。（`values[i]`, `labels[i]`）对会先用 `domain.compare` 稳定排序，因此值可以按任意顺序给出；下文中的 `values` 和 `labels` 指排序后的序列。转变是指一对相邻且不同、并且都不是 `\"Unknown\"` 的标签。"
 
-#: manual/api/experiment.md:231
+#: manual/api/experiment.md:246
 msgid "Situation"
 msgstr "情形"
 
-#: manual/api/experiment.md:231
+#: manual/api/experiment.md:246
 msgid "Result"
 msgstr "结果"
 
-#: manual/api/experiment.md:233
+#: manual/api/experiment.md:248
 msgid "no labels, or a different number of labels and values"
 msgstr "没有标签，或标签与值的数量不同"
 
-#: manual/api/experiment.md:234
+#: manual/api/experiment.md:249
 msgid "no transition"
 msgstr "没有转变"
 
-#: manual/api/experiment.md:235
+#: manual/api/experiment.md:250
 msgid "exactly one transition, between $i-1$ and $i$"
 msgstr "恰好一次转变，位于 $i-1$ 与 $i$ 之间"
 
-#: manual/api/experiment.md:236
+#: manual/api/experiment.md:251
 msgid "more than one transition"
 msgstr "多于一次转变"
 
@@ -450,9 +442,9 @@ msgid "`Fixture` is the lifecycle of one kind of input."
 msgstr "`Fixture` 是一类输入的生命周期。"
 
 #: manual/api/fixture.md:46
-#: manual/api/runner.md:262
+#: manual/api/runner.md:259
 #: manual/api/stats.md:51
-#: manual/api/stats.md:162
+#: manual/api/stats.md:163
 msgid "Field"
 msgstr "字段"
 
@@ -846,8 +838,8 @@ msgstr "枚举"
 #: manual/api/model.md:235
 #: manual/api/model.md:466
 #: manual/api/runner.md:40
-#: manual/api/stats.md:117
-#: manual/api/stats.md:162
+#: manual/api/stats.md:118
+#: manual/api/stats.md:163
 msgid "Meaning"
 msgstr "含义"
 
@@ -957,7 +949,7 @@ msgstr "`ExecutionOutcome` 是一次操作产生的结果。"
 
 #: manual/api/model.md:466
 #: manual/api/model.md:789
-#: manual/api/stats.md:117
+#: manual/api/stats.md:118
 #: manual/api/stats.md:286
 #: manual/api/tune.md:115
 msgid "Constructor"
@@ -1009,7 +1001,7 @@ msgstr "`completed(v, c)` 即 `new(Value(v), Some(c))`。`next_context = None` �
 
 #: manual/api/model.md:511
 #: manual/api/tune_gemm.md:329
-#: manual/index.md:135
+#: manual/index.md:127
 msgid "Validation"
 msgstr "验证"
 
@@ -1385,130 +1377,142 @@ msgid "Error"
 msgstr "错误"
 
 #: manual/api/runner.md:186
-msgid "`warmup_time_us`, when set, `>= 0`"
-msgstr "`warmup_time_us` 设置时须 `>= 0`"
+msgid "`warmup_time_us`, when set, finite and `>= 0`"
+msgstr "`warmup_time_us`（若设置）有限且 `>= 0`"
+
+#: manual/api/runner.md:189
+msgid "`target_batch_time_us` finite and `> 0`"
+msgstr "`target_batch_time_us` 有限且 `> 0`"
+
+#: manual/api/runner.md:190
+msgid "`max_sample_time_us` finite and `> 0`"
+msgstr "`max_sample_time_us` 有限且 `> 0`"
+
+#: manual/api/runner.md:193
+msgid "`practical_delta_pct` finite and `>= 0`"
+msgstr "`practical_delta_pct` 有限且 `>= 0`"
 
 #: manual/api/runner.md:195
 msgid "All rules are checked; the errors are returned together, in this order."
 msgstr "所有规则都会被检查；错误按此顺序一并返回。"
 
 #: manual/api/runner.md:197
-msgid "Each rule is implemented as a test for its violation (`x < 0.0`, `x <= 0.0`, `target > max`), and every comparison with `NaN` is false, so `NaN` passes all the `Double` rules. In particular a `NaN` `practical_delta_pct` is accepted and makes every `stats.compare_paired` decision on it `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)), a `NaN` `target_batch_time_us` disables calibration (the first batch is kept), and a `NaN` `warmup_time_us` leaves only the `warmup_iterations` count. Infinite durations pass as well, except a `target_batch_time_us` above a finite `max_sample_time_us`. A threshold of `0.0` is accepted although it reports exact ties as `Faster`."
-msgstr "每条规则都实现为对其违反情况的检验（`x < 0.0`、`x <= 0.0`、`target > max`），而与 `NaN` 的任何比较都为假，因此 `NaN` 能通过所有 `Double` 规则。特别地，`NaN` 的 `practical_delta_pct` 会被接受，并使基于它的每个 `stats.compare_paired` 决策都为 `Equivalent`（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）；`NaN` 的 `target_batch_time_us` 会关闭校准（保留第一个批次）；`NaN` 的 `warmup_time_us` 只留下 `warmup_iterations` 计数这一条件。无穷大的时长也能通过，只有大于有限 `max_sample_time_us` 的 `target_batch_time_us` 除外。阈值 `0.0` 也会被接受，尽管它会把完全持平报告为 `Faster`。"
+msgid "\"Finite\" excludes `NaN` and both infinities. Without that requirement a `NaN` would pass every rule, because every comparison with `NaN` is false: a `NaN` `target_batch_time_us` would disable calibration and a `NaN` `practical_delta_pct` would make every later comparison meaningless. A threshold of `0.0` is valid; `stats.compare_paired` then reports every non-zero relative delta as `Faster` or `Slower` and an exact tie as `Equivalent`."
+msgstr "“有限”排除了 `NaN` 和正负无穷大。如果没有这个要求，`NaN` 会通过所有规则，因为与 `NaN` 的任何比较都为假：`NaN` 的 `target_batch_time_us` 会关闭校准，`NaN` 的 `practical_delta_pct` 会使之后的每次比较都失去意义。阈值 `0.0` 是有效的；此时 `stats.compare_paired` 把每个非零相对差值报告为 `Faster` 或 `Slower`，把完全持平报告为 `Equivalent`。"
 
-#: manual/api/runner.md:232
+#: manual/api/runner.md:229
 msgid "`ProtocolConfigError` names one violated protocol rule."
 msgstr "`ProtocolConfigError` 指明一条被违反的协议规则。"
 
-#: manual/api/runner.md:243
+#: manual/api/runner.md:240
 msgid "The `String` payload is the field name; the number is the rejected value."
 msgstr "`String` 负载是字段名；数值是被拒绝的值。"
 
-#: manual/api/runner.md:247
+#: manual/api/runner.md:244
 msgid "`ProtocolPreset` names a ready-made protocol."
 msgstr "`ProtocolPreset` 指明一个现成的协议。"
 
-#: manual/api/runner.md:259
+#: manual/api/runner.md:256
 msgid "`validated` returns the preset's protocol (for `Custom`, the wrapped one). The presets are:"
 msgstr "`validated` 返回预设的协议（对于 `Custom`，返回其包装的协议）。预设包括："
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "batch iterations"
 msgstr "批次迭代次数"
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "1 to 1000"
 msgstr "1 到 1000"
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "1 to 10000"
 msgstr "1 到 10000"
 
-#: manual/api/runner.md:268
+#: manual/api/runner.md:265
 msgid "5 to 10000"
 msgstr "5 到 10000"
 
-#: manual/api/runner.md:278
+#: manual/api/runner.md:275
 msgid "The runner acts on the warmup, calibration, order and sample fields. `experiment_design`, `outlier_policy`, `validation_coverage` and `practical_delta_pct` are recorded intent: validation always runs once per dataset before timing, and outlier filtering and decisions happen in `stats`."
 msgstr "运行器依据预热、校准、顺序和样本字段行事。`experiment_design`、`outlier_policy`、`validation_coverage` 和 `practical_delta_pct` 是记录下来的意图：验证总是在计时之前对每个数据集运行一次，离群值过滤和决策在 `stats` 中进行。"
 
-#: manual/api/runner.md:283
+#: manual/api/runner.md:280
 msgid "Implementations"
 msgstr "实现"
 
-#: manual/api/runner.md:287
+#: manual/api/runner.md:284
 msgid "`Implementation` is one competitor in a benchmark."
 msgstr "`Implementation` 是基准测试中的一个参赛者。"
 
-#: manual/api/runner.md:299
+#: manual/api/runner.md:296
 msgid "`id` names it in events and must be unique and non-empty within a case; `version` is copied into every observation and validation. `initial_context` starts each validation sequence and each measured batch. `synchronize` is called immediately before the clock starts and after it stops; use it to wait for queued asynchronous work (a GPU stream, a thread pool)."
 msgstr "`id` 在事件中为它命名，在一个用例内必须唯一且非空；`version` 会被复制到每个观测和验证中。`initial_context` 作为每个验证序列和每个测量批次的起点。`synchronize` 在时钟启动前和停止后立即调用；可用它等待排队中的异步工作（GPU 流、线程池）。"
 
-#: manual/api/runner.md:307
+#: manual/api/runner.md:304
 msgid "`Implementation::stateless` wraps a function of the prepared input that needs no context."
 msgstr "`Implementation::stateless` 包装一个作用于准备好的输入、不需要上下文的函数。"
 
-#: manual/api/runner.md:314
+#: manual/api/runner.md:311
 msgid "The `next_context` of the function's result is ignored and replaced by `Some(())`, so a stateless operation never ends a sequence early."
 msgstr "函数结果中的 `next_context` 会被忽略并替换为 `Some(())`，因此无状态操作永远不会提前结束序列。"
 
-#: manual/api/runner.md:319
+#: manual/api/runner.md:316
 msgid "`Implementation::in_process` builds an implementation that runs in the current process and threads a context."
 msgstr "`Implementation::in_process` 构建一个在当前进程中运行并传递上下文的实现。"
 
-#: manual/api/runner.md:326
+#: manual/api/runner.md:323
 msgid "Return `next_context = Some(c)` to continue with `c`; return `None` to end the sequence (in a timed batch this marks the observation invalid)."
 msgstr "返回 `next_context = Some(c)` 以继续使用 `c`；返回 `None` 以结束序列（在计时批次中，这会把该观测标记为无效）。"
 
-#: manual/api/runner.md:341
+#: manual/api/runner.md:338
 msgid "`Implementation::worker` builds an implementation that runs each operation in a separate process."
 msgstr "`Implementation::worker` 构建一个在单独进程中运行每次操作的实现。"
 
-#: manual/api/runner.md:348
+#: manual/api/runner.md:345
 msgid "Use it for code that may crash, hang or corrupt memory. A crash becomes an `Aborted` outcome instead of ending the benchmark."
 msgstr "把它用于可能崩溃、挂起或破坏内存的代码。崩溃会变成 `Aborted` 结果，而不会终止基准测试。"
 
-#: manual/api/runner.md:353
+#: manual/api/runner.md:350
 msgid "`ExecutionMode` says where an operation runs."
 msgstr "`ExecutionMode` 表示操作在哪里运行。"
 
-#: manual/api/runner.md:362
+#: manual/api/runner.md:359
 msgid "It is readonly outside the package; build it through the `Implementation` constructors."
 msgstr "它在包外是只读的；请通过 `Implementation` 的构造函数构建它。"
 
-#: manual/api/runner.md:367
+#: manual/api/runner.md:364
 msgid "`WorkerSpec` describes how to run one operation as a subprocess."
 msgstr "`WorkerSpec` 描述如何以子进程方式运行一次操作。"
 
-#: manual/api/runner.md:380
+#: manual/api/runner.md:377
 msgid "`build_arguments` produces the argument vector, `decode` turns the worker's stdout into a result, `timeout_ms` defaults to `5000`, and `cwd` defaults to the current directory."
 msgstr "`build_arguments` 生成参数向量，`decode` 把工作进程的 stdout 转换为结果，`timeout_ms` 默认为 `5000`，`cwd` 默认为当前目录。"
 
-#: manual/api/runner.md:406
+#: manual/api/runner.md:403
 msgid "`execute_operation` runs one operation of an implementation."
 msgstr "`execute_operation` 运行实现的一次操作。"
 
-#: manual/api/runner.md:412
+#: manual/api/runner.md:409
 msgid "For `InProcess` it calls the function. For `Subprocess` it starts the command, captures stdout and stderr, and maps the result:"
 msgstr "对于 `InProcess`，它调用该函数。对于 `Subprocess`，它启动命令，捕获 stdout 和 stderr，并按如下方式映射结果："
 
-#: manual/api/runner.md:415
+#: manual/api/runner.md:412
 msgid "Worker result"
 msgstr "工作进程结果"
 
-#: manual/api/runner.md:415
+#: manual/api/runner.md:412
 msgid "Outcome"
 msgstr "结果"
 
-#: manual/api/runner.md:417
+#: manual/api/runner.md:414
 msgid "exit code 0"
 msgstr "退出码为 0"
 
-#: manual/api/runner.md:417
+#: manual/api/runner.md:414
 msgid "the outcome and context returned by `decode(stdout)`, with stdout, stderr and exit code attached"
 msgstr "`decode(stdout)` 返回的结果和上下文，并附上 stdout、stderr 和退出码"
 
-#: manual/api/runner.md:418
+#: manual/api/runner.md:415
 msgid ""
 "exit code $\\n"
 "e 0$"
@@ -1516,175 +1520,175 @@ msgstr ""
 "退出码 $\\n"
 "e 0$"
 
-#: manual/api/runner.md:418
+#: manual/api/runner.md:415
 msgid "`Aborted(code, stderr)`, no next context"
 msgstr "`Aborted(code, stderr)`，没有下一个上下文"
 
-#: manual/api/runner.md:419
+#: manual/api/runner.md:416
 msgid "no exit within `timeout_ms`"
 msgstr "在 `timeout_ms` 内未退出"
 
-#: manual/api/runner.md:419
+#: manual/api/runner.md:416
 msgid "`Timeout(timeout_ms, \"worker exceeded timeout\")`; the process is killed"
 msgstr "`Timeout(timeout_ms, \"worker exceeded timeout\")`；进程被终止"
 
-#: manual/api/runner.md:420
+#: manual/api/runner.md:417
 msgid "the process could not be started"
 msgstr "进程无法启动"
 
-#: manual/api/runner.md:421
+#: manual/api/runner.md:418
 msgid "not on the native target"
 msgstr "不在 native 目标上"
 
-#: manual/api/runner.md:425
+#: manual/api/runner.md:422
 msgid "`OutputSink` folds the outputs of a batch so that the compiler cannot discard the work."
 msgstr "`OutputSink` 折叠一个批次的输出，使编译器无法丢弃这些工作。"
 
-#: manual/api/runner.md:438
+#: manual/api/runner.md:435
 msgid "`fold` runs inside the timed region after every operation; `finish` runs after the clock stops and its value is passed to `@bench.Bench::keep`. `keep_last` keeps the last output. Use `OutputSink::new` with a cheap checksum when the output must be consumed:"
 msgstr "`fold` 在计时区域内、每次操作之后运行；`finish` 在时钟停止后运行，其值被传给 `@bench.Bench::keep`。`keep_last` 保留最后一个输出。当输出必须被消费时，请配合一个廉价的校验和使用 `OutputSink::new`："
 
-#: manual/api/runner.md:455
+#: manual/api/runner.md:452
 msgid "Describing a case"
 msgstr "描述用例"
 
-#: manual/api/runner.md:459
+#: manual/api/runner.md:456
 msgid "`single_step` starts the short builder for a case with one operation per input."
 msgstr "`single_step` 为每个输入只有一次操作的用例启动简短构建器。"
 
-#: manual/api/runner.md:466
+#: manual/api/runner.md:463
 msgid "The builder chain is `single_step(id, scales)` `.with_immutable_input(generate, fingerprint)` `.compare(implementations)` `.against_equal(reference, comparator)` `.compile()`. Each step copies the arrays it receives."
 msgstr "构建器链为 `single_step(id, scales)` `.with_immutable_input(generate, fingerprint)` `.compare(implementations)` `.against_equal(reference, comparator)` `.compile()`。每一步都会复制它接收到的数组。"
 
-#: manual/api/runner.md:473
+#: manual/api/runner.md:470
 msgid "`Case` is a namespace for the builder entry point."
 msgstr "`Case` 是构建器入口点的命名空间。"
 
-#: manual/api/runner.md:482
+#: manual/api/runner.md:479
 msgid "`Case::single_step(id, scales)` is the same as `single_step(id, scales)`."
 msgstr "`Case::single_step(id, scales)` 与 `single_step(id, scales)` 相同。"
 
-#: manual/api/runner.md:486
+#: manual/api/runner.md:483
 msgid "`SingleStepCase` is a case with an id and scales but no input yet."
 msgstr "`SingleStepCase` 是一个已有 id 和规模、但还没有输入的用例。"
 
-#: manual/api/runner.md:497
+#: manual/api/runner.md:494
 msgid "`compile` always fails at this stage and lists what is missing (`MissingFixture`, `EmptyImplementations`, `MissingOracle`, `MissingOutputSink`, plus `EmptyCaseId` and `EmptyScales` when they apply). `with_immutable_input` adds an immutable fixture named `id + \"-fixture\"`, version `\"1\"`, built with `@fixture.Fixture::immutable`."
 msgstr "`compile` 在这一阶段总是失败，并列出缺少的内容（`MissingFixture`、`EmptyImplementations`、`MissingOracle`、`MissingOutputSink`，适用时还有 `EmptyCaseId` 和 `EmptyScales`）。`with_immutable_input` 添加一个名为 `id + \"-fixture\"`、版本为 `\"1\"`、用 `@fixture.Fixture::immutable` 构建的不可变夹具。"
 
-#: manual/api/runner.md:505
+#: manual/api/runner.md:502
 msgid "`ImmutableSingleStepCase` is a case with an immutable input."
 msgstr "`ImmutableSingleStepCase` 是带有不可变输入的用例。"
 
-#: manual/api/runner.md:516
+#: manual/api/runner.md:513
 msgid "`compare` adds the stateless implementations to compare."
 msgstr "`compare` 添加要比较的无状态实现。"
 
-#: manual/api/runner.md:520
+#: manual/api/runner.md:517
 msgid "`ComparedSingleStepCase` is a case with input and implementations."
 msgstr "`ComparedSingleStepCase` 是带有输入和实现的用例。"
 
-#: manual/api/runner.md:532
+#: manual/api/runner.md:529
 msgid "`against_equal(reference, comparator)` adds a reference oracle named `id + \"-reference\"` built with `@experiment.ReferenceOracle::equal`, an `OutputSink::keep_last` sink, a sequence length of 1, and placeholder text functions (`\"<scale>\"`, `\"<input>\"`, `\"<output>\"`). Its replay spec has an empty command and the implementation id as the only argument. Use `BenchSpec::advanced` when you need real text in events and replay artifacts."
 msgstr "`against_equal(reference, comparator)` 添加一个名为 `id + \"-reference\"`、用 `@experiment.ReferenceOracle::equal` 构建的参考判定器，一个 `OutputSink::keep_last` 接收器，序列长度 1，以及占位用的文本函数（`\"<scale>\"`、`\"<input>\"`、`\"<output>\"`）。它的重放规格带有空命令，唯一参数是实现 id。当你需要在事件和重放产物中使用真实文本时，请使用 `BenchSpec::advanced`。"
 
-#: manual/api/runner.md:541
+#: manual/api/runner.md:538
 msgid "`BenchSpec` is a complete, not yet validated case description."
 msgstr "`BenchSpec` 是一份完整但尚未验证的用例描述。"
 
-#: manual/api/runner.md:551
+#: manual/api/runner.md:548
 msgid "`BenchSpec::advanced` builds a case from all of its parts."
 msgstr "`BenchSpec::advanced` 由用例的全部组成部分构建用例。"
 
-#: manual/api/runner.md:557
+#: manual/api/runner.md:554
 msgid "Argument"
 msgstr "参数"
 
-#: manual/api/runner.md:557
+#: manual/api/runner.md:554
 msgid "Role"
 msgstr "作用"
 
-#: manual/api/runner.md:559
+#: manual/api/runner.md:556
 msgid "case id, copied into every event"
 msgstr "用例 id，复制到每个事件中"
 
-#: manual/api/runner.md:560
+#: manual/api/runner.md:557
 msgid "materializes, clones, prepares and resets the input"
 msgstr "物化、克隆、准备和重置输入"
 
-#: manual/api/runner.md:561
+#: manual/api/runner.md:558
 msgid "the competitors (the array is copied)"
 msgstr "参赛者（数组会被复制）"
 
-#: manual/api/runner.md:562
+#: manual/api/runner.md:559
 msgid "folds outputs inside timed batches"
 msgstr "在计时批次内折叠输出"
 
-#: manual/api/runner.md:563
+#: manual/api/runner.md:560
 msgid "reference and/or relational validation"
 msgstr "参考验证和/或关系验证"
 
-#: manual/api/runner.md:564
+#: manual/api/runner.md:561
 msgid "one dataset per scale, in this order (copied)"
 msgstr "每个规模一个数据集，按此顺序（会被复制）"
 
-#: manual/api/runner.md:565
+#: manual/api/runner.md:562
 msgid "text of a scale in validation events"
 msgstr "验证事件中规模的文本"
 
-#: manual/api/runner.md:566
+#: manual/api/runner.md:563
 msgid "number of operations validated per implementation and dataset"
 msgstr "每个实现和数据集验证的操作次数"
 
-#: manual/api/runner.md:567
+#: manual/api/runner.md:564
 msgid "operation, operands, context and rounding of step $i$ for evidence"
 msgstr "第 $i$ 步的操作、操作数、上下文和舍入方式，用于证据"
 
-#: manual/api/runner.md:568
+#: manual/api/runner.md:565
 msgid "text forms used in evidence and failure artifacts"
 msgstr "证据和失败产物中使用的文本形式"
 
-#: manual/api/runner.md:569
+#: manual/api/runner.md:566
 msgid "the command that reproduces input and implementation id"
 msgstr "复现输入和实现 id 的命令"
 
-#: manual/api/runner.md:570
+#: manual/api/runner.md:567
 msgid "optional; minimizes failing inputs"
 msgstr "可选；最小化失败的输入"
 
-#: manual/api/runner.md:574
+#: manual/api/runner.md:571
 msgid "`with_sequence_length` returns a copy of the spec with another sequence length."
 msgstr "`with_sequence_length` 返回规格的一个副本，带有另一个序列长度。"
 
-#: manual/api/runner.md:582
+#: manual/api/runner.md:579
 msgid "`compile` validates a spec and returns a plan or every configuration error."
 msgstr "`compile` 验证规格，返回一个计划或全部配置错误。"
 
-#: manual/api/runner.md:588
+#: manual/api/runner.md:585
 msgid "It checks, in order: a non-empty case id, at least one scale, at least one implementation, a positive sequence length, and non-empty, unique implementation ids."
 msgstr "它依次检查：非空的用例 id、至少一个规模、至少一个实现、正的序列长度，以及非空且唯一的实现 id。"
 
-#: manual/api/runner.md:612
+#: manual/api/runner.md:609
 msgid "`BenchConfigError` names one problem in a case description."
 msgstr "`BenchConfigError` 指明用例描述中的一个问题。"
 
-#: manual/api/runner.md:629
+#: manual/api/runner.md:626
 msgid "`EmptyImplementationId` carries the index of the implementation, `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the rejected length. The `Missing*` constructors come from `SingleStepCase::compile`; `MissingSerializer` is reserved and not produced by the current code."
 msgstr "`EmptyImplementationId` 携带实现的索引，`DuplicateImplementationId` 携带重复的 id，`InvalidSequenceLength` 携带被拒绝的长度。`Missing*` 构造器来自 `SingleStepCase::compile`；`MissingSerializer` 是保留项，当前代码不会产生它。"
 
-#: manual/api/runner.md:637
+#: manual/api/runner.md:634
 msgid "`DifferentialCase` is the record behind a spec or a plan."
 msgstr "`DifferentialCase` 是规格或计划背后的记录。"
 
-#: manual/api/runner.md:658
+#: manual/api/runner.md:655
 msgid "Its fields mirror the arguments of `BenchSpec::advanced`."
 msgstr "它的字段与 `BenchSpec::advanced` 的参数一一对应。"
 
-#: manual/api/runner.md:662
+#: manual/api/runner.md:659
 msgid "`ValidatedBenchPlan` is a case that passed `BenchSpec::compile`."
 msgstr "`ValidatedBenchPlan` 是通过了 `BenchSpec::compile` 的用例。"
 
-#: manual/api/runner.md:670
+#: manual/api/runner.md:667
 msgid "It can only be created by `compile`, and `run` accepts nothing else."
 msgstr "它只能由 `compile` 创建，而 `run` 只接受它。"
 
@@ -1741,116 +1745,140 @@ msgid "`summarize` computes a `SummaryStats` for an array of values."
 msgstr "`summarize` 为一个值数组计算 `SummaryStats`。"
 
 #: manual/api/stats.md:80
-msgid "The input is copied before sorting, so the caller's array keeps its order. An empty array gives `count == 0` and every other field `0.0`; test `count` before reading the other fields. Non-finite values are not rejected: a `NaN` makes the mean and standard deviation `NaN` and gives the sort an unspecified position for it. Cost: $O(n \\log n)$ time for the two sorts, $O(n)$ extra space."
-msgstr "输入在排序前会被复制，因此调用者的数组保持原有顺序。空数组得到 `count == 0`，其余字段均为 `0.0`；读取其他字段前请先检查 `count`。非有限值不会被拒绝：一个 `NaN` 会使均值和标准差变为 `NaN`，且它在排序中的位置是未指定的。代价：两次排序需要 $O(n \\log n)$ 时间，额外空间为 $O(n)$。"
+msgid "The input is copied before sorting, so the caller's array keeps its order. An empty array gives `count == 0` and every other field `0.0`; test `count` before reading the other fields. A `NaN` anywhere in the input propagates: every field except `count` is then `NaN`, wherever the `NaN` sits. Infinite values are sorted normally (and can make `mean` and `std_dev` infinite or `NaN`). Cost: $O(n \\log n)$ time for the two sorts, $O(n)$ extra space."
+msgstr "输入在排序前会被复制，因此调用者的数组保持原有顺序。空数组给出 `count == 0`，其他字段都为 `0.0`；读取其他字段之前请先检查 `count`。输入中任何位置的 `NaN` 都会传播：此时除 `count` 外的每个字段都是 `NaN`，与 `NaN` 所在位置无关。无穷大值按正常方式排序（并可能使 `mean` 和 `std_dev` 成为无穷大或 `NaN`）。代价：两次排序 $O(n \\log n)$ 时间，$O(n)$ 额外空间。"
 
-#: manual/api/stats.md:98
+#: manual/api/stats.md:99
 msgid "The mean is pulled to `22` by one slow value; the median, quartiles and MAD are not. That is why the comparisons below are built on medians."
 msgstr "一个慢值就把均值拉到了 `22`；中位数、四分位数和 MAD 则不受影响。这就是下面的比较建立在中位数之上的原因。"
 
-#: manual/api/stats.md:101
+#: manual/api/stats.md:102
 msgid "Paired comparisons"
 msgstr "成对比较"
 
-#: manual/api/stats.md:105
+#: manual/api/stats.md:106
 msgid "`Decision` is the verdict of a paired comparison."
 msgstr "`Decision` 是成对比较的判定结果。"
 
-#: manual/api/stats.md:119
-msgid "the relative median delta is at or below $-t$"
-msgstr "相对中位数差值小于或等于 $-t$"
-
 #: manual/api/stats.md:120
-msgid "the relative median delta is at or above $t$"
-msgstr "相对中位数差值大于或等于 $t$"
+msgid "the relative median delta is negative and at or below $-t$"
+msgstr "相对中位差值为负，且不超过 $-t$"
 
 #: manual/api/stats.md:121
-msgid "the relative median delta lies strictly between $-t$ and $t$"
-msgstr "相对中位数差值严格位于 $-t$ 与 $t$ 之间"
+msgid "the relative median delta is positive and at or above $t$"
+msgstr "相对中位差值为正，且不小于 $t$"
 
 #: manual/api/stats.md:122
-msgid "the two arrays have different lengths"
-msgstr "两个数组长度不同"
+msgid "anything else, including an exact tie"
+msgstr "其他所有情况，包括完全持平"
 
 #: manual/api/stats.md:123
+msgid "the arrays have different lengths, the threshold is not finite and non-negative, or the relative delta is `NaN`"
+msgstr "两个数组长度不同、阈值不是有限非负数，或者相对差值为 `NaN`"
+
+#: manual/api/stats.md:124
 msgid "there are no pairs"
 msgstr "没有任何配对"
 
-#: manual/api/stats.md:125
+#: manual/api/stats.md:126
 msgid "Here $t$ is the practical threshold passed as `practical_delta_pct`. `Decision` is readonly outside the package: you match on it, you do not build it."
 msgstr "这里 $t$ 是以 `practical_delta_pct` 传入的实际阈值。`Decision` 在包外是只读的：你可以对它进行匹配，但不能构建它。"
 
-#: manual/api/stats.md:131
+#: manual/api/stats.md:132
 msgid "`Interval` is a pair of bounds labelled with the phase it belongs to."
 msgstr "`Interval` 是一对边界，并标注了它所属的阶段。"
 
-#: manual/api/stats.md:141
+#: manual/api/stats.md:142
 msgid "`compare_paired` fills it with the interquartile range of the paired deltas; `bootstrap_interval` and `compare_paired_with_bootstrap` fill it with a percentile bootstrap interval. `mode` is a label copied from the caller; it does not change the computation."
 msgstr "`compare_paired` 用成对差值的四分位距填充它；`bootstrap_interval` 和 `compare_paired_with_bootstrap` 用百分位自助法区间填充它。`mode` 是从调用者处复制来的标签；它不会改变计算。"
 
-#: manual/api/stats.md:148
+#: manual/api/stats.md:149
 msgid "`Comparison` is the result of comparing a candidate against a baseline."
 msgstr "`Comparison` 是把候选与基线进行比较的结果。"
 
-#: manual/api/stats.md:164
+#: manual/api/stats.md:165
 msgid "$r = 100 \\cdot \\operatorname{med}(d) / \\operatorname{med}(b)$, or `0.0` when $\\operatorname{med}(b) = 0$"
 msgstr "$r = 100 \\cdot \\operatorname{med}(d) / \\operatorname{med}(b)$，当 $\\operatorname{med}(b) = 0$ 时为 `0.0`"
 
-#: manual/api/stats.md:165
+#: manual/api/stats.md:166
 msgid "$\\operatorname{med}(b) / (\\operatorname{med}(b) + \\operatorname{med}(d))$, or `1.0` when $\\operatorname{med}(d) = 0$"
 msgstr "$\\operatorname{med}(b) / (\\operatorname{med}(b) + \\operatorname{med}(d))$，当 $\\operatorname{med}(d) = 0$ 时为 `1.0`"
 
-#: manual/api/stats.md:166
+#: manual/api/stats.md:167
 msgid "bounds on the paired deltas, in the unit of the input (for example µs)"
 msgstr "成对差值的边界，单位与输入相同（例如 µs）"
 
-#: manual/api/stats.md:167
+#: manual/api/stats.md:168
 msgid "the `Decision` described above"
 msgstr "上文描述的 `Decision`"
 
-#: manual/api/stats.md:168
+#: manual/api/stats.md:169
 msgid "number of pairs, $\\min(\\lvert b\\rvert, \\lvert c\\rvert)$"
 msgstr "配对数，$\\min(\\lvert b\\rvert, \\lvert c\\rvert)$"
 
-#: manual/api/stats.md:170
+#: manual/api/stats.md:171
 msgid "$b$ is the baseline array, $c$ the candidate array and $d_i = c_i - b_i$ the paired deltas. A `speedup` above `1.0` means the candidate is faster."
 msgstr "$b$ 是基线数组，$c$ 是候选数组，$d_i = c_i - b_i$ 是成对差值。`speedup` 大于 `1.0` 表示候选更快。"
 
-#: manual/api/stats.md:175
+#: manual/api/stats.md:176
 msgid "`paired_deltas` subtracts each baseline value from the candidate value at the same index."
 msgstr "`paired_deltas` 用相同索引处的候选值减去基线值。"
 
-#: manual/api/stats.md:182
+#: manual/api/stats.md:183
 msgid "The first argument is the baseline, the second the candidate. The result has $\\min(\\lvert b\\rvert, \\lvert c\\rvert)$ elements: surplus values of the longer array are ignored, so check the lengths yourself when a mismatch is an error."
 msgstr "第一个参数是基线，第二个是候选。结果有 $\\min(\\lvert b\\rvert, \\lvert c\\rvert)$ 个元素：较长数组多出的值会被忽略，因此当长度不一致应视为错误时，请自行检查长度。"
 
-#: manual/api/stats.md:188
+#: manual/api/stats.md:189
 msgid "`compare_paired` compares two aligned arrays of timings with a practical threshold."
 msgstr "`compare_paired` 用实际阈值比较两个对齐的计时数组。"
 
-#: manual/api/stats.md:195
+#: manual/api/stats.md:196
 msgid "Arguments: baseline id, candidate id, baseline values, candidate values, the practical threshold $t$ in percent, and the interval label. Index $i$ of both arrays must describe the same dataset, repetition and block. The decision uses the point estimate $r$ only; the interval is the interquartile range $[Q_d(0.25), Q_d(0.75)]$ of the deltas and is descriptive, not a confidence interval."
 msgstr "参数：基线 id、候选 id、基线值、候选值、以百分比表示的实际阈值 $t$，以及区间标签。两个数组的索引 $i$ 必须描述同一个数据集、重复和区组。决策只使用点估计 $r$；区间是差值的四分位距 $[Q_d(0.25), Q_d(0.75)]$，是描述性的，而不是置信区间。"
 
-#: manual/api/stats.md:202
-msgid "The decision is the first test that holds: `Invalid` if the lengths differ, `Unknown` if there are no pairs, `Faster` if $r \\le -t$, `Slower` if $r \\ge t$, `Equivalent` otherwise. Other edge cases:"
-msgstr "决策取第一个成立的检验：长度不同为 `Invalid`，没有配对为 `Unknown`，$r \\le -t$ 为 `Faster`，$r \\ge t$ 为 `Slower`，否则为 `Equivalent`。其他边界情况："
+#: manual/api/stats.md:203
+msgid "The decision is the first test that holds:"
+msgstr "决策取第一个成立的检验："
+
+#: manual/api/stats.md:205
+msgid "`Invalid` if the lengths differ;"
+msgstr "长度不同时为 `Invalid`；"
 
 #: manual/api/stats.md:206
+msgid "`Unknown` if there are no pairs;"
+msgstr "没有配对时为 `Unknown`；"
+
+#: manual/api/stats.md:207
+msgid "`Invalid` if $t$ is `NaN`, infinite or negative, or if $r$ is `NaN`;"
+msgstr "$t$ 为 `NaN`、无穷大或负数，或者 $r$ 为 `NaN` 时为 `Invalid`；"
+
+#: manual/api/stats.md:208
+msgid "`Faster` if $r < 0$ and $r \\le -t$;"
+msgstr "$r < 0$ 且 $r \\le -t$ 时为 `Faster`；"
+
+#: manual/api/stats.md:209
+msgid "`Slower` if $r > 0$ and $r \\ge t$;"
+msgstr "$r > 0$ 且 $r \\ge t$ 时为 `Slower`；"
+
+#: manual/api/stats.md:210
+msgid "`Equivalent` otherwise."
+msgstr "否则为 `Equivalent`。"
+
+#: manual/api/stats.md:212
+msgid "An exact tie ($r = 0$) is therefore `Equivalent` for every valid threshold, including $t = 0$. Other edge cases:"
+msgstr "因此，对于每个有效阈值（包括 $t = 0$），完全持平（$r = 0$）都是 `Equivalent`。其他边界情况："
+
+#: manual/api/stats.md:215
 msgid "When the lengths differ, $r$ and `speedup` mix the median of the truncated deltas with the median of the whole baseline; ignore them for `Invalid`."
 msgstr "当长度不同时，$r$ 和 `speedup` 混用了截断后差值的中位数与整个基线的中位数；对于 `Invalid`，请忽略它们。"
 
-#: manual/api/stats.md:208
-msgid "When $\\operatorname{med}(b) = 0$, $r$ is `0.0` (so the decision is `Equivalent` for $t > 0$) and `speedup` is `0.0` unless $\\operatorname{med}(d) = 0$."
-msgstr "当 $\\operatorname{med}(b) = 0$ 时，$r$ 为 `0.0`（因此对 $t > 0$ 决策为 `Equivalent`），而除非 $\\operatorname{med}(d) = 0$，`speedup` 为 `0.0`。"
+#: manual/api/stats.md:217
+msgid "When $\\operatorname{med}(b) = 0$, $r$ is `0.0` (so the decision is `Equivalent`) and `speedup` is `0.0` unless $\\operatorname{med}(d) = 0$."
+msgstr "当 $\\operatorname{med}(b) = 0$ 时，$r$ 为 `0.0`（因此决策为 `Equivalent`），而除非 $\\operatorname{med}(d) = 0$，`speedup` 为 `0.0`。"
 
-#: manual/api/stats.md:211
-msgid "A `NaN` in either array is not rejected; it lands at an unspecified position of the sort and can produce any decision. Filter non-finite values first."
-msgstr "任一数组中的 `NaN` 都不会被拒绝；它会落在排序中一个未规定的位置，可能产生任意决策。请先过滤掉非有限值。"
-
-#: manual/api/stats.md:214
-msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie is `Faster`, because $0 \\le -0$. With $t < 0$ every slowdown smaller than $\\lvert t\\rvert$ percent is `Faster`. With $t$ = `NaN` (or $+\\infty$) every comparison is `Equivalent`, even a twofold slowdown. Pass a finite, positive threshold."
-msgstr "[!WARNING] 阈值不会被校验（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。当 $t = 0$ 时，完全持平为 `Faster`，因为 $0 \\le -0$。当 $t < 0$ 时，每个小于 $\\lvert t\\rvert$ 百分比的变慢都为 `Faster`。当 $t$ = `NaN`（或 $+\\infty$）时，每次比较都是 `Equivalent`，即使慢了一倍。请传入有限的正阈值。"
+#: manual/api/stats.md:219
+msgid "A `NaN` in either array propagates through `summarize` to $r$, so the decision is `Invalid`."
+msgstr "任一数组中的 `NaN` 都会经由 `summarize` 传播到 $r$，因此决策为 `Invalid`。"
 
 #: manual/api/stats.md:260
 msgid "`is_faster` reports whether a comparison's decision is `Faster`."
@@ -1913,32 +1941,32 @@ msgid "`compare_paired_with_bootstrap` is `compare_paired` with the interquartil
 msgstr "`compare_paired_with_bootstrap` 即把四分位区间替换为成对差值中位数的自助法区间的 `compare_paired`。"
 
 #: manual/api/stats.md:354
-msgid "The first six arguments are those of `compare_paired`; the last three are the seed, the resample count and the confidence in percent. Unlike `compare_paired`, unequal lengths are an error (`MismatchedPairs`) and so are empty arrays (`EmptySamples`). `relative_delta_pct`, `speedup`, `decision` and `valid_samples` are the same as from `compare_paired`; only `interval` changes, and it does not influence the decision. The interval is in the unit of the input, while the decision is in percent. The threshold is not validated here either: the warning under `compare_paired` applies unchanged."
-msgstr "前六个参数与 `compare_paired` 相同；后三个是种子、重抽样次数和以百分比表示的置信度。与 `compare_paired` 不同，长度不等是错误（`MismatchedPairs`），空数组也是错误（`EmptySamples`）。`relative_delta_pct`、`speedup`、`decision` 和 `valid_samples` 与 `compare_paired` 的结果相同；只有 `interval` 不同，而且它不影响决策。区间的单位与输入相同，而决策以百分比表示。这里同样不校验阈值：`compare_paired` 下的警告原样适用。"
+msgid "The first six arguments are those of `compare_paired`; the last three are the seed, the resample count and the confidence in percent. Unlike `compare_paired`, unequal lengths are an error (`MismatchedPairs`) and so are empty arrays (`EmptySamples`). `relative_delta_pct`, `speedup`, `decision` and `valid_samples` are the same as from `compare_paired`; only `interval` changes, and it does not influence the decision. The interval is in the unit of the input, while the decision is in percent. A threshold that is not finite and non-negative gives `Ok` with the decision `Invalid`, as in `compare_paired`; a `NaN` or infinite delta is rejected by the bootstrap with `NonFiniteSample`."
+msgstr "前六个参数与 `compare_paired` 相同；后三个是种子、重抽样次数和以百分比表示的置信度。与 `compare_paired` 不同，长度不等是错误（`MismatchedPairs`），空数组也是错误（`EmptySamples`）。`relative_delta_pct`、`speedup`、`decision` 和 `valid_samples` 与 `compare_paired` 的结果相同；只有 `interval` 不同，而且它不影响决策。区间的单位与输入相同，而决策以百分比表示。不是有限非负数的阈值会给出决策为 `Invalid` 的 `Ok`，与 `compare_paired` 一致；`NaN` 或无穷大的差值会被自助法以 `NonFiniteSample` 拒绝。"
 
-#: manual/api/stats.md:384
+#: manual/api/stats.md:386
 msgid "Outlier views"
 msgstr "离群值视图"
 
-#: manual/api/stats.md:388
+#: manual/api/stats.md:390
 msgid "`filter_outliers` returns the values that an outlier policy keeps, in their original order."
 msgstr "`filter_outliers` 按原始顺序返回离群值策略保留下来的值。"
 
-#: manual/api/stats.md:395
+#: manual/api/stats.md:397
 msgid "Policy"
 msgstr "策略"
 
-#: manual/api/stats.md:395
+#: manual/api/stats.md:397
 msgid "Kept values"
 msgstr "保留的值"
 
-#: manual/api/stats.md:397
+#: manual/api/stats.md:399
 msgid "all values (a copy)"
 msgstr "所有值（一个副本）"
 
-#: manual/api/stats.md:401
-msgid "The input array is never modified. When more than half of the values are equal, the MAD is `0` and `MADTrim` keeps only the values equal to the median. Use the result for a derived view; keep the raw observations."
-msgstr "输入数组永远不会被修改。当超过一半的值相等时，MAD 为 `0`，`MADTrim` 只保留等于中位数的值。请把结果用作派生视图；保留原始观测。"
+#: manual/api/stats.md:403
+msgid "The input array is never modified. `TukeyFence` and `MADTrim` compute their fences from the values that are not `NaN` and never keep a `NaN`; `ReportOnly` keeps it. When more than half of the values are equal, the MAD is `0` and `MADTrim` keeps only the values equal to the median. Use the result for a derived view; keep the raw observations."
+msgstr "输入数组永远不会被修改。`TukeyFence` 和 `MADTrim` 用非 `NaN` 的值计算围栏，并且从不保留 `NaN`；`ReportOnly` 会保留它。当超过一半的值相等时，MAD 为 `0`，`MADTrim` 只保留等于中位数的值。请把结果用作派生视图，保留原始观测。"
 
 #: manual/api/tune.md:1
 msgid "tune API"
@@ -2079,34 +2107,34 @@ msgid "It takes the first $\\min(\\text{budget}, \\lvert\\text{space}\\rvert)$ c
 msgstr "它取 `enumerate()` 的前 $\\min(\\text{budget}, \\lvert\\text{space}\\rvert)$ 个候选。每个有效候选由回调打分；无效候选则不打分。策略字符串为主要值最小的可用候选的 `\"global:<id>\"`（持平时取第一个），若没有可用候选则为 `\"global:\"`。该 id 来自分数，而构建事件使用候选空间的 `candidate_id`。"
 
 #: manual/api/tune.md:251
-msgid "This winner is the raw minimum of the measured scores: it ignores the practical threshold and the secondary metric, and it is subject to the winner's curse derived in the [tune design](../design/tune.md). For a decision, call `select_best` on `result.scores` and confirm the finalists with fresh measurements."
-msgstr "这个胜者是测得分数的原始最小值：它忽略实际阈值和次要指标，并受到 [tune 设计](../design/tune.md) 中推导的赢家诅咒的影响。要做决策，请对 `result.scores` 调用 `select_best`，并用新的测量确认决赛候选。"
+msgid "This winner is the raw minimum of the measured scores: it ignores the practical threshold and the secondary metric, and it is subject to the winner's curse derived in the [tune design](../design/tune.md). For a decision, call `select_best` on `result.scores` and confirm the finalists with fresh measurements. Whether the policy string should follow `select_best` is open ([issue #12](https://github.com/Luna-Flow/mare_mark/issues/12)); it would need a threshold and a secondary preference that `exhaustive_scores` does not take today."
+msgstr "这个胜者是测得分数的原始最小值：它忽略实际阈值和次要指标，并受到 [tune 设计](../design/tune.md) 中推导的赢家诅咒的影响。要做决策，请对 `result.scores` 调用 `select_best`，并用新的测量确认决赛候选。策略字符串是否应遵循 `select_best` 仍是悬而未决的问题（[issue #12](https://github.com/Luna-Flow/mare_mark/issues/12)）；那需要一个阈值和一个次要指标偏好，而 `exhaustive_scores` 目前并不接受这些参数。"
 
-#: manual/api/tune.md:277
+#: manual/api/tune.md:280
 msgid "`TuningResult` is the outcome of `exhaustive_scores`."
 msgstr "`TuningResult` 是 `exhaustive_scores` 的结果。"
 
-#: manual/api/tune.md:287
+#: manual/api/tune.md:290
 msgid "`scores` holds the scores of valid candidates (usable or not), `build_events` one event per examined candidate."
 msgstr "`scores` 保存有效候选（无论是否可用）的分数，`build_events` 为每个被检查的候选保存一个事件。"
 
-#: manual/api/tune.md:292
+#: manual/api/tune.md:295
 msgid "`seeded_order` permutes candidates by a seeded hash of their ids."
 msgstr "`seeded_order` 按候选 id 的带种子哈希对候选进行置换。"
 
-#: manual/api/tune.md:298
-msgid "Each id is hashed with FNV-1a keyed by the seed; candidates are sorted by hash, then by id. When ids are unique, the result depends on the set of ids and the seed, not on the input order. Use a prefix of it as a reproducible subset."
-msgstr "每个 id 用以种子为密钥的 FNV-1a 进行哈希；候选先按哈希、再按 id 排序。当 id 唯一时，结果取决于 id 集合和种子，而不取决于输入顺序。可取它的一个前缀作为可复现的子集。"
+#: manual/api/tune.md:301
+msgid "Each id is hashed with FNV-1a keyed by the seed, and the hash is passed through the SplitMix64 output finalizer; candidates are sorted by that key, then by id. When ids are unique, the result depends on the set of ids and the seed, not on the input order. Use a prefix of it as a reproducible random subset. The finalizer makes every character of an id, including the last one, affect the high bits that decide the sort, so ids that differ only at the end are spread over the order."
+msgstr "每个 id 用以种子为密钥的 FNV-1a 进行哈希，哈希值再经过 SplitMix64 输出终结器；候选先按得到的键、再按 id 排序。当 id 唯一时，结果取决于 id 集合和种子，而不取决于输入顺序。可取它的一个前缀作为可复现的随机子集。终结器使 id 的每个字符（包括最后一个）都影响决定排序的高位，因此只在末尾不同的 id 会分散在整个顺序中。"
 
-#: manual/api/tune.md:302
-msgid "[!WARNING] The hash has no final mixing step, and its high bits, which decide the sort, depend only weakly on the last characters of an id. Ids that differ only at the end stay clustered: for the ids `\"c0\"` to `\"c99\"` and seed `1` the order starts `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …`. A prefix is then far from a random subset. Ids with a long common suffix after the varying part, such as the `tune_gemm` ids, are mixed much better. Put the varying part first in your ids, or shuffle with your own well-mixed hash."
-msgstr "[!WARNING] 该哈希没有最终的混合步骤，而决定排序的高位只微弱地依赖于 id 的最后几个字符。只在末尾不同的 id 会聚在一起：对于 id `\"c0\"` 到 `\"c99\"` 和种子 `1`，顺序以 `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …` 开头。这样的前缀远不是随机子集。在变化部分之后带有较长公共后缀的 id（例如 `tune_gemm` 的 id）混合得好得多。请把 id 的变化部分放在前面，或者用你自己的充分混合的哈希来打乱顺序。"
+#: manual/api/tune.md:309
+msgid "The order changed in the release that added the finalizer ([issue #10](https://github.com/Luna-Flow/mare_mark/issues/10)): a subset recorded with an earlier version is not reproduced by the same seed."
+msgstr "加入终结器的版本改变了顺序（[issue #10](https://github.com/Luna-Flow/mare_mark/issues/10)）：用更早版本记录的子集无法用同一种子复现。"
 
-#: manual/api/tune.md:321
+#: manual/api/tune.md:323
 msgid "`confirmation_count` scales the number of confirmation samples with the measured uncertainty."
 msgstr "`confirmation_count` 根据测得的不确定度调整确认样本的数量。"
 
-#: manual/api/tune.md:328
+#: manual/api/tune.md:330
 msgid "`confirmation_count(base, u, budget)` is `base` times 1, 2 or 3 for $u \\le 0.05$, $0.05 < u \\le 0.2$ and $u > 0.2$, then clamped: the result is $\\max(0, \\min(\\text{budget}, m \\cdot \\text{base}))$, so a negative budget gives `0`. A `NaN` uncertainty counts as $u \\le 0.05$. `u` is a relative uncertainty of your choice, for example IQR divided by median."
 msgstr "对于 $u \\le 0.05$、$0.05 < u \\le 0.2$ 和 $u > 0.2$，`confirmation_count(base, u, budget)` 分别为 `base` 的 1、2、3 倍，然后截断：结果为 $\\max(0, \\min(\\text{budget}, m \\cdot \\text{base}))$，因此负的预算给出 `0`。`NaN` 的不确定度按 $u \\le 0.05$ 计。`u` 是你自选的相对不确定度，例如 IQR 除以中位数。"
 
@@ -2616,7 +2644,7 @@ msgstr "`parse_args` 从不失败：每个向量都映射到一个请求，错�
 
 #: manual/design/cli.md:32
 #: manual/design/event.md:38
-#: manual/design/experiment.md:91
+#: manual/design/experiment.md:96
 #: manual/design/fixture.md:59
 #: manual/design/generator.md:96
 #: manual/design/ir_model.md:30
@@ -2625,7 +2653,7 @@ msgstr "`parse_args` 从不失败：每个向量都映射到一个请求，错�
 #: manual/design/report.md:74
 #: manual/design/runner.md:152
 #: manual/design/stats.md:218
-#: manual/design/tune.md:108
+#: manual/design/tune.md:124
 #: manual/design/tune_gemm.md:116
 msgid "Design decisions"
 msgstr "设计决策"
@@ -2664,7 +2692,7 @@ msgstr "`report` 读取全部输入，以目标标签 `native` 构建文档，�
 
 #: manual/design/cli.md:65
 #: manual/design/event.md:74
-#: manual/design/experiment.md:124
+#: manual/design/experiment.md:129
 #: manual/design/fixture.md:89
 #: manual/design/generator.md:135
 #: manual/design/ir_model.md:56
@@ -2672,8 +2700,8 @@ msgstr "`report` 读取全部输入，以目标标签 `native` 构建文档，�
 #: manual/design/model.md:109
 #: manual/design/report.md:131
 #: manual/design/runner.md:279
-#: manual/design/stats.md:406
-#: manual/design/tune.md:143
+#: manual/design/stats.md:422
+#: manual/design/tune.md:159
 #: manual/design/tune_gemm.md:150
 msgid "Correctness and invariants"
 msgstr "正确性与不变量"
@@ -2696,7 +2724,7 @@ msgstr "解析事件失败时，`report` 不写出任何内容。"
 
 #: manual/design/cli.md:72
 #: manual/design/event.md:85
-#: manual/design/experiment.md:137
+#: manual/design/experiment.md:145
 #: manual/design/fixture.md:98
 #: manual/design/generator.md:143
 #: manual/design/ir_model.md:62
@@ -2704,8 +2732,8 @@ msgstr "解析事件失败时，`report` 不写出任何内容。"
 #: manual/design/model.md:121
 #: manual/design/report.md:145
 #: manual/design/runner.md:300
-#: manual/design/stats.md:433
-#: manual/design/tune.md:156
+#: manual/design/stats.md:449
+#: manual/design/tune.md:172
 #: manual/design/tune_gemm.md:162
 msgid "Alternatives rejected"
 msgstr "被否决的方案"
@@ -2724,7 +2752,7 @@ msgstr "**把 CLI 逻辑嵌入 `report`。** 会把文件 IO 带入一个纯包�
 
 #: manual/design/cli.md:79
 #: manual/design/event.md:92
-#: manual/design/experiment.md:146
+#: manual/design/experiment.md:154
 #: manual/design/fixture.md:105
 #: manual/design/generator.md:151
 #: manual/design/ir_model.md:68
@@ -2732,8 +2760,8 @@ msgstr "**把 CLI 逻辑嵌入 `report`。** 会把文件 IO 带入一个纯包�
 #: manual/design/model.md:130
 #: manual/design/report.md:154
 #: manual/design/runner.md:315
-#: manual/design/stats.md:451
-#: manual/design/tune.md:165
+#: manual/design/stats.md:467
+#: manual/design/tune.md:181
 #: manual/design/tune_gemm.md:170
 msgid "Boundaries"
 msgstr "边界"
@@ -2751,10 +2779,6 @@ msgid "`replay` reads files only, executes the first failure only, and passes th
 msgstr "`replay` 只读取文件，只执行第一个失败，并把命令直接传给进程 API（不经过 shell）。"
 
 #: manual/design/cli.md:86
-msgid "The progress line prints a microsecond value labelled `ms`."
-msgstr "进度行打印的是一个以微秒计、却标注为 `ms` 的值。"
-
-#: manual/design/cli.md:87
 msgid "The version string is fixed in the source."
 msgstr "版本字符串在源码中固定。"
 
@@ -2883,10 +2907,6 @@ msgid "`InMemorySink` does not keep the summary."
 msgstr "`InMemorySink` 不保存摘要。"
 
 #: manual/design/event.md:97
-msgid "The JSONL writer omits the reason strings of validation statuses and the observation's `setup_timing`."
-msgstr "JSONL 写入器省略验证状态的原因字符串以及观测的 `setup_timing`。"
-
-#: manual/design/event.md:99
 msgid "No reader lives here; `report` and `cli` parse the stream."
 msgstr "这里没有读取器；由 `report` 和 `cli` 解析事件流。"
 
@@ -2963,82 +2983,90 @@ msgid "If the relative delta $r(s)$ is monotone in the scale, the labels $\\text
 msgstr "如果相对差值 $r(s)$ 关于规模单调，则标签 $\\text{label}(r(s_i))$ 构成单调序列 $A \\dots A\\, U \\dots U\\, B \\dots B$（或其逆序），因此表现良好的偏好至多有一次转变。$T = 1$ 给出唯一那次转变的分界 $(s_{i-1}, s_i)$；$T > 1$ 意味着偏好翻转了不止一次，无法用单个阈值表达；$T = 0$ 意味着不存在一对相邻的、确定且不同的标签。"
 
 #: manual/design/experiment.md:81
-msgid "`comparator_label(r, t)` maps the relative delta to the labels with the same threshold rule as `stats`: $A$ if $r \\le -t$, $B$ if $r \\ge t$, `Unknown` otherwise, tested in this order. The `Unknown` band of width $2t$ keeps noise around $r = 0$ from creating spurious transitions. The band exists only for $0 < t < \\infty$: with $t = 0$ the first test catches $r = 0$ and a tie becomes $A$, with $t < 0$ every $r \\le \\lvert t\\rvert$ becomes $A$, and with $t = \\mathrm{NaN}$ every label is `Unknown`, so $T = 0$ whatever the data. The function does not reject such thresholds; see [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)."
-msgstr "`comparator_label(r, t)` 用与 `stats` 相同的阈值规则把相对差值映射为标签：$r \\le -t$ 为 $A$，$r \\ge t$ 为 $B$，否则为 `Unknown`，并按此顺序检验。宽度为 $2t$ 的 `Unknown` 带可以防止 $r = 0$ 附近的噪声产生虚假的转变。这条带只在 $0 < t < \\infty$ 时存在：当 $t = 0$ 时，第一个检验就捕获 $r = 0$，持平变成 $A$；当 $t < 0$ 时，每个 $r \\le \\lvert t\\rvert$ 都变成 $A$；当 $t = \\mathrm{NaN}$ 时，每个标签都是 `Unknown`，因此无论数据如何 $T = 0$。该函数不会拒绝这样的阈值；参见 [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)。"
+msgid "`comparator_label(r, t)` maps the relative delta to the labels with the same threshold rule as `stats`: $A$ if $r < 0$ and $r \\le -t$, $B$ if $r > 0$ and $r \\ge t$, `Unknown` otherwise. The `Unknown` band $(-t, t)$ keeps noise around $r = 0$ from creating spurious transitions; for $t = 0$ it shrinks to the single point $r = 0$, so an exact tie never counts as a preference. A threshold that is `NaN`, infinite or negative has no band at all and yields `Unknown` for every $r$ (and so $T = 0$); `runner.validate_protocol` rejects such thresholds before a run."
+msgstr "`comparator_label(r, t)` 用与 `stats` 相同的阈值规则把相对差值映射为标签：$r < 0$ 且 $r \\le -t$ 为 $A$，$r > 0$ 且 $r \\ge t$ 为 $B$，否则为 `Unknown`。`Unknown` 带 $(-t, t)$ 可以防止 $r = 0$ 附近的噪声产生虚假的转变；当 $t = 0$ 时它收缩为单点 $r = 0$，因此完全持平永远不算作偏好。为 `NaN`、无穷大或负数的阈值根本没有这条带，对每个 $r$ 都给出 `Unknown`（因此 $T = 0$）；`runner.validate_protocol` 会在运行前拒绝这样的阈值。"
 
-#: manual/design/experiment.md:93
+#: manual/design/experiment.md:90
+msgid "The labels are counted in scale order. `crossover_from_labels` first sorts the pairs $(s_i, \\ell_i)$ stably with `ScaleDomain.compare`, so the sequence above is defined by the comparator and not by the order in which the caller listed the scales. Without the sort, a single crossover measured in the order $64, 16, 256$ with labels $B, A, B$ would count two transitions."
+msgstr "标签按规模顺序计数。`crossover_from_labels` 先用 `ScaleDomain.compare` 对 $(s_i, \\ell_i)$ 对进行稳定排序，因此上面的序列由比较函数决定，而不是由调用者列出规模的顺序决定。如果不排序，按 $64, 16, 256$ 的顺序测得、标签为 $B, A, B$ 的单个交叉点会被计为两次转变。"
+
+#: manual/design/experiment.md:98
 msgid "Oracles are values"
 msgstr "判定器是值"
 
-#: manual/design/experiment.md:95
+#: manual/design/experiment.md:100
 msgid "*Problem.* Each case needs its own notion of correctness. *Choice.* Oracles are records of functions with an id. *Why.* They can capture tolerances and contexts, are named in every validation event, and can be built inline."
 msgstr "*问题。* 每个用例都需要自己的正确性概念。*选择。* 判定器是带 id 的函数记录。*理由。* 它们可以捕获容差和上下文，在每个验证事件中都有名字，并且可以内联构建。"
 
-#: manual/design/experiment.md:99
+#: manual/design/experiment.md:104
 msgid "Outcomes, not just values, reach the oracle"
 msgstr "到达判定器的是结果，而不只是值"
 
-#: manual/design/experiment.md:101
+#: manual/design/experiment.md:106
 msgid "The oracle sees `ExecutionOutcome`s, so it can accept a documented `ExpectedDifference`, compare raised flags, or require that both sides trap. The runner pre-classifies worker crashes, timeouts, decoding errors and `Unsupported` before the oracle is called, so oracles only judge real results."
 msgstr "判定器看到的是 `ExecutionOutcome`，因此它可以接受有文档记录的 `ExpectedDifference`、比较引发的标志，或者要求两侧都触发陷阱。运行器在调用判定器之前会预先分类工作进程崩溃、超时、解码错误和 `Unsupported`，因此判定器只判定真实的结果。"
 
-#: manual/design/experiment.md:106
+#: manual/design/experiment.md:111
 msgid "Greedy, first-improvement shrinking"
 msgstr "贪心的首次改进式缩减"
 
-#: manual/design/experiment.md:108
+#: manual/design/experiment.md:113
 msgid "*Options.* Exhaustive search for the smallest failing input; delta debugging; greedy descent. *Choice.* Greedy descent with an explicit candidate function and an evaluation budget. *Why.* Each evaluation may run a whole operation sequence, so the budget is what bounds the cost; the candidate function lets the user encode the structure of the input (halve a size, drop an element). The accepted path is recorded so a reader can see how the counterexample was reached."
 msgstr "*方案。* 穷举搜索最小的失败输入；delta 调试；贪心下降。*选择。* 带显式候选函数和求值预算的贪心下降。*理由。* 每次求值都可能运行完整的操作序列，因此真正限制代价的是预算；候选函数让用户编码输入的结构（把规模减半、删除一个元素）。被接受的路径会被记录下来，读者可以看到反例是如何得到的。"
 
-#: manual/design/experiment.md:116
+#: manual/design/experiment.md:121
 msgid "Conservative crossover"
 msgstr "保守的交叉点"
 
-#: manual/design/experiment.md:118
+#: manual/design/experiment.md:123
 msgid "*Problem.* A crossover becomes a deployment rule (`DeploymentPolicy::Piecewise`) that will be applied to inputs never measured. *Choice.* Accept a boundary only for exactly one transition; report `NonMonotonic` otherwise and leave the policy to the user. *Why.* A rule built from a noisy, flipping preference would encode noise."
 msgstr "*问题。* 交叉点会成为部署规则（`DeploymentPolicy::Piecewise`），并被应用于从未测量过的输入。*选择。* 只有恰好一次转变时才接受分界；否则报告 `NonMonotonic`，把策略留给用户。*理由。* 基于嘈杂、反复翻转的偏好建立的规则只会编码噪声。"
 
-#: manual/design/experiment.md:126
+#: manual/design/experiment.md:131
 msgid "`shrink` evaluates the predicate at most `max_steps` times and returns an input satisfying it whenever the initial input does."
 msgstr "`shrink` 最多对谓词求值 `max_steps` 次，并且只要初始输入满足谓词，就返回一个满足它的输入。"
 
-#: manual/design/experiment.md:128
+#: manual/design/experiment.md:133
 msgid "`crossover_from_labels` returns `Found` only when there is exactly one transition, and its boundary consists of the two adjacent scales of that transition."
 msgstr "只有恰好存在一次转变时，`crossover_from_labels` 才返回 `Found`，其分界由该次转变的两个相邻规模组成。"
 
-#: manual/design/experiment.md:131
+#: manual/design/experiment.md:136
 msgid "`ReferenceOracle::equal` returns `Valid` only for two `Value` outcomes accepted by the comparator."
 msgstr "只有当两个结果都是 `Value` 且被比较器接受时，`ReferenceOracle::equal` 才返回 `Valid`。"
 
-#: manual/design/experiment.md:133
-msgid "`comparator_label` partitions the real line into $(-\\infty, -t]$, $(-t, t)$, $[t, \\infty)$ for $0 < t < \\infty$; other thresholds are accepted and behave as described above."
-msgstr "对于 $0 < t < \\infty$，`comparator_label` 把实数轴划分为 $(-\\infty, -t]$、$(-t, t)$、$[t, \\infty)$；其他阈值也会被接受，其行为如上所述。"
+#: manual/design/experiment.md:138
+msgid "For a finite $t \\ge 0$, `comparator_label` partitions the real line into $(-\\infty, -t] \\setminus \\{0\\}$ (`A`), $[t, \\infty) \\setminus \\{0\\}$ (`B`) and the rest (`Unknown`); for any other $t$ every label is `Unknown`."
+msgstr "对于有限的 $t \\ge 0$，`comparator_label` 把实数轴划分为 $(-\\infty, -t] \\setminus \\{0\\}$（`A`）、$[t, \\infty) \\setminus \\{0\\}$（`B`）和其余部分（`Unknown`）；对于其他任何 $t$，每个标签都是 `Unknown`。"
 
-#: manual/design/experiment.md:139
+#: manual/design/experiment.md:141
+msgid "`crossover_from_labels` depends only on the multiset of (scale, label) pairs and the comparator, except for the order of pairs whose scales compare equal, which the stable sort keeps."
+msgstr "`crossover_from_labels` 只依赖于（规模, 标签）对的多重集和比较函数，唯一的例外是规模比较相等的那些对的顺序，稳定排序会保留它。"
+
+#: manual/design/experiment.md:147
 msgid "**Statistical change-point detection on raw timings.** Needs a noise model; labels from practical thresholds are explainable."
 msgstr "**在原始计时上做统计变点检测。** 需要噪声模型；而基于实际阈值的标签是可解释的。"
 
-#: manual/design/experiment.md:141
+#: manual/design/experiment.md:149
 msgid "**Interpolating the boundary.** The scales between two measured ones were not measured; the result names the two measured scales instead."
 msgstr "**对分界进行插值。** 两个测量规模之间的规模并未被测量；结果改为给出那两个测量过的规模。"
 
-#: manual/design/experiment.md:143
+#: manual/design/experiment.md:151
 msgid "**Delta debugging.** Powerful for sequences, but needs a fixed input representation; the candidate function is more general."
 msgstr "**delta 调试。** 对序列很强大，但需要固定的输入表示；候选函数更通用。"
 
-#: manual/design/experiment.md:148
-msgid "`crossover_from_labels` does not sort the domain and does not use `ScaleDomain.compare`; pass sorted values."
-msgstr "`crossover_from_labels` 不对定义域排序，也不使用 `ScaleDomain.compare`；请传入已排序的值。"
+#: manual/design/experiment.md:156
+msgid "`crossover_from_labels` uses `ScaleDomain.compare` only to sort; equal scales are not merged, and their labels stay in input order."
+msgstr "`crossover_from_labels` 只用 `ScaleDomain.compare` 来排序；相等的规模不会被合并，它们的标签保持输入顺序。"
 
-#: manual/design/experiment.md:150
+#: manual/design/experiment.md:158
 msgid "A transition across an `Unknown` label (A, Unknown, B) is not counted, so such a sequence reports `NoCrossover`."
 msgstr "跨越 `Unknown` 标签的转变（A、Unknown、B）不计数，因此这样的序列报告 `NoCrossover`。"
 
-#: manual/design/experiment.md:152
+#: manual/design/experiment.md:160
 msgid "Oracles are not run here; the runner runs them. `ReferenceOracle.sequence_length` is not used by the runner."
 msgstr "判定器不在这里运行；由运行器运行它们。运行器不使用 `ReferenceOracle.sequence_length`。"
 
-#: manual/design/experiment.md:154
+#: manual/design/experiment.md:162
 msgid "`shrink` does not check that the initial input fails."
 msgstr "`shrink` 不检查初始输入是否失败。"
 
@@ -4135,14 +4163,10 @@ msgid "`protocol_identity`, and hence `run_id`, covers only the warmup count, th
 msgstr "`protocol_identity`（进而 `run_id`）只涵盖预热次数、验证性样本数和实际阈值。"
 
 #: manual/design/runner.md:326
-msgid "`validate_protocol` does not reject `NaN` durations or a `NaN` threshold: a `NaN` target disables calibration and a `NaN` warmup time disables the time criterion of the warmup."
-msgstr "`validate_protocol` 不会拒绝 `NaN` 时长或 `NaN` 阈值：`NaN` 目标会关闭校准，`NaN` 预热时间会关闭预热的时间条件。"
-
-#: manual/design/runner.md:329
 msgid "Subprocess workers need the native target; `run` itself needs an async runtime (native, JS or wasm, not wasm-gc)."
 msgstr "子进程工作者需要 native 目标；`run` 本身需要异步运行时（native、JS 或 wasm，不支持 wasm-gc）。"
 
-#: manual/design/runner.md:331
+#: manual/design/runner.md:328
 msgid "First-order carryover between implementations is not balanced."
 msgstr "实现之间的一阶残留效应没有被平衡。"
 
@@ -4363,44 +4387,32 @@ msgid "A practical threshold instead of a significance test"
 msgstr "实际阈值，而非显著性检验"
 
 #: manual/design/stats.md:277
-msgid "*Problem.* With enough repetitions any difference becomes statistically significant, including a 0.1 % change nobody would act on. *Options.* A $t$-test or Wilcoxon test; an equivalence test (TOST); a practical threshold on the point estimate. *Choice.* The decision is the three-way rule"
-msgstr "*问题。* 只要重复次数足够多，任何差异都会变得统计显著，包括没人会为之采取行动的 0.1 % 变化。*方案。* $t$ 检验或 Wilcoxon 检验；等价性检验（TOST）；对点估计使用实际阈值。*选择。* 决策是三分规则"
+msgid "*Problem.* With enough repetitions any difference becomes statistically significant, including a 0.1 % change nobody would act on. *Options.* A $t$-test or Wilcoxon test; an equivalence test (TOST); a practical threshold on the point estimate. *Choice.* For $t > 0$ the decision is the three-way rule"
+msgstr "*问题。* 只要重复次数足够多，任何差异都会变得统计显著，包括没有人会为之行动的 0.1 % 的变化。*选项。* $t$ 检验或 Wilcoxon 检验；等价性检验（TOST）；对点估计使用实际阈值。*选择。* 对于 $t > 0$，决策是三分规则"
 
 #: manual/design/stats.md:288
 msgid "checked after `Invalid` (unequal lengths) and `Unknown` (no pairs). *Why.* The threshold states the question the user is asking (\"is it at least 2 % faster?\") in the unit of the decision, the rule is reproducible from two medians, and it does not reward running more repetitions. Uncertainty is reported next to the decision through the interval, not folded into it."
 msgstr "在 `Invalid`（长度不等）和 `Unknown`（没有配对）之后检查。*理由。* 阈值以决策的单位陈述用户真正关心的问题（“它是否至少快 2 %？”），该规则可以由两个中位数复现，并且不会奖励运行更多的重复。不确定性通过区间在决策旁边报告，而不是折叠进决策中。"
 
 #: manual/design/stats.md:294
-msgid "The code evaluates the rule as an ordered chain, `Faster` first:"
-msgstr "代码把这条规则作为一条有序判断链来求值，先检验 `Faster`："
+msgid ""
+"The rule is meaningful only for a threshold $t \\in [0, \\infty)$ and a relative delta $r \\n"
+"e \\mathrm{NaN}$; `compare_paired` returns `Invalid` otherwise. For valid inputs the code evaluates"
+msgstr ""
+"这条规则只对阈值 $t \\in [0, \\infty)$ 和相对差值 $r \\n"
+"e \\mathrm{NaN}$ 有意义；否则 `compare_paired` 返回 `Invalid`。对于有效输入，代码求值"
 
-#: manual/design/stats.md:305
-msgid "For $0 < t < \\infty$ the three regions $(-\\infty, -t]$, $[t, \\infty)$ and $(-t, t)$ partition $\\mathbb R$ and the chain is the rule above. For other thresholds it is not, and `compare_paired` does not reject them:[^issue1]"
-msgstr "对于 $0 < t < \\infty$，三个区域 $(-\\infty, -t]$、$[t, \\infty)$ 和 $(-t, t)$ 构成 $\\mathbb R$ 的一个划分，这条链就是上面的规则。对于其他阈值则不然，而 `compare_paired` 不会拒绝它们：[^issue1]"
-
-#: manual/design/stats.md:309
-msgid "$t = 0$: $r \\le -0$ holds at $r = 0$, so an exact tie is `Faster` and `Equivalent` is never returned."
-msgstr "$t = 0$：$r \\le -0$ 在 $r = 0$ 时成立，因此完全持平为 `Faster`，并且永远不会返回 `Equivalent`。"
-
-#: manual/design/stats.md:311
-msgid "$t < 0$: the first test is $r \\le \\lvert t\\rvert$, so every slowdown smaller than $\\lvert t\\rvert$ percent is reported as `Faster`, and `Equivalent` is never returned."
-msgstr "$t < 0$：第一个检验是 $r \\le \\lvert t\\rvert$，因此每个小于 $\\lvert t\\rvert$ 百分比的变慢都被报告为 `Faster`，并且永远不会返回 `Equivalent`。"
-
-#: manual/design/stats.md:314
-msgid "$t = \\mathrm{NaN}$: every comparison with `NaN` is false, so every pair of arrays, including a twofold slowdown, is `Equivalent`."
-msgstr "$t = \\mathrm{NaN}$：与 `NaN` 的任何比较都为假，因此每对数组（包括慢了一倍的情况）都是 `Equivalent`。"
+#: manual/design/stats.md:307
+msgid "The sign conditions make the first two regions disjoint for every $t \\ge 0$: $\\{r < 0,\\ r \\le -t\\} = (-\\infty, -t] \\setminus \\{0\\}$ and $\\{r > 0,\\ r \\ge t\\} = [t, \\infty) \\setminus \\{0\\}$, so together with the rest of the line they partition $\\mathbb R$. For $t > 0$ the sign conditions are implied by the threshold tests and the rule is exactly the one above. For $t = 0$ they matter: an exact tie $r = 0$ lies in neither of the first two regions and is `Equivalent`, while every other $r$ is `Faster` or `Slower`. Without them, $0 \\le -0$ would make a tie `Faster`.[^issue1]"
+msgstr "符号条件使前两个区域对每个 $t \\ge 0$ 都不相交：$\\{r < 0,\\ r \\le -t\\} = (-\\infty, -t] \\setminus \\{0\\}$，$\\{r > 0,\\ r \\ge t\\} = [t, \\infty) \\setminus \\{0\\}$，因此它们与实数轴的其余部分一起构成 $\\mathbb R$ 的一个划分。对于 $t > 0$，符号条件可由阈值检验推出，规则恰好就是上面那条。对于 $t = 0$ 它们很关键：完全持平 $r = 0$ 不属于前两个区域中的任何一个，因此为 `Equivalent`，而其他每个 $r$ 都是 `Faster` 或 `Slower`。没有它们，$0 \\le -0$ 会让持平变成 `Faster`。[^issue1]"
 
 #: manual/design/stats.md:316
-msgid "$t = +\\infty$: every finite $r$ is `Equivalent`."
-msgstr "$t = +\\infty$：每个有限的 $r$ 都是 `Equivalent`。"
-
-#: manual/design/stats.md:318
-msgid "A `NaN` relative delta (for example from a `NaN` in the input) is also `Equivalent`. `runner.validate_protocol` rejects $t < 0$ but accepts `NaN`, and `stats` is called with any `Double`. Use a finite, positive threshold."
-msgstr "`NaN` 的相对差值（例如来自输入中的 `NaN`）同样为 `Equivalent`。`runner.validate_protocol` 拒绝 $t < 0$ 但接受 `NaN`，而 `stats` 可以用任意 `Double` 调用。请使用有限的正阈值。"
+msgid "A threshold that is `NaN`, infinite or negative has no meaning as \"the smallest change you care about\", and every comparison with `NaN` is false, so such a threshold would silently classify everything as `Equivalent` (or, for $t < 0$, small slowdowns as `Faster`). Returning `Invalid` makes the mistake visible. `runner.validate_protocol` rejects the same thresholds before a run."
+msgstr "为 `NaN`、无穷大或负数的阈值无法表示“你关心的最小变化”，而且与 `NaN` 的任何比较都为假，因此这样的阈值会悄悄地把一切归为 `Equivalent`（或者在 $t < 0$ 时把小幅变慢归为 `Faster`）。返回 `Invalid` 使这个错误变得可见。`runner.validate_protocol` 会在运行前拒绝同样的阈值。"
 
 #: manual/design/stats.md:322
-msgid "Reported as [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1). `experiment.comparator_label` uses the same chain and has the same behaviour."
-msgstr "已报告为 [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)。`experiment.comparator_label` 使用同一条判断链，行为相同。"
+msgid "Fixed in [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1). `experiment.comparator_label` uses the same rule and returns `\"Unknown\"` where `compare_paired` returns `Equivalent` or `Invalid`."
+msgstr "已在 [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1) 中修复。`experiment.comparator_label` 使用相同的规则，在 `compare_paired` 返回 `Equivalent` 或 `Invalid` 的地方返回 `\"Unknown\"`。"
 
 #: manual/design/stats.md:324
 msgid "Seeded percentile bootstrap of the median delta"
@@ -4439,94 +4451,98 @@ msgid "*Problem.* Reports want plots without one 50 ms page-fault spike; decisio
 msgstr "*问题。* 报告希望图表中没有那个 50 ms 的缺页尖峰；而决策不能取决于某人选择隐藏了哪些点。*选择。* `filter_outliers` 在显式的 `OutlierPolicy` 下返回过滤后的副本，运行器和事件流中都不会应用它。*理由。* 原始数据保持可审计，策略是一个可以被记录的具名值。两种非平凡策略在干净的正态数据上具有已知的误标率："
 
 #: manual/design/stats.md:392
-msgid "Because the MAD is unscaled, the MAD trim removes about six times as many points as the Tukey fence from clean normal data ($4.3\\,\\%$ against $0.70\\,\\%$). It is also degenerate when more than half of the values coincide: the MAD is then $0$ and only values equal to the median survive. Both filters drop `NaN` values, because every comparison with `NaN` is false, but a `NaN` also corrupts the quartiles they are computed from."
-msgstr "由于 MAD 未缩放，在干净的正态数据上，MAD 截尾去除的点数大约是 Tukey 围栏的六倍（$4.3\\,\\%$ 对 $0.70\\,\\%$）。当超过一半的值相同时它也会退化：此时 MAD 为 $0$，只有等于中位数的值会保留下来。两种过滤都会丢弃 `NaN` 值，因为与 `NaN` 的任何比较都为假，但 `NaN` 也会破坏计算它们所用的四分位数。"
+msgid "Because the MAD is unscaled, the MAD trim removes about six times as many points as the Tukey fence from clean normal data ($4.3\\,\\%$ against $0.70\\,\\%$). It is also degenerate when more than half of the values coincide: the MAD is then $0$ and only values equal to the median survive. Both filters compute their fences from the values that are not `NaN` and never keep a `NaN`."
+msgstr "由于 MAD 未缩放，在干净的正态数据上，MAD 截尾去除的点数大约是 Tukey 围栏的六倍（$4.3\\,\\%$ 对 $0.70\\,\\%$）。当超过一半的值相同时它也会退化：此时 MAD 为 $0$，只有等于中位数的值会保留下来。两种过滤都用非 `NaN` 的值计算围栏，并且从不保留 `NaN`。"
 
 #: manual/design/stats.md:399
+msgid "`NaN` propagates"
+msgstr "`NaN` 会传播"
+
+#: manual/design/stats.md:401
+msgid "*Problem.* The default `Double` order puts a `NaN` at an unspecified position of a sort, so order statistics computed after sorting a sample with a `NaN` are inconsistent (a minimum above the maximum) and depend on the position of the `NaN` in the input. *Options.* Reject `NaN` with an error; drop it silently; propagate it. *Choice.* `summarize` returns `NaN` for every statistic except `count` when the input contains a `NaN`, and `compare_paired` turns the resulting `NaN` relative delta into `Invalid`. *Why.* Both functions are total and have no error channel; propagation keeps the result honest without changing their signatures, and `count` still shows how many values were passed. Dropping values would change $n$ and the pairing silently. The bootstrap functions, which already return `Result`, keep rejecting non-finite values with `NonFiniteSample`."
+msgstr "*问题。* 默认的 `Double` 顺序会把 `NaN` 放在排序中一个未规定的位置，因此对含有 `NaN` 的样本排序后计算的次序统计量彼此不一致（最小值大于最大值），并且依赖于 `NaN` 在输入中的位置。*选项。* 用错误拒绝 `NaN`；悄悄丢弃它；让它传播。*选择。* 当输入含有 `NaN` 时，`summarize` 对除 `count` 外的每个统计量都返回 `NaN`，而 `compare_paired` 把由此得到的 `NaN` 相对差值变成 `Invalid`。*理由。* 这两个函数都是全函数，没有错误通道；传播在不改变签名的前提下保持结果诚实，而 `count` 仍然显示传入了多少个值。丢弃值会悄悄改变 $n$ 和配对。已经返回 `Result` 的自助法函数继续以 `NonFiniteSample` 拒绝非有限值。"
+
+#: manual/design/stats.md:414
 msgid "Errors as values"
 msgstr "错误即值"
 
-#: manual/design/stats.md:401
-msgid "Invalid bootstrap input returns `Err(BootstrapError)`. An empty or non-finite sample would otherwise yield a plausible-looking interval of zeros or `NaN`. `summarize` and `compare_paired` stay total: they return neutral values (`count == 0`, `Unknown`, `Invalid`) that a caller can test."
-msgstr "无效的自助法输入返回 `Err(BootstrapError)`。否则，空的或含非有限值的样本会产生一个看似合理的全零或 `NaN` 区间。`summarize` 和 `compare_paired` 保持为全函数：它们返回调用者可以检测的中性值（`count == 0`、`Unknown`、`Invalid`）。"
+#: manual/design/stats.md:416
+msgid "Invalid bootstrap input returns `Err(BootstrapError)`. An empty or non-finite sample would otherwise yield a plausible-looking interval of zeros or `NaN`. `summarize` and `compare_paired` stay total: they return neutral values (`count == 0`, `NaN` statistics, `Unknown`, `Invalid`) that a caller can test."
+msgstr "无效的自助法输入返回 `Err(BootstrapError)`。否则，空样本或非有限样本会产生一个看似合理的全零或 `NaN` 区间。`summarize` 和 `compare_paired` 保持为全函数：它们返回调用者可以检验的中性值（`count == 0`、`NaN` 统计量、`Unknown`、`Invalid`）。"
 
-#: manual/design/stats.md:408
+#: manual/design/stats.md:424
 msgid "**Inputs are not modified.** `summarize` sorts a copy; `filter_outliers` returns a new array; the bootstrap sorts each resample, never the input."
 msgstr "**输入不会被修改。** `summarize` 对副本排序；`filter_outliers` 返回新数组；自助法对每个重抽样样本排序，从不对输入排序。"
 
-#: manual/design/stats.md:410
+#: manual/design/stats.md:426
 msgid "**Range.** By the range property of $Q$, `median`, `q1` and `q3` lie in $[x_{(1)}, x_{(n)}]$. Every resampled median lies in $[\\min d, \\max d]$ because it is a quantile of values drawn from $d$; the interval endpoints are quantiles of those medians, hence $\\min d \\le$ `low` $\\le$ `high` $\\le \\max d$."
 msgstr "**范围。** 由 $Q$ 的范围性质，`median`、`q1` 和 `q3` 位于 $[x_{(1)}, x_{(n)}]$ 中。每个重抽样中位数都位于 $[\\min d, \\max d]$ 中，因为它是从 $d$ 中抽取的值的分位数；区间端点又是这些中位数的分位数，因此 $\\min d \\le$ `low` $\\le$ `high` $\\le \\max d$。"
 
-#: manual/design/stats.md:415
+#: manual/design/stats.md:431
 msgid "**Order.** For $0 < \\gamma < 100$, $\\alpha/2 < 1 - \\alpha/2$, and monotonicity of $Q$ gives `low` $\\le$ `high`."
 msgstr "**顺序。** 对于 $0 < \\gamma < 100$，有 $\\alpha/2 < 1 - \\alpha/2$，由 $Q$ 的单调性得到 `low` $\\le$ `high`。"
 
-#: manual/design/stats.md:417
+#: manual/design/stats.md:433
 msgid "**Determinism.** The bootstrap is a function of (values, seed, $B$, $\\gamma$). Sorting finite doubles is deterministic, and the generator uses wrapping integer arithmetic, so the same inputs give bit-identical bounds on every target."
 msgstr "**确定性。** 自助法是（值、种子、$B$、$\\gamma$）的函数。对有限双精度数排序是确定性的，生成器使用回绕整数算术，因此相同的输入在每个目标上都给出逐位相同的边界。"
 
-#: manual/design/stats.md:421
+#: manual/design/stats.md:437
 msgid "**Floating-point error.** The mean is a left-to-right sum. With $u = 2^{-53}$ and $\\gamma_k = ku/(1-ku)$, the standard bound $\\lvert \\mathrm{fl}(\\sum x_i) - \\sum x_i\\rvert \\le \\gamma_{n-1}\\sum \\lvert x_i\\rvert$ becomes a relative error of at most $\\gamma_{n-1} \\approx n u$ for positive timings. The variance uses the two-pass formula $\\sum (x_i - \\bar x)^2$, which avoids the cancellation of the one-pass $\\sum x_i^2 - n\\bar x^2$.[^higham]"
 msgstr "**浮点误差。** 均值是从左到右的求和。令 $u = 2^{-53}$、$\\gamma_k = ku/(1-ku)$，标准界 $\\lvert \\mathrm{fl}(\\sum x_i) - \\sum x_i\\rvert \\le \\gamma_{n-1}\\sum \\lvert x_i\\rvert$ 对正的计时值而言就是至多 $\\gamma_{n-1} \\approx n u$ 的相对误差。方差使用两遍公式 $\\sum (x_i - \\bar x)^2$，避免了单遍公式 $\\sum x_i^2 - n\\bar x^2$ 的相消问题。[^higham]"
 
-#: manual/design/stats.md:427
+#: manual/design/stats.md:443
 msgid "**Complexity.** `summarize` is $O(n\\log n)$; `compare_paired` is $O(n\\log n)$; `bootstrap_interval` is $O(B\\,n\\log n + B\\log B)$; `filter_outliers` is $O(n\\log n)$."
 msgstr "**复杂度。** `summarize` 为 $O(n\\log n)$；`compare_paired` 为 $O(n\\log n)$；`bootstrap_interval` 为 $O(B\\,n\\log n + B\\log B)$；`filter_outliers` 为 $O(n\\log n)$。"
 
-#: manual/design/stats.md:431
+#: manual/design/stats.md:447
 msgid "N. J. Higham, *Accuracy and Stability of Numerical Algorithms*, 2nd ed., SIAM, 2002, §4.2 and §1.9."
 msgstr "N. J. Higham，*Accuracy and Stability of Numerical Algorithms*，第 2 版，SIAM，2002，§4.2 与 §1.9。"
 
-#: manual/design/stats.md:435
+#: manual/design/stats.md:451
 msgid "**BCa and studentized bootstrap.** For smooth statistics they reduce the one-sided coverage error from $O(n^{-1/2})$ to $O(n^{-1})$, but they need a jackknife acceleration estimate or a variance estimate for every resample; for the median both are unstable with the small $n$ that benchmarks have, and neither removes the discreteness derived above. Not implemented."
 msgstr "**BCa 与学生化自助法。** 对于光滑统计量，它们把单侧覆盖误差从 $O(n^{-1/2})$ 降低到 $O(n^{-1})$，但需要为每个重抽样样本给出刀切法加速估计或方差估计；对于中位数，在基准测试常见的小 $n$ 下两者都不稳定，而且都不能消除上文推导的离散性。未实现。"
 
-#: manual/design/stats.md:440
+#: manual/design/stats.md:456
 msgid "**Hierarchical bootstrap.** Resampling datasets, then repetitions, matches `HierarchicalDatasetsAndRepeats` better, but the comparison functions take flat arrays. Callers can still resample per dataset themselves."
 msgstr "**分层自助法。** 先重抽样数据集、再重抽样重复，更契合 `HierarchicalDatasetsAndRepeats`，但比较函数接收的是扁平数组。调用者仍然可以自行按数据集重抽样。"
 
-#: manual/design/stats.md:443
+#: manual/design/stats.md:459
 msgid "**Hodges–Lehmann estimator.** The median of pairwise Walsh averages is more efficient under symmetry, but costs $O(n^2)$ and is harder to explain in a report."
 msgstr "**Hodges–Lehmann 估计量。** 两两 Walsh 平均的中位数在对称条件下更有效，但代价为 $O(n^2)$，且更难在报告中解释。"
 
-#: manual/design/stats.md:446
+#: manual/design/stats.md:462
 msgid "**Hypothesis tests ($t$, Welch, Mann–Whitney).** Rejected for the decision as explained above; their $p$-values answer a different question."
 msgstr "**假设检验（$t$、Welch、Mann–Whitney）。** 如上所述，不用于决策；它们的 $p$ 值回答的是另一个问题。"
 
-#: manual/design/stats.md:448
+#: manual/design/stats.md:464
 msgid "**Scaled MAD.** Multiplying by 1.4826 assumes normality; the unscaled value is reported and the factor is documented instead."
 msgstr "**缩放的 MAD。** 乘以 1.4826 隐含了正态性假设；因此报告未缩放的值，并在文档中说明该因子。"
 
-#: manual/design/stats.md:453
+#: manual/design/stats.md:469
 msgid "The decision uses the point estimate and the threshold only; the interval is reported, not used to decide. There is no equivalence test."
 msgstr "决策只使用点估计和阈值；区间被报告，但不用于决策。没有等价性检验。"
 
-#: manual/design/stats.md:455
+#: manual/design/stats.md:471
 msgid "Comparisons take flat arrays. Pairing, phase separation (exploratory or confirmatory) and environment compatibility are the caller's job."
 msgstr "比较函数接收扁平数组。配对、阶段划分（探索性或验证性）和环境兼容性由调用者负责。"
 
-#: manual/design/stats.md:457
+#: manual/design/stats.md:473
 msgid "The bootstrap interval is in the unit of the deltas; the decision is in percent. Divide by $\\operatorname{med}(b)$ to compare them."
 msgstr "自助法区间的单位与差值相同；决策以百分比表示。要比较两者，请除以 $\\operatorname{med}(b)$。"
 
-#: manual/design/stats.md:459
+#: manual/design/stats.md:475
 msgid "The bootstrap assumes exchangeable deltas. Rotation order makes neighbouring blocks dependent; the interval does not model that."
 msgstr "自助法假设差值是可交换的。轮换顺序使相邻区组相互依赖；区间并未对此建模。"
 
-#: manual/design/stats.md:461
+#: manual/design/stats.md:477
 msgid "`filter_outliers` is never applied automatically, and `OutlierPolicy` in a `RunProtocol` is a recorded intent, not an action."
 msgstr "`filter_outliers` 从不自动应用，`RunProtocol` 中的 `OutlierPolicy` 是记录下来的意图，而不是一个动作。"
 
-#: manual/design/stats.md:463
-msgid "Non-finite values are rejected only by the bootstrap functions. A `NaN` in the input of `summarize` or `compare_paired` lands at an unspecified position of the sort and can produce any decision."
-msgstr "只有自助法函数会拒绝非有限值。`summarize` 或 `compare_paired` 输入中的 `NaN` 会落在排序中一个未规定的位置，可能产生任意决策。"
+#: manual/design/stats.md:479
+msgid "Non-finite values are rejected with an error only by the bootstrap functions; `summarize` and `compare_paired` propagate `NaN` as derived above."
+msgstr "只有自助法函数会用错误拒绝非有限值；`summarize` 和 `compare_paired` 按上文推导的方式传播 `NaN`。"
 
-#: manual/design/stats.md:466
-msgid "The practical threshold is not validated: `0`, negative values and `NaN` give the decisions listed under the decision rule above."
-msgstr "实际阈值不会被校验：`0`、负值和 `NaN` 给出上面决策规则下列出的决策。"
-
-#: manual/design/stats.md:468
+#: manual/design/stats.md:482
 msgid "The bootstrap interval has no coverage guarantee for small $n$ (see the coverage table). An interval with guaranteed coverage for the median is the order-statistic interval $[d_{(i)}, d_{(j)}]$ with $i$ and $j$ chosen from $\\mathrm{Bin}(n, \\tfrac12)$; it is not provided."
 msgstr "自助法区间在小 $n$ 时没有覆盖率保证（见覆盖率表）。对中位数有覆盖率保证的区间是次序统计量区间 $[d_{(i)}, d_{(j)}]$，其中 $i$ 和 $j$ 由 $\\mathrm{Bin}(n, \\tfrac12)$ 选定；本包不提供它。"
 
@@ -4605,96 +4621,104 @@ msgid "because each factor is at most $1 - q$. So the prefix contains at least o
 msgstr "因为每个因子至多为 $1 - q$。因此无论 $N$ 是多少，前缀至少包含一个好候选的概率至少为 $1 - (1 - q)^{B}$。$B = 60$ 时，对前 5 % 就已经有 $1 - 0.95^{60} \\approx 0.954$。这是支持随机搜索优于网格搜索的经典论证。[^random]"
 
 #: manual/design/tune.md:93
-msgid "`seeded_order` approximates such an order by sorting candidates on a seeded 64-bit FNV-1a hash of their ids. The argument needs the hash order to behave like a random permutation, and FNV-1a without a final mixing step does so only partly. The last character $c$ of an id enters as $h' = (h \\oplus c)\\cdot(2^{40} + 435)$: it changes the low byte of $h \\oplus c$, which the factor $2^{40}$ moves to bits 40–47, and reaches the top bits, which decide the sort, only through carries. Ids that differ only in their last characters therefore stay next to each other in the order (for `\"c0\"` to `\"c99\"` and seed `1`, the first ten are `c0` to `c9` in an XOR-permuted order). Ids whose varying part is followed by a long common suffix, like the `tune_gemm` ids, go through many more multiplications after the difference and are well mixed."
-msgstr "`seeded_order` 通过按候选 id 的带种子 64 位 FNV-1a 哈希排序来近似这样的顺序。该论证要求哈希顺序表现得像随机置换，而没有最终混合步骤的 FNV-1a 只能部分做到。id 的最后一个字符 $c$ 以 $h' = (h \\oplus c)\\cdot(2^{40} + 435)$ 的形式进入：它改变 $h \\oplus c$ 的低字节，因子 $2^{40}$ 把这个字节移到第 40–47 位，而它只能通过进位到达决定排序的高位。因此只在最后几个字符上不同的 id 会在顺序中彼此相邻（对于 `\"c0\"` 到 `\"c99\"` 和种子 `1`，前十个是按 XOR 置换排列的 `c0` 到 `c9`）。变化部分之后跟着较长公共后缀的 id（例如 `tune_gemm` 的 id）在差异之后还要经过多得多的乘法，因此混合得很好。"
+msgid "`seeded_order` approximates such an order by sorting candidates on a seeded key $k = \\mathrm{mix}(h)$, where $h$ is the 64-bit FNV-1a hash of the id with the seed folded into the offset basis and $\\mathrm{mix}$ is the SplitMix64 output finalizer"
+msgstr "`seeded_order` 通过按带种子的键 $k = \\mathrm{mix}(h)$ 对候选排序来近似这样的顺序，其中 $h$ 是把种子并入偏移基数后 id 的 64 位 FNV-1a 哈希，$\\mathrm{mix}$ 是 SplitMix64 输出终结器"
 
 #: manual/design/tune.md:106
+msgid "The argument needs the key order to behave like a random permutation, and FNV-1a alone does so only partly. The last character $c$ of an id enters as $h' = (h \\oplus c)\\cdot(2^{40} + 435)$: it changes the low byte of $h \\oplus c$, which the factor $2^{40}$ moves to bits 40–47, and reaches the top bits, which decide the sort, only through carries. Sorting on $h$ itself kept ids that differ only in their last characters next to each other (for `\"c0\"` to `\"c99\"` and seed `1`, the first ten were `c0` to `c9`).[^issue10] Each step of $\\mathrm{mix}$ is a bijection (an xorshift and a multiplication by an odd constant), so distinct hashes keep distinct keys, and the right shifts feed the high bits back into the low ones before each multiplication carries them up again: one changed input bit changes each output bit with probability close to $1/2$. The key order is then a pseudo-random permutation for every pattern of ids."
+msgstr "该论证要求键的顺序表现得像随机置换，而单靠 FNV-1a 只能部分做到。id 的最后一个字符 $c$ 以 $h' = (h \\oplus c)\\cdot(2^{40} + 435)$ 的形式进入：它改变 $h \\oplus c$ 的低字节，因子 $2^{40}$ 把这个字节移到第 40–47 位，而它只能通过进位到达决定排序的高位。直接按 $h$ 排序会让只在最后几个字符上不同的 id 彼此相邻（对于 `\"c0\"` 到 `\"c99\"` 和种子 `1`，前十个曾是 `c0` 到 `c9`）。[^issue10] $\\mathrm{mix}$ 的每一步都是双射（一次 xorshift 和一次乘以奇数常数），因此不同的哈希得到不同的键；右移在每次乘法把低位进位到高位之前，先把高位反馈到低位：改变一个输入位会以接近 $1/2$ 的概率改变每个输出位。于是，对任何形式的 id，键的顺序都是一个伪随机置换。"
+
+#: manual/design/tune.md:120
+msgid "[Issue #10](https://github.com/Luna-Flow/mare_mark/issues/10). Adding the finalizer changed the order for every seed."
+msgstr "[Issue #10](https://github.com/Luna-Flow/mare_mark/issues/10)。加入终结器改变了每个种子对应的顺序。"
+
+#: manual/design/tune.md:122
 msgid "J. Bergstra and Y. Bengio, \"Random search for hyper-parameter optimization\", *JMLR* 13, 2012."
 msgstr "J. Bergstra 和 Y. Bengio，\"Random search for hyper-parameter optimization\"，*JMLR* 13，2012。"
 
-#: manual/design/tune.md:110
+#: manual/design/tune.md:126
 msgid "Policy here, effects in the application"
 msgstr "策略在此，副作用在应用中"
 
-#: manual/design/tune.md:112
+#: manual/design/tune.md:128
 msgid "*Problem.* Building a candidate may mean compiling a kernel; running it must be validated and timed under a protocol. *Choice.* `tune` takes scores as input and never runs anything; `BuiltCandidate` carries a `runner.Implementation`. *Why.* Tuning measurements then go through the same validation, calibration and event stream as every other benchmark, and the tuning policy is testable with made-up numbers."
 msgstr "*问题。* 构建候选可能意味着编译一个内核；运行它则必须在某个协议下经过验证和计时。*选择。* `tune` 以分数作为输入，从不运行任何东西；`BuiltCandidate` 携带一个 `runner.Implementation`。*理由。* 这样调优测量就与其他所有基准测试一样经过相同的验证、校准和事件流，而调优策略可以用编造的数字来测试。"
 
-#: manual/design/tune.md:119
+#: manual/design/tune.md:135
 msgid "Median scores"
 msgstr "中位数分数"
 
-#: manual/design/tune.md:121
+#: manual/design/tune.md:137
 msgid "`score_samples` takes the median of usable samples and marks a candidate with no usable sample invalid, so a candidate cannot win because a broken measurement returned `0` or `NaN`."
 msgstr "`score_samples` 取可用样本的中位数，并把没有可用样本的候选标记为无效，因此候选不会因为某次出错的测量返回 `0` 或 `NaN` 而胜出。"
 
-#: manual/design/tune.md:125
+#: manual/design/tune.md:141
 msgid "Exhaustive search over a bounded prefix"
 msgstr "在有界前缀上穷举搜索"
 
-#: manual/design/tune.md:127
+#: manual/design/tune.md:143
 msgid "`exhaustive_scores` scores the first `budget` candidates of the enumeration and records a `BuildEvent` for each, including rejected ones. Combined with `seeded_order`, the prefix is a reproducible subset (random to the extent discussed above); with the natural order and a large budget, it is a full grid search. The policy string `global:<id>` names the candidate with the smallest measured primary score, the first one on ties. That is the raw minimum, which the winner's curse argument above warns against: treat it as a shortlist entry, not a decision. Decisions (with practical ties, per shape, Pareto) are built with `select_best`, `pareto_frontier` and `@model.DeploymentPolicy`."
 msgstr "`exhaustive_scores` 为枚举中的前 `budget` 个候选打分，并为每个候选（包括被拒绝的）记录一个 `BuildEvent`。与 `seeded_order` 结合时，前缀是一个可复现的子集（其随机程度如上所述）；采用自然顺序和较大的预算时，它就是完整的网格搜索。策略字符串 `global:<id>` 指明测得主要分数最小的候选，持平时取第一个。这就是原始最小值，也正是上面赢家诅咒论证所警告的：请把它当作候选名单中的一项，而不是决策。决策（带实际持平、按形状、Pareto）用 `select_best`、`pareto_frontier` 和 `@model.DeploymentPolicy` 构建。"
 
-#: manual/design/tune.md:137
+#: manual/design/tune.md:153
 msgid "Adaptive confirmation"
 msgstr "自适应确认"
 
-#: manual/design/tune.md:139
+#: manual/design/tune.md:155
 msgid "`confirmation_count` multiplies the base confirmation count by 1, 2 or 3 as the relative uncertainty crosses 5 % and 20 %, clamped to the budget. Noisy finalists get more samples, quiet ones do not waste time."
 msgstr "`confirmation_count` 在相对不确定度越过 5 % 和 20 % 时，把基础确认次数乘以 1、2 或 3，并截断到预算之内。噪声大的决赛候选获得更多样本，安静的候选则不浪费时间。"
 
-#: manual/design/tune.md:145
+#: manual/design/tune.md:161
 msgid "`select_best` returns `None` exactly when no score is usable; otherwise its result is usable, within the threshold of the fastest, and independent of input order (derived above)."
 msgstr "`select_best` 恰好在没有可用分数时返回 `None`；否则其结果是可用的、在最快者的阈值范围内，并且与输入顺序无关（推导见上文）。"
 
-#: manual/design/tune.md:148
+#: manual/design/tune.md:164
 msgid "`pareto_frontier` returns only usable, non-dominated scores, sorted by primary, secondary, id."
 msgstr "`pareto_frontier` 只返回可用且非支配的分数，按主要值、次要值、id 排序。"
 
-#: manual/design/tune.md:150
+#: manual/design/tune.md:166
 msgid "`exhaustive_scores` examines at most `budget` candidates and calls the score callback only for valid ones."
 msgstr "`exhaustive_scores` 最多检查 `budget` 个候选，并且只对有效候选调用打分回调。"
 
-#: manual/design/tune.md:152
+#: manual/design/tune.md:168
 msgid "`seeded_order` is a permutation of its input that depends only on the ids and the seed."
 msgstr "`seeded_order` 是其输入的一个置换，只取决于 id 和种子。"
 
-#: manual/design/tune.md:154
+#: manual/design/tune.md:170
 msgid "`confirmation_count` lies in $[0, \\max(\\text{budget}, 0)]$."
 msgstr "`confirmation_count` 位于 $[0, \\max(\\text{budget}, 0)]$ 中。"
 
-#: manual/design/tune.md:158
+#: manual/design/tune.md:174
 msgid "**Bayesian optimization or evolutionary search.** Effective, but needs a model of the space and makes results harder to reproduce; the hooks (`neighbors`, `seeded_order`) allow a user-written search."
 msgstr "**贝叶斯优化或进化搜索。** 有效，但需要对空间建模，并使结果更难复现；钩子（`neighbors`、`seeded_order`）允许用户自行编写搜索。"
 
-#: manual/design/tune.md:161
+#: manual/design/tune.md:177
 msgid "**Mean scores.** One preempted run would decide."
 msgstr "**均值分数。** 一次被抢占的运行就会左右结果。"
 
-#: manual/design/tune.md:162
+#: manual/design/tune.md:178
 msgid "**Selecting the raw minimum.** Subject to the winner's curse. Only the informational policy string of `exhaustive_scores` uses it."
 msgstr "**选取原始最小值。** 会受到赢家诅咒的影响。只有 `exhaustive_scores` 的信息性策略字符串使用它。"
 
-#: manual/design/tune.md:167
+#: manual/design/tune.md:183
 msgid "No candidate is built, run or validated here."
 msgstr "这里不构建、运行或验证任何候选。"
 
-#: manual/design/tune.md:168
+#: manual/design/tune.md:184
 msgid "`TuningBudget`, `TuningObjective` and `HoldoutPlan` are data; no function enforces them."
 msgstr "`TuningBudget`、`TuningObjective` 和 `HoldoutPlan` 是数据；没有函数强制执行它们。"
 
-#: manual/design/tune.md:170
+#: manual/design/tune.md:186
 msgid "`CandidateSpace.neighbors` is not used by any function in the package."
 msgstr "本包中没有任何函数使用 `CandidateSpace.neighbors`。"
 
-#: manual/design/tune.md:171
+#: manual/design/tune.md:187
 msgid "`exhaustive_scores` does not use `seeded_order` itself; reorder the space first if you want a random subset."
 msgstr "`exhaustive_scores` 本身不使用 `seeded_order`；如果你想要随机子集，请先对空间重新排序。"
 
-#: manual/design/tune.md:173
-msgid "`seeded_order` is not a uniform random permutation; ids that differ only in their last characters stay clustered."
-msgstr "`seeded_order` 不是均匀随机置换；只在最后几个字符上不同的 id 会聚在一起。"
+#: manual/design/tune.md:189
+msgid "`seeded_order` is pseudo-random, not cryptographic: the order is a fixed function of the ids and the seed."
+msgstr "`seeded_order` 是伪随机的，而不是密码学意义上的：顺序是 id 和种子的固定函数。"
 
 #: manual/design/tune_gemm.md:1
 msgid "tune_gemm design"
@@ -5345,30 +5369,26 @@ msgid "mare_mark is pre-1.0. The versioned contracts are the protocol vocabulary
 msgstr "mare_mark 尚处于 1.0 之前。带版本的契约包括协议词汇 `mmkp_1`、JSONL 产物 `mmka_1`、Plot IR 模式 `mmks_1` 以及 GEMM 调优配置 `mmkts_1`；读取器会拒绝其他版本。计时阈值、候选枚举、HTML 样式和私有布局都不属于兼容性承诺。每个设计页面都以该包的边界结尾。"
 
 #: manual/index.md:110
-msgid "[!WARNING] `stats.compare_paired` and `experiment.comparator_label` do not validate the practical threshold: `0` reports an exact tie as `Faster` (`\"A\"`), and `NaN` reports every comparison as `Equivalent` (`\"Unknown\"`) ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold. The [stats API](api/stats.md) lists the exact behaviour."
-msgstr "[!WARNING] `stats.compare_paired` 和 `experiment.comparator_label` 不会校验实际阈值：`0` 把完全持平报告为 `Faster`（`\"A\"`），`NaN` 把每次比较都报告为 `Equivalent`（`\"Unknown\"`）（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。请使用有限的正阈值。[stats API](api/stats.md) 列出了确切的行为。"
-
-#: manual/index.md:118
 msgid "Where to read next"
 msgstr "接下来读什么"
 
-#: manual/index.md:120
+#: manual/index.md:112
 msgid "New to benchmarking with mare_mark: read [getting started](getting_started.md), then the [runner tutorial](tutorial/runner.md) and the [stats tutorial](tutorial/stats.md). Publish with the [report tutorial](tutorial/report.md)."
 msgstr "初次使用 mare_mark 做基准测试：先读[快速入门](getting_started.md)，再读 [runner 教程](tutorial/runner.md)和 [stats 教程](tutorial/stats.md)。用 [report 教程](tutorial/report.md)发布结果。"
 
-#: manual/index.md:124
+#: manual/index.md:116
 msgid "Using it in a project: keep the API pages of [`runner`](api/runner.md), [`stats`](api/stats.md) and [`model`](api/model.md) at hand; read the [fixture](tutorial/fixture.md) and [generator](tutorial/generator.md) tutorials for realistic inputs, and the [experiment tutorial](tutorial/experiment.md) for oracles and crossovers. For tuning, read [tune](tutorial/tune.md) and [tune_gemm](tutorial/tune_gemm.md)."
 msgstr "在项目中使用它：把 [`runner`](api/runner.md)、[`stats`](api/stats.md) 和 [`model`](api/model.md) 的 API 页面放在手边；阅读 [fixture](tutorial/fixture.md) 和 [generator](tutorial/generator.md) 教程以构造真实的输入，阅读 [experiment 教程](tutorial/experiment.md)以了解判定器和交叉点。关于调优，请阅读 [tune](tutorial/tune.md) 和 [tune_gemm](tutorial/tune_gemm.md)。"
 
-#: manual/index.md:130
+#: manual/index.md:122
 msgid "Reviewing results or contributing: read the [architecture](architecture.md) and the design pages, starting with [runner](design/runner.md) (experimental design and calibration) and [stats](design/stats.md) (estimators, bootstrap and decision rule), then [verification](verification.md)."
 msgstr "评审结果或参与贡献：阅读[架构](architecture.md)和各设计页面，从 [runner](design/runner.md)（实验设计与校准）和 [stats](design/stats.md)（估计量、自助法与决策规则）开始，然后阅读[验证](verification.md)。"
 
-#: manual/index.md:137
+#: manual/index.md:129
 msgid "Recommended release checks:"
 msgstr "推荐的发布检查："
 
-#: manual/index.md:145
+#: manual/index.md:137
 msgid "The [verification](verification.md) guide lists the full matrix, the artifact smoke tests and how the examples of this manual are compiled and run."
 msgstr "[验证](verification.md)指南列出了完整的矩阵、产物冒烟测试，以及本手册的示例如何编译和运行。"
 
@@ -5503,7 +5523,7 @@ msgstr "[runner 教程](runner.md)展示了一次产生此类事件的运行。"
 #: manual/tutorial/report.md:143
 #: manual/tutorial/runner.md:322
 #: manual/tutorial/stats.md:225
-#: manual/tutorial/tune.md:134
+#: manual/tutorial/tune.md:118
 #: manual/tutorial/tune_gemm.md:157
 msgid "Going further"
 msgstr "更进一步"
@@ -5527,7 +5547,7 @@ msgstr "在其他目标上，该命令只支持使用文件路径的 `report`。
 #: manual/tutorial/report.md:154
 #: manual/tutorial/runner.md:345
 #: manual/tutorial/stats.md:257
-#: manual/tutorial/tune.md:148
+#: manual/tutorial/tune.md:132
 #: manual/tutorial/tune_gemm.md:165
 msgid "Common pitfalls"
 msgstr "常见陷阱"
@@ -5544,9 +5564,13 @@ msgstr "**忘记 `--yes`。** 没有它（也没有 `--dry-run`）时，`replay`
 msgid "**Extra arguments.** A third positional argument is a usage error."
 msgstr "**多余的参数。** 第三个位置参数是用法错误。"
 
-#: manual/tutorial/cli.md:100
+#: manual/tutorial/cli.md:99
+msgid "**Forgetting the artifact.** `replay` needs an artifact path even with `--dry-run`; without one it exits with `2`."
+msgstr "**忘记产物。** 即使使用 `--dry-run`，`replay` 也需要产物路径；没有它时以 `2` 退出。"
+
+#: manual/tutorial/cli.md:102
 #: manual/tutorial/event.md:139
-#: manual/tutorial/experiment.md:151
+#: manual/tutorial/experiment.md:153
 #: manual/tutorial/fixture.md:137
 #: manual/tutorial/generator.md:137
 #: manual/tutorial/ir_model.md:89
@@ -5555,16 +5579,16 @@ msgstr "**多余的参数。** 第三个位置参数是用法错误。"
 #: manual/tutorial/report.md:163
 #: manual/tutorial/runner.md:363
 #: manual/tutorial/stats.md:281
-#: manual/tutorial/tune.md:159
+#: manual/tutorial/tune.md:143
 #: manual/tutorial/tune_gemm.md:175
 msgid "Next steps"
 msgstr "后续步骤"
 
-#: manual/tutorial/cli.md:102
+#: manual/tutorial/cli.md:104
 msgid "[cli API](../api/cli.md), [cli design](../design/cli.md)."
 msgstr "[cli API](../api/cli.md)、[cli 设计](../design/cli.md)。"
 
-#: manual/tutorial/cli.md:103
+#: manual/tutorial/cli.md:105
 msgid "[report tutorial](report.md) for the report itself."
 msgstr "[report 教程](report.md)：报告本身。"
 
@@ -5773,30 +5797,30 @@ msgid "The [experiment design](../design/experiment.md) proves that shrinking te
 msgstr "[experiment 设计](../design/experiment.md)证明了缩减会终止并保持失败。"
 
 #: manual/tutorial/experiment.md:141
-msgid "**Unsorted scales.** `crossover_from_labels` uses the order you give."
-msgstr "**未排序的规模。** `crossover_from_labels` 使用你给出的顺序。"
+msgid "**A comparator that disagrees with your scale order.** `crossover_from_labels` sorts by `ScaleDomain.compare`; the boundary is reported in that order."
+msgstr "**与你的规模顺序不一致的比较函数。** `crossover_from_labels` 按 `ScaleDomain.compare` 排序；边界按该顺序报告。"
 
-#: manual/tutorial/experiment.md:142
+#: manual/tutorial/experiment.md:143
 msgid "**Equality for floating-point results.** Use a tolerance that matches the algorithm's error bound."
 msgstr "**对浮点结果使用相等比较。** 请使用与算法误差界相匹配的容差。"
 
-#: manual/tutorial/experiment.md:144
+#: manual/tutorial/experiment.md:145
 msgid "**Shrinkers that grow the input.** Candidates should be smaller, or the budget is spent without progress."
 msgstr "**会让输入变大的缩减器。** 候选应当更小，否则预算会在毫无进展的情况下耗尽。"
 
-#: manual/tutorial/experiment.md:146
+#: manual/tutorial/experiment.md:147
 msgid "**Reading `NonMonotonic` as a crossover.** It is not; the preference flips."
 msgstr "**把 `NonMonotonic` 当作交叉点。** 它不是；偏好发生了翻转。"
 
-#: manual/tutorial/experiment.md:147
-msgid "**A zero or `NaN` threshold in `comparator_label`.** With `0.0` a tie is labelled `\"A\"`; with `NaN` every label is `\"Unknown\"` and no crossover can be found. Use a finite, positive threshold."
-msgstr "**`comparator_label` 中为零或 `NaN` 的阈值。** 用 `0.0` 时，持平被标记为 `\"A\"`；用 `NaN` 时，每个标签都是 `\"Unknown\"`，找不到任何交叉点。请使用有限的正阈值。"
+#: manual/tutorial/experiment.md:148
+msgid "**A zero or unusable threshold in `comparator_label`.** With `0.0` only an exact tie is `\"Unknown\"`, so noise decides every other label; with `NaN`, an infinite or a negative threshold every label is `\"Unknown\"` and no crossover can be found. Use a finite, positive threshold."
+msgstr "**`comparator_label` 中为零或不可用的阈值。** 用 `0.0` 时只有完全持平是 `\"Unknown\"`，其他每个标签都由噪声决定；用 `NaN`、无穷大或负阈值时，每个标签都是 `\"Unknown\"`，找不到任何交叉点。请使用有限的正阈值。"
 
-#: manual/tutorial/experiment.md:153
+#: manual/tutorial/experiment.md:155
 msgid "[experiment API](../api/experiment.md), [experiment design](../design/experiment.md)."
 msgstr "[experiment API](../api/experiment.md)、[experiment 设计](../design/experiment.md)。"
 
-#: manual/tutorial/experiment.md:154
+#: manual/tutorial/experiment.md:156
 msgid "[runner tutorial](runner.md) for oracles inside a run."
 msgstr "[runner 教程](runner.md)：运行中的判定器。"
 
@@ -6513,8 +6537,8 @@ msgid "**Calling `run` outside an async context.** It is an `async fn`."
 msgstr "**在异步上下文之外调用 `run`。** 它是一个 `async fn`。"
 
 #: manual/tutorial/runner.md:359
-msgid "**Relying on `validate_protocol` to catch `NaN`.** It rejects negative and zero values but not `NaN`; a `NaN` threshold makes every later comparison `Equivalent`."
-msgstr "**指望 `validate_protocol` 捕获 `NaN`。** 它拒绝负值和零值，但不拒绝 `NaN`；`NaN` 阈值会使之后的每次比较都为 `Equivalent`。"
+msgid "**A zero threshold with noisy data.** `validate_protocol` accepts `0.0`, and `stats.compare_paired` then calls every non-zero difference `Faster` or `Slower`. Choose the smallest change you care about."
+msgstr "**在有噪声的数据上使用零阈值。** `validate_protocol` 接受 `0.0`，此时 `stats.compare_paired` 会把每个非零差异都判为 `Faster` 或 `Slower`。请选择你关心的最小变化。"
 
 #: manual/tutorial/runner.md:365
 msgid "[runner API](../api/runner.md) and [runner design](../design/runner.md)."
@@ -6665,16 +6689,16 @@ msgid "**Mixing phases or targets.** Exploratory and confirmatory observations, 
 msgstr "**混合不同阶段或目标。** 探索性与验证性观测、native 与 JS 计时都属于不同的总体。请在配对之前进行过滤。"
 
 #: manual/tutorial/stats.md:263
-msgid "**A zero, negative or `NaN` threshold.** The threshold is not validated. With `practical_delta_pct = 0.0` an exact tie is reported as `Faster`; a negative threshold reports small slowdowns as `Faster`; `NaN` reports everything, even a twofold slowdown, as `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold such as `2.0`."
-msgstr "**为零、为负或为 `NaN` 的阈值。** 阈值不会被校验。`practical_delta_pct = 0.0` 时，完全持平被报告为 `Faster`；负阈值把小幅变慢报告为 `Faster`；`NaN` 把一切（即使慢了一倍）都报告为 `Equivalent`（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。请使用有限的正阈值，例如 `2.0`。"
+msgid "**A zero threshold.** With `practical_delta_pct = 0.0` only an exact tie is `Equivalent`; every other difference, however small, is `Faster` or `Slower`. A `NaN`, infinite or negative threshold gives `Invalid`. Use a finite, positive threshold such as `2.0`."
+msgstr "**零阈值。** 当 `practical_delta_pct = 0.0` 时，只有完全持平是 `Equivalent`；其他任何差异，无论多小，都是 `Faster` 或 `Slower`。为 `NaN`、无穷大或负数的阈值会给出 `Invalid`。请使用有限的正阈值，例如 `2.0`。"
 
-#: manual/tutorial/stats.md:269
+#: manual/tutorial/stats.md:267
 msgid "**Trusting the interval of a short run.** With a handful of blocks the bootstrap interval of the median covers the true median less often than its nominal level (87.5 % instead of 95 % for seven pairs); the [stats design](../design/stats.md) has the table."
 msgstr "**相信短运行的区间。** 只有少数几个区组时，中位数的自助法区间覆盖真实中位数的频率低于其名义水平（七个配对时为 87.5 % 而不是 95 %）；[stats 设计](../design/stats.md)中有对应的表格。"
 
-#: manual/tutorial/stats.md:273
-msgid "**`NaN` timings.** `compare_paired` does not reject them and can return any decision; the bootstrap functions return `NonFiniteSample`."
-msgstr "**`NaN` 计时值。** `compare_paired` 不会拒绝它们，可能返回任意决策；自助法函数会返回 `NonFiniteSample`。"
+#: manual/tutorial/stats.md:271
+msgid "**`NaN` timings.** A single `NaN` makes every statistic of `summarize` `NaN` and the decision of `compare_paired` `Invalid`; the bootstrap functions return `NonFiniteSample`. Find and drop the broken observation instead of filtering `NaN` silently."
+msgstr "**`NaN` 计时值。** 单个 `NaN` 就会使 `summarize` 的每个统计量都成为 `NaN`，并使 `compare_paired` 的决策成为 `Invalid`；自助法函数会返回 `NonFiniteSample`。请找出并丢弃损坏的观测，而不是悄悄地过滤掉 `NaN`。"
 
 #: manual/tutorial/stats.md:275
 msgid "**Reading `summarize([])`.** An empty sample returns zeros; check `count`."
@@ -6769,58 +6793,50 @@ msgid "Sample a large space reproducibly"
 msgstr "可复现地对大空间抽样"
 
 #: manual/tutorial/tune.md:114
-msgid "The same seed gives the same candidates whatever order the space is listed in. Record the seed with the result."
-msgstr "无论空间以何种顺序列出，相同的种子都会给出相同的候选。请把种子与结果一起记录。"
+msgid "The same seed gives the same candidates whatever order the space is listed in, and the candidates are spread over the whole space even though the ids differ only in their last characters. Record the seed with the result."
+msgstr "无论空间以何种顺序列出，相同的种子都会给出相同的候选；即使 id 只在最后几个字符上不同，这些候选也分散在整个空间中。请把种子与结果一起记录。"
 
-#: manual/tutorial/tune.md:117
-msgid "Put the varying part of an id first. The hash behind `seeded_order` mixes the last characters of an id poorly, so ids that differ only at the end stay together:"
-msgstr "把 id 的变化部分放在前面。`seeded_order` 背后的哈希对 id 最后几个字符的混合很差，因此只在末尾不同的 id 会待在一起："
-
-#: manual/tutorial/tune.md:131
-msgid "With these ids the first ten are `candidate-90` to `candidate-99`, which is not a random subset. The [tune API](../api/tune.md) explains why."
-msgstr "对于这些 id，前十个是 `candidate-90` 到 `candidate-99`，这并不是随机子集。[tune API](../api/tune.md) 解释了原因。"
-
-#: manual/tutorial/tune.md:136
+#: manual/tutorial/tune.md:120
 msgid "**Confirm finalists.** Re-measure the best few with `@tune.confirmation_count(base, relative_iqr, budget)` fresh samples and select again on those; the [tune design](../design/tune.md) explains why the first selection is optimistic."
 msgstr "**确认决赛候选。** 用 `@tune.confirmation_count(base, relative_iqr, budget)` 个新样本重新测量最好的几个候选，并在这些样本上再次选择；[tune 设计](../design/tune.md)解释了为什么第一次选择是偏乐观的。"
 
-#: manual/tutorial/tune.md:140
+#: manual/tutorial/tune.md:124
 msgid "**Hold out shapes.** Choose with some shapes, then check the winner on a `ShapeHoldout`."
 msgstr "**留出部分形状。** 用一部分形状做选择，然后在 `ShapeHoldout` 上检查胜者。"
 
-#: manual/tutorial/tune.md:142
+#: manual/tutorial/tune.md:126
 msgid "**Measure with the runner.** Wrap each candidate in a `@runner.Implementation`, run them in one case so they share blocks, and feed per-candidate confirmatory medians to `score_samples`."
 msgstr "**用运行器测量。** 把每个候选包装成 `@runner.Implementation`，在同一个用例中运行它们使其共享区组，并把每个候选的验证性中位数交给 `score_samples`。"
 
-#: manual/tutorial/tune.md:145
+#: manual/tutorial/tune.md:129
 msgid "**A worked example.** [`tune_gemm`](tune_gemm.md) applies all of this to blocked matrix multiplication."
 msgstr "**完整示例。** [`tune_gemm`](tune_gemm.md) 把这一切应用于分块矩阵乘法。"
 
-#: manual/tutorial/tune.md:150
+#: manual/tutorial/tune.md:134
 msgid "**Selecting on exploration data only.** The winner's curse makes it look better than it is."
 msgstr "**只基于探索数据做选择。** 赢家诅咒会让它看起来比实际更好。"
 
-#: manual/tutorial/tune.md:152
+#: manual/tutorial/tune.md:136
 msgid "**A threshold of zero with noisy data.** Ties are then decided by noise."
 msgstr "**在嘈杂数据上使用零阈值。** 这样持平就由噪声来决定。"
 
-#: manual/tutorial/tune.md:153
+#: manual/tutorial/tune.md:137
 msgid "**Ids that are not unique.** Selection and ordering assume unique ids."
 msgstr "**不唯一的 id。** 选择和排序都假设 id 唯一。"
 
-#: manual/tutorial/tune.md:154
-msgid "**Ids that differ only at the end.** `seeded_order` keeps them clustered; put the varying part first."
-msgstr "**只在末尾不同的 id。** `seeded_order` 会让它们聚在一起；请把变化部分放在前面。"
+#: manual/tutorial/tune.md:138
+msgid "**Comparing subsets across versions.** The order for a seed changed when `seeded_order` gained its finalizer; regenerate recorded subsets."
+msgstr "**跨版本比较子集。** `seeded_order` 加入终结器后，某个种子对应的顺序发生了变化；请重新生成记录下来的子集。"
 
-#: manual/tutorial/tune.md:156
+#: manual/tutorial/tune.md:140
 msgid "**Trusting the `exhaustive_scores` policy string.** `global:<id>` is the raw minimum, without practical ties or confirmation; decide with `select_best`."
 msgstr "**相信 `exhaustive_scores` 的策略字符串。** `global:<id>` 是原始最小值，没有考虑实际持平，也没有确认；请用 `select_best` 做决策。"
 
-#: manual/tutorial/tune.md:161
+#: manual/tutorial/tune.md:145
 msgid "[tune API](../api/tune.md), [tune design](../design/tune.md)."
 msgstr "[tune API](../api/tune.md)、[tune 设计](../design/tune.md)。"
 
-#: manual/tutorial/tune.md:162
+#: manual/tutorial/tune.md:146
 msgid "[tune_gemm tutorial](tune_gemm.md)."
 msgstr "[tune_gemm 教程](tune_gemm.md)。"
 
@@ -7009,8 +7025,8 @@ msgid "What the tests prove, and what they do not"
 msgstr "测试证明了什么，没有证明什么"
 
 #: manual/verification.md:75
-msgid "`stats`: robust summaries, decision thresholds, invalid-input errors, and that bootstrap intervals are deterministic and lie within the range of the deltas. Not: coverage of the intervals (the design page computes it for small samples), BCa or hierarchical resampling, or the threshold edge cases `0`, negative and `NaN`, which are documented but not rejected ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1))."
-msgstr "`stats`：稳健摘要、决策阈值、无效输入错误，以及自助法区间是确定性的并位于差值的范围之内。未证明：区间的覆盖率（设计页面计算了小样本下的覆盖率）、BCa 或分层重抽样，以及阈值的边界情况 `0`、负值和 `NaN`，它们有文档说明但不会被拒绝（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。"
+msgid "`stats`: robust summaries, decision thresholds, invalid-input errors, and that bootstrap intervals are deterministic and lie within the range of the deltas, the decision for ties and for thresholds that are `0`, `NaN`, infinite or negative, and `NaN` propagation through `summarize` and `compare_paired`. Not: coverage of the intervals (the design page computes it for small samples), BCa or hierarchical resampling."
+msgstr "`stats`：稳健摘要、决策阈值、无效输入错误，以及自助法区间是确定性的并位于差值的范围之内，持平以及阈值为 `0`、`NaN`、无穷大或负数时的决策，还有 `NaN` 在 `summarize` 和 `compare_paired` 中的传播。未证明：区间的覆盖率（设计页面计算了小样本下的覆盖率）、BCa 或分层重抽样。"
 
 #: manual/verification.md:81
 msgid "`runner`: validation before timing, timing boundaries per setup policy (synchronization, reset exclusion), calibration bounds, balanced order, worker abort and timeout, minimized replayable failures, relational mismatches, outcome counting. Not: the quality of a machine's timer or the absence of interference from other processes."
@@ -7021,12 +7037,111 @@ msgid "`report`: projection rules, escaping, version gating, self-contained outp
 msgstr "`report`：投影规则、转义、版本关卡、自包含输出。未证明：在某个特定浏览器中的渲染效果。"
 
 #: manual/verification.md:88
-msgid "`tune` and `tune_gemm`: median scoring, order-independent selection, Pareto filtering, candidate constraints, bitwise agreement of blocked and reference GEMM over all layouts with tails. Not: that a tuned candidate is fastest on another CPU, or that `seeded_order` behaves like a uniform random permutation (it does not for ids that differ only at the end)."
-msgstr "`tune` 与 `tune_gemm`：中位数打分、与顺序无关的选择、Pareto 过滤、候选约束，以及分块 GEMM 与参考 GEMM 在所有布局（含尾部）上逐位一致。未证明：调优得到的候选在另一种 CPU 上也是最快的，或者 `seeded_order` 的行为像均匀随机置换（对于只在末尾不同的 id，它并非如此）。"
+msgid "`tune` and `tune_gemm`: median scoring, order-independent selection, Pareto filtering, candidate constraints, bitwise agreement of blocked and reference GEMM over all layouts with tails. Not: that a tuned candidate is fastest on another CPU. `seeded_order` is tested for spreading ids that differ only at the end, not for statistical randomness."
+msgstr "`tune` 与 `tune_gemm`：中位数打分、与顺序无关的选择、Pareto 过滤、候选约束，以及分块 GEMM 与参考 GEMM 在所有布局（含尾部）上逐位一致。未证明：调优得到的候选在另一种 CPU 上也是最快的。对 `seeded_order` 测试的是它能否分散只在末尾不同的 id，而不是统计意义上的随机性。"
 
 #: manual/verification.md:93
 msgid "`cli`: argument parsing, help texts, replay extraction. The native `main` is exercised by the smoke tests only."
 msgstr "`cli`：参数解析、帮助文本、重放信息提取。native 的 `main` 只由冒烟测试覆盖。"
+
+#~ msgid "`status` is one of `valid`, `invalid`, `skipped`, `expected_difference`, `unsupported`, `infrastructure_failure`; the reason strings of the status are not written. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept` or `discarded:<reason>`. The observation's `setup_timing` is not written."
+#~ msgstr "`status` 取 `valid`、`invalid`、`skipped`、`expected_difference`、`unsupported`、`infrastructure_failure` 之一；状态的原因字符串不会写出。`phase` 为 `exploratory` 或 `confirmatory`；`batch_sink` 为 `kept` 或 `discarded:<reason>`。观测的 `setup_timing` 不会写出。"
+
+#~ msgid "`crossover_from_labels` reads `values` in the given order and does not sort them; pass them sorted."
+#~ msgstr "`crossover_from_labels` 按给定顺序读取 `values`，不会对其排序；请传入已排序的值。"
+
+#~ msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie ($r = 0$) is `\"A\"`; with $t < 0$ small slowdowns of A are `\"A\"` too; with $t$ = `NaN` every delta is `\"Unknown\"`, so `crossover_from_labels` can only report `NoCrossover`. Pass a finite, positive threshold."
+#~ msgstr "[!WARNING] 阈值不会被校验（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。当 $t = 0$ 时，完全持平（$r = 0$）为 `\"A\"`；当 $t < 0$ 时，A 的小幅变慢也为 `\"A\"`；当 $t$ = `NaN` 时，每个差值都是 `\"Unknown\"`，因此 `crossover_from_labels` 只能报告 `NoCrossover`。请传入有限的正阈值。"
+
+#~ msgid "Each rule is implemented as a test for its violation (`x < 0.0`, `x <= 0.0`, `target > max`), and every comparison with `NaN` is false, so `NaN` passes all the `Double` rules. In particular a `NaN` `practical_delta_pct` is accepted and makes every `stats.compare_paired` decision on it `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)), a `NaN` `target_batch_time_us` disables calibration (the first batch is kept), and a `NaN` `warmup_time_us` leaves only the `warmup_iterations` count. Infinite durations pass as well, except a `target_batch_time_us` above a finite `max_sample_time_us`. A threshold of `0.0` is accepted although it reports exact ties as `Faster`."
+#~ msgstr "每条规则都实现为对其违反情况的检验（`x < 0.0`、`x <= 0.0`、`target > max`），而与 `NaN` 的任何比较都为假，因此 `NaN` 能通过所有 `Double` 规则。特别地，`NaN` 的 `practical_delta_pct` 会被接受，并使基于它的每个 `stats.compare_paired` 决策都为 `Equivalent`（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）；`NaN` 的 `target_batch_time_us` 会关闭校准（保留第一个批次）；`NaN` 的 `warmup_time_us` 只留下 `warmup_iterations` 计数这一条件。无穷大的时长也能通过，只有大于有限 `max_sample_time_us` 的 `target_batch_time_us` 除外。阈值 `0.0` 也会被接受，尽管它会把完全持平报告为 `Faster`。"
+
+#~ msgid "the relative median delta lies strictly between $-t$ and $t$"
+#~ msgstr "相对中位数差值严格位于 $-t$ 与 $t$ 之间"
+
+#~ msgid "the two arrays have different lengths"
+#~ msgstr "两个数组长度不同"
+
+#~ msgid "The decision is the first test that holds: `Invalid` if the lengths differ, `Unknown` if there are no pairs, `Faster` if $r \\le -t$, `Slower` if $r \\ge t$, `Equivalent` otherwise. Other edge cases:"
+#~ msgstr "决策取第一个成立的检验：长度不同为 `Invalid`，没有配对为 `Unknown`，$r \\le -t$ 为 `Faster`，$r \\ge t$ 为 `Slower`，否则为 `Equivalent`。其他边界情况："
+
+#~ msgid "A `NaN` in either array is not rejected; it lands at an unspecified position of the sort and can produce any decision. Filter non-finite values first."
+#~ msgstr "任一数组中的 `NaN` 都不会被拒绝；它会落在排序中一个未规定的位置，可能产生任意决策。请先过滤掉非有限值。"
+
+#~ msgid "[!WARNING] The threshold is not validated ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$ an exact tie is `Faster`, because $0 \\le -0$. With $t < 0$ every slowdown smaller than $\\lvert t\\rvert$ percent is `Faster`. With $t$ = `NaN` (or $+\\infty$) every comparison is `Equivalent`, even a twofold slowdown. Pass a finite, positive threshold."
+#~ msgstr "[!WARNING] 阈值不会被校验（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。当 $t = 0$ 时，完全持平为 `Faster`，因为 $0 \\le -0$。当 $t < 0$ 时，每个小于 $\\lvert t\\rvert$ 百分比的变慢都为 `Faster`。当 $t$ = `NaN`（或 $+\\infty$）时，每次比较都是 `Equivalent`，即使慢了一倍。请传入有限的正阈值。"
+
+#~ msgid "[!WARNING] The hash has no final mixing step, and its high bits, which decide the sort, depend only weakly on the last characters of an id. Ids that differ only at the end stay clustered: for the ids `\"c0\"` to `\"c99\"` and seed `1` the order starts `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …`. A prefix is then far from a random subset. Ids with a long common suffix after the varying part, such as the `tune_gemm` ids, are mixed much better. Put the varying part first in your ids, or shuffle with your own well-mixed hash."
+#~ msgstr "[!WARNING] 该哈希没有最终的混合步骤，而决定排序的高位只微弱地依赖于 id 的最后几个字符。只在末尾不同的 id 会聚在一起：对于 id `\"c0\"` 到 `\"c99\"` 和种子 `1`，顺序以 `c3, c2, c1, c0, c7, c6, c5, c4, c9, c8, c30, c31, …` 开头。这样的前缀远不是随机子集。在变化部分之后带有较长公共后缀的 id（例如 `tune_gemm` 的 id）混合得好得多。请把 id 的变化部分放在前面，或者用你自己的充分混合的哈希来打乱顺序。"
+
+#~ msgid "The progress line prints a microsecond value labelled `ms`."
+#~ msgstr "进度行打印的是一个以微秒计、却标注为 `ms` 的值。"
+
+#~ msgid "The JSONL writer omits the reason strings of validation statuses and the observation's `setup_timing`."
+#~ msgstr "JSONL 写入器省略验证状态的原因字符串以及观测的 `setup_timing`。"
+
+#~ msgid "`comparator_label` partitions the real line into $(-\\infty, -t]$, $(-t, t)$, $[t, \\infty)$ for $0 < t < \\infty$; other thresholds are accepted and behave as described above."
+#~ msgstr "对于 $0 < t < \\infty$，`comparator_label` 把实数轴划分为 $(-\\infty, -t]$、$(-t, t)$、$[t, \\infty)$；其他阈值也会被接受，其行为如上所述。"
+
+#~ msgid "`crossover_from_labels` does not sort the domain and does not use `ScaleDomain.compare`; pass sorted values."
+#~ msgstr "`crossover_from_labels` 不对定义域排序，也不使用 `ScaleDomain.compare`；请传入已排序的值。"
+
+#~ msgid "`validate_protocol` does not reject `NaN` durations or a `NaN` threshold: a `NaN` target disables calibration and a `NaN` warmup time disables the time criterion of the warmup."
+#~ msgstr "`validate_protocol` 不会拒绝 `NaN` 时长或 `NaN` 阈值：`NaN` 目标会关闭校准，`NaN` 预热时间会关闭预热的时间条件。"
+
+#~ msgid "The code evaluates the rule as an ordered chain, `Faster` first:"
+#~ msgstr "代码把这条规则作为一条有序判断链来求值，先检验 `Faster`："
+
+#~ msgid "For $0 < t < \\infty$ the three regions $(-\\infty, -t]$, $[t, \\infty)$ and $(-t, t)$ partition $\\mathbb R$ and the chain is the rule above. For other thresholds it is not, and `compare_paired` does not reject them:[^issue1]"
+#~ msgstr "对于 $0 < t < \\infty$，三个区域 $(-\\infty, -t]$、$[t, \\infty)$ 和 $(-t, t)$ 构成 $\\mathbb R$ 的一个划分，这条链就是上面的规则。对于其他阈值则不然，而 `compare_paired` 不会拒绝它们：[^issue1]"
+
+#~ msgid "$t = 0$: $r \\le -0$ holds at $r = 0$, so an exact tie is `Faster` and `Equivalent` is never returned."
+#~ msgstr "$t = 0$：$r \\le -0$ 在 $r = 0$ 时成立，因此完全持平为 `Faster`，并且永远不会返回 `Equivalent`。"
+
+#~ msgid "$t < 0$: the first test is $r \\le \\lvert t\\rvert$, so every slowdown smaller than $\\lvert t\\rvert$ percent is reported as `Faster`, and `Equivalent` is never returned."
+#~ msgstr "$t < 0$：第一个检验是 $r \\le \\lvert t\\rvert$，因此每个小于 $\\lvert t\\rvert$ 百分比的变慢都被报告为 `Faster`，并且永远不会返回 `Equivalent`。"
+
+#~ msgid "$t = \\mathrm{NaN}$: every comparison with `NaN` is false, so every pair of arrays, including a twofold slowdown, is `Equivalent`."
+#~ msgstr "$t = \\mathrm{NaN}$：与 `NaN` 的任何比较都为假，因此每对数组（包括慢了一倍的情况）都是 `Equivalent`。"
+
+#~ msgid "$t = +\\infty$: every finite $r$ is `Equivalent`."
+#~ msgstr "$t = +\\infty$：每个有限的 $r$ 都是 `Equivalent`。"
+
+#~ msgid "A `NaN` relative delta (for example from a `NaN` in the input) is also `Equivalent`. `runner.validate_protocol` rejects $t < 0$ but accepts `NaN`, and `stats` is called with any `Double`. Use a finite, positive threshold."
+#~ msgstr "`NaN` 的相对差值（例如来自输入中的 `NaN`）同样为 `Equivalent`。`runner.validate_protocol` 拒绝 $t < 0$ 但接受 `NaN`，而 `stats` 可以用任意 `Double` 调用。请使用有限的正阈值。"
+
+#~ msgid "Non-finite values are rejected only by the bootstrap functions. A `NaN` in the input of `summarize` or `compare_paired` lands at an unspecified position of the sort and can produce any decision."
+#~ msgstr "只有自助法函数会拒绝非有限值。`summarize` 或 `compare_paired` 输入中的 `NaN` 会落在排序中一个未规定的位置，可能产生任意决策。"
+
+#~ msgid "The practical threshold is not validated: `0`, negative values and `NaN` give the decisions listed under the decision rule above."
+#~ msgstr "实际阈值不会被校验：`0`、负值和 `NaN` 给出上面决策规则下列出的决策。"
+
+#~ msgid "`seeded_order` is not a uniform random permutation; ids that differ only in their last characters stay clustered."
+#~ msgstr "`seeded_order` 不是均匀随机置换；只在最后几个字符上不同的 id 会聚在一起。"
+
+#~ msgid "[!WARNING] `stats.compare_paired` and `experiment.comparator_label` do not validate the practical threshold: `0` reports an exact tie as `Faster` (`\"A\"`), and `NaN` reports every comparison as `Equivalent` (`\"Unknown\"`) ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold. The [stats API](api/stats.md) lists the exact behaviour."
+#~ msgstr "[!WARNING] `stats.compare_paired` 和 `experiment.comparator_label` 不会校验实际阈值：`0` 把完全持平报告为 `Faster`（`\"A\"`），`NaN` 把每次比较都报告为 `Equivalent`（`\"Unknown\"`）（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。请使用有限的正阈值。[stats API](api/stats.md) 列出了确切的行为。"
+
+#~ msgid "**Unsorted scales.** `crossover_from_labels` uses the order you give."
+#~ msgstr "**未排序的规模。** `crossover_from_labels` 使用你给出的顺序。"
+
+#~ msgid "**Relying on `validate_protocol` to catch `NaN`.** It rejects negative and zero values but not `NaN`; a `NaN` threshold makes every later comparison `Equivalent`."
+#~ msgstr "**指望 `validate_protocol` 捕获 `NaN`。** 它拒绝负值和零值，但不拒绝 `NaN`；`NaN` 阈值会使之后的每次比较都为 `Equivalent`。"
+
+#~ msgid "**A zero, negative or `NaN` threshold.** The threshold is not validated. With `practical_delta_pct = 0.0` an exact tie is reported as `Faster`; a negative threshold reports small slowdowns as `Faster`; `NaN` reports everything, even a twofold slowdown, as `Equivalent` ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite, positive threshold such as `2.0`."
+#~ msgstr "**为零、为负或为 `NaN` 的阈值。** 阈值不会被校验。`practical_delta_pct = 0.0` 时，完全持平被报告为 `Faster`；负阈值把小幅变慢报告为 `Faster`；`NaN` 把一切（即使慢了一倍）都报告为 `Equivalent`（[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)）。请使用有限的正阈值，例如 `2.0`。"
+
+#~ msgid "**`NaN` timings.** `compare_paired` does not reject them and can return any decision; the bootstrap functions return `NonFiniteSample`."
+#~ msgstr "**`NaN` 计时值。** `compare_paired` 不会拒绝它们，可能返回任意决策；自助法函数会返回 `NonFiniteSample`。"
+
+#~ msgid "Put the varying part of an id first. The hash behind `seeded_order` mixes the last characters of an id poorly, so ids that differ only at the end stay together:"
+#~ msgstr "把 id 的变化部分放在前面。`seeded_order` 背后的哈希对 id 最后几个字符的混合很差，因此只在末尾不同的 id 会待在一起："
+
+#~ msgid "With these ids the first ten are `candidate-90` to `candidate-99`, which is not a random subset. The [tune API](../api/tune.md) explains why."
+#~ msgstr "对于这些 id，前十个是 `candidate-90` 到 `candidate-99`，这并不是随机子集。[tune API](../api/tune.md) 解释了原因。"
+
+#~ msgid "**Ids that differ only at the end.** `seeded_order` keeps them clustered; put the varying part first."
+#~ msgstr "**只在末尾不同的 id。** `seeded_order` 会让它们聚在一起；请把变化部分放在前面。"
 
 #~ msgid "Run it from a checkout with `moon run src/cli --target native -- <arguments>`."
 #~ msgstr "在检出的仓库中用 `moon run src/cli --target native -- <arguments>` 运行。"
@@ -7057,9 +7172,6 @@ msgstr "`cli`：参数解析、帮助文本、重放信息提取。native 的 `m
 
 #~ msgid "$\\hat G$ is a step function on the data points (on midpoints of adjacent order statistics when $n$ is even). The interval endpoints therefore land on, or between, observed deltas, and with few blocks they move in coarse steps."
 #~ msgstr "$\\hat G$ 是定义在数据点上的阶梯函数（当 $n$ 为偶数时，定义在相邻顺序统计量的中点上）。因此区间端点会落在观测到的差值上或其之间，并且在区组较少时以粗糙的步长移动。"
-
-#~ msgid "Non-finite values are rejected only by the bootstrap functions."
-#~ msgstr "只有自助法函数会拒绝非有限值。"
 
 #~ msgid "`seeded_order` sorts candidates by a seeded 64-bit FNV-1a hash of their ids, which acts as a pseudo-random permutation. Take its first $B$ candidates. If the ids are unrelated to quality, every candidate is equally likely to land in the prefix, and the probability that the prefix contains at least one candidate from the best fraction $q$ of the space is"
 #~ msgstr "`seeded_order` 按候选 id 的带种子 64 位 FNV-1a 哈希对候选排序，其作用相当于一个伪随机置换。取它的前 $B$ 个候选。如果 id 与质量无关，每个候选落入该前缀的可能性都相同，前缀中至少包含一个来自空间中最好的 $q$ 比例的候选的概率为"
