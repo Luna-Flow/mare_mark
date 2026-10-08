@@ -89,3 +89,16 @@ test "crossover classifies inconclusive, stable, and found domains" {
   assert_true(@experiment.comparator_label(6.0, 5.0) == "B")
   assert_true(@experiment.comparator_label(1.0, 5.0) == "Unknown")
 }
+
+///|
+test "comparator_label leaves ties and unusable thresholds unlabelled" {
+  let nan = 0.0 / 0.0
+  let inf = 1.0 / 0.0
+  assert_true(@experiment.comparator_label(0.0, 0.0) == "Unknown")
+  assert_true(@experiment.comparator_label(-1.0, 0.0) == "A")
+  assert_true(@experiment.comparator_label(1.0, 0.0) == "B")
+  assert_true(@experiment.comparator_label(-50.0, nan) == "Unknown")
+  assert_true(@experiment.comparator_label(-50.0, inf) == "Unknown")
+  assert_true(@experiment.comparator_label(3.0, -5.0) == "Unknown")
+  assert_true(@experiment.comparator_label(nan, 5.0) == "Unknown")
+}

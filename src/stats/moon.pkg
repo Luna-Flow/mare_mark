@@ -1,5 +1,6 @@
 import {
   "Luna-Flow/mare_mark/model",
+  "moonbitlang/core/double",
 }
 
 import {

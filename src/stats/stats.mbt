@@ -74,6 +74,9 @@ fn quantile(sorted : Array[Double], fraction : Double) -> Double {
 }
 
 ///|
+/// Descriptive statistics of `values`. An empty array gives `count == 0` and
+/// zeros. A `NaN` anywhere in the input propagates: every statistic except
+/// `count` is then `NaN`, independent of where the `NaN` sits.
 pub fn summarize(values : Array[Double]) -> SummaryStats {
   if values.is_empty() {
     {
@@ -87,6 +90,20 @@ pub fn summarize(values : Array[Double]) -> SummaryStats {
       q3: 0.0,
       iqr: 0.0,
       std_dev: 0.0,
+    }
+  } else if values.iter().any(value => value.is_nan()) {
+    let nan = @double.not_a_number
+    {
+      count: values.length(),
+      min: nan,
+      max: nan,
+      mean: nan,
+      median: nan,
+      mad: nan,
+      q1: nan,
+      q3: nan,
+      iqr: nan,
+      std_dev: nan,
     }
   } else {
     let sorted = values.copy()
@@ -133,6 +150,31 @@ pub fn paired_deltas(
 }
 
 ///|
+/// A practical threshold is usable when it is finite and non-negative.
+fn valid_threshold(practical_delta_pct : Double) -> Bool {
+  !practical_delta_pct.is_nan() &&
+  !practical_delta_pct.is_inf() &&
+  practical_delta_pct >= 0.0
+}
+
+///|
+/// Classifies a relative delta against a practical threshold. An exact tie is
+/// never `Faster` or `Slower`, whatever the threshold.
+fn classify(
+  relative_delta_pct : Double,
+  practical_delta_pct : Double,
+) -> Decision {
+  if relative_delta_pct < 0.0 && relative_delta_pct <= -practical_delta_pct {
+    Faster
+  } else if relative_delta_pct > 0.0 &&
+    relative_delta_pct >= practical_delta_pct {
+    Slower
+  } else {
+    Equivalent
+  }
+}
+
+///|
 pub fn compare_paired(
   baseline_id : String,
   candidate_id : String,
@@ -158,12 +200,10 @@ pub fn compare_paired(
     Invalid
   } else if deltas.is_empty() {
     Unknown
-  } else if relative_delta_pct <= -practical_delta_pct {
-    Faster
-  } else if relative_delta_pct >= practical_delta_pct {
-    Slower
+  } else if !valid_threshold(practical_delta_pct) || relative_delta_pct.is_nan() {
+    Invalid
   } else {
-    Equivalent
+    classify(relative_delta_pct, practical_delta_pct)
   }
   {
     baseline_id,
@@ -281,13 +321,13 @@ pub fn filter_outliers(
   match policy {
     @model.OutlierPolicy::ReportOnly => values.copy()
     @model.OutlierPolicy::TukeyFence => {
-      let stats = summarize(values)
+      let stats = summarize(values.filter(value => !value.is_nan()))
       let lower = stats.q1 - 1.5 * stats.iqr
       let upper = stats.q3 + 1.5 * stats.iqr
       values.filter(value => value >= lower && value <= upper)
     }
     @model.OutlierPolicy::MADTrim => {
-      let stats = summarize(values)
+      let stats = summarize(values.filter(value => !value.is_nan()))
       let threshold = 3.0 * stats.mad
       values.filter(value => (value - stats.median).abs() <= threshold)
     }

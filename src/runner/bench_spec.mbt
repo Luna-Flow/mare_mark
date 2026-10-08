@@ -26,6 +26,11 @@ pub struct ValidatedProtocol {
 }
 
 ///|
+fn finite(value : Double) -> Bool {
+  !value.is_nan() && !value.is_inf()
+}
+
+///|
 pub fn validate_protocol(
   protocol : @model.RunProtocol,
 ) -> Result[ValidatedProtocol, Array[ProtocolConfigError]] {
@@ -34,7 +39,7 @@ pub fn validate_protocol(
     errors.push(InvalidInteger("warmup_iterations", protocol.warmup_iterations))
   }
   match protocol.warmup_time_us {
-    Some(value) if value < 0.0 =>
+    Some(value) if !finite(value) || value < 0.0 =>
       errors.push(InvalidDuration("warmup_time_us", value))
     _ => ()
   }
@@ -49,12 +54,14 @@ pub fn validate_protocol(
     )
   }
   let calibration = protocol.calibration
-  if calibration.target_batch_time_us <= 0.0 {
+  if !finite(calibration.target_batch_time_us) ||
+    calibration.target_batch_time_us <= 0.0 {
     errors.push(
       InvalidDuration("target_batch_time_us", calibration.target_batch_time_us),
     )
   }
-  if calibration.max_sample_time_us <= 0.0 {
+  if !finite(calibration.max_sample_time_us) ||
+    calibration.max_sample_time_us <= 0.0 {
     errors.push(
       InvalidDuration("max_sample_time_us", calibration.max_sample_time_us),
     )
@@ -73,7 +80,7 @@ pub fn validate_protocol(
       ),
     )
   }
-  if protocol.practical_delta_pct < 0.0 {
+  if !finite(protocol.practical_delta_pct) || protocol.practical_delta_pct < 0.0 {
     errors.push(InvalidPracticalDelta(protocol.practical_delta_pct))
   }
   if errors.is_empty() {

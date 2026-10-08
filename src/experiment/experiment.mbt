@@ -230,13 +230,24 @@ pub fn[Scale] crossover_from_labels(
 }
 
 ///|
+/// Labels a relative delta of A against B: `"A"` when A is at least the
+/// threshold faster, `"B"` when it is at least the threshold slower, and
+/// `"Unknown"` otherwise. An exact tie, a `NaN` delta, and a threshold that is
+/// not finite and non-negative are all `"Unknown"`.
 pub fn comparator_label(
   relative_delta_pct : Double,
   practical_delta_pct : Double,
 ) -> String {
-  if relative_delta_pct <= -practical_delta_pct {
+  if relative_delta_pct.is_nan() ||
+    practical_delta_pct.is_nan() ||
+    practical_delta_pct.is_inf() ||
+    practical_delta_pct < 0.0 {
+    "Unknown"
+  } else if relative_delta_pct < 0.0 &&
+    relative_delta_pct <= -practical_delta_pct {
     "A"
-  } else if relative_delta_pct >= practical_delta_pct {
+  } else if relative_delta_pct > 0.0 &&
+    relative_delta_pct >= practical_delta_pct {
     "B"
   } else {
     "Unknown"

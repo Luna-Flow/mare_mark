@@ -711,3 +711,56 @@ async test "execution outcomes are counted without becoming validation failures"
   assert_eq(summary.failed_count, 0)
   assert_true(memory.failures.is_empty())
 }
+
+///|
+test "protocol validation rejects non-finite durations and thresholds" {
+  let nan = 0.0 / 0.0
+  let inf = 1.0 / 0.0
+  let raw = @model.RunProtocol::new(
+    @model.ExperimentDesign::FixedDatasetRepeatedMeasurements,
+    1,
+    Some(nan),
+    @model.CalibrationProtocol::new(
+      nan,
+      1,
+      10,
+      inf,
+      @model.BatchPolicy::PerImplementation,
+    ),
+    nan,
+    @model.OrderPolicy::FixedOrder,
+    @model.OutlierPolicy::ReportOnly,
+    @model.ValidationCoverage::ConfirmatoryOnly,
+    0,
+    3,
+  )
+  guard validate_protocol(raw) is Err(errors) else {
+    @test.fail("expected protocol errors")
+  }
+  @test.assert_eq(errors.length(), 4)
+  assert_true(errors[0] is InvalidDuration("warmup_time_us", _))
+  assert_true(errors[1] is InvalidDuration("target_batch_time_us", _))
+  assert_true(errors[2] is InvalidDuration("max_sample_time_us", _))
+  assert_true(errors[3] is InvalidPracticalDelta(_))
+  let infinite_threshold = @model.RunProtocol::new(
+    @model.ExperimentDesign::FixedDatasetRepeatedMeasurements,
+    1,
+    None,
+    @model.CalibrationProtocol::new(
+      1000.0,
+      1,
+      10,
+      100000.0,
+      @model.BatchPolicy::PerImplementation,
+    ),
+    inf,
+    @model.OrderPolicy::FixedOrder,
+    @model.OutlierPolicy::ReportOnly,
+    @model.ValidationCoverage::ConfirmatoryOnly,
+    0,
+    3,
+  )
+  assert_true(
+    validate_protocol(infinite_threshold) is Err([InvalidPracticalDelta(_)]),
+  )
+}

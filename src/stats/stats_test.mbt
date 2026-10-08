@@ -177,3 +177,93 @@ test "outlier policies keep raw values isolated" {
   )
   assert_true(values == [1.0, 1.0, 1.0, 100.0])
 }
+
+///|
+fn compare_constant(
+  baseline : Double,
+  candidate : Double,
+  practical_delta_pct : Double,
+) -> @stats.Comparison {
+  @stats.compare_paired(
+    "baseline",
+    "candidate",
+    [baseline, baseline, baseline],
+    [candidate, candidate, candidate],
+    practical_delta_pct,
+    @model.confirmatory_interval(),
+  )
+}
+
+///|
+test "an exact tie is equivalent for every valid threshold" {
+  assert_true(compare_constant(10.0, 10.0, 0.0).decision is Equivalent)
+  assert_true(compare_constant(10.0, 10.0, 2.0).decision is Equivalent)
+  assert_true(compare_constant(10.0, 9.0, 0.0).decision is Faster)
+  assert_true(compare_constant(10.0, 11.0, 0.0).decision is Slower)
+}
+
+///|
+test "thresholds that are not finite and non-negative are invalid" {
+  let nan = 0.0 / 0.0
+  let inf = 1.0 / 0.0
+  assert_true(compare_constant(10.0, 20.0, nan).decision is Invalid)
+  assert_true(compare_constant(10.0, 20.0, inf).decision is Invalid)
+  assert_true(compare_constant(100.0, 103.0, -5.0).decision is Invalid)
+  let boot = @stats.compare_paired_with_bootstrap(
+    "baseline",
+    "candidate",
+    [10.0, 10.0, 10.0],
+    [20.0, 20.0, 20.0],
+    nan,
+    @model.confirmatory_interval(),
+    1UL,
+    100,
+    95.0,
+  )
+  assert_true(boot is Ok({ decision: Invalid, .. }))
+}
+
+///|
+test "NaN propagates through summarize independent of its position" {
+  let nan = 0.0 / 0.0
+  for values in [[3.0, nan, 1.0, 2.0], [nan, 3.0, 1.0, 2.0], [1.0, 2.0, nan]] {
+    let summary = @stats.summarize(values)
+    @test.assert_eq(summary.count, values.length())
+    assert_true(summary.min.is_nan())
+    assert_true(summary.max.is_nan())
+    assert_true(summary.median.is_nan())
+    assert_true(summary.q1.is_nan())
+    assert_true(summary.q3.is_nan())
+    assert_true(summary.mad.is_nan())
+    assert_true(summary.mean.is_nan())
+  }
+}
+
+///|
+test "NaN timings make a paired comparison invalid" {
+  let nan = 0.0 / 0.0
+  let comparison = @stats.compare_paired(
+    "baseline",
+    "candidate",
+    [1.0, 2.0, 3.0],
+    [nan, 2.0, 1.0],
+    2.0,
+    @model.confirmatory_interval(),
+  )
+  assert_true(comparison.relative_delta_pct.is_nan())
+  assert_true(comparison.decision is Invalid)
+}
+
+///|
+test "outlier filters drop NaN and fence the remaining values" {
+  let nan = 0.0 / 0.0
+  let values = [10.0, nan, 11.0, 10.0, 12.0, 11.0, 48.0]
+  @test.assert_eq(
+    @stats.filter_outliers(values, @model.OutlierPolicy::TukeyFence),
+    [10.0, 11.0, 10.0, 12.0, 11.0],
+  )
+  @test.assert_eq(
+    @stats.filter_outliers(values, @model.OutlierPolicy::MADTrim),
+    [10.0, 11.0, 10.0, 12.0, 11.0],
+  )
+}
