@@ -104,13 +104,6 @@ an API page, a tutorial and a design page for every package, plus
 [architecture](doc/manual/architecture.md) and
 [verification](doc/manual/verification.md).
 
-Known limitations are documented where they apply. In particular,
-`stats.compare_paired` and `experiment.comparator_label` do not validate the
-practical threshold: `0` reports an exact tie as faster and `NaN` reports every
-comparison as equivalent
-([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)); use a finite,
-positive threshold.
-
 ## Contributing
 
 Run `moon fmt`, `moon info`, `moon check --target all`, and

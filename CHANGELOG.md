@@ -30,11 +30,10 @@ All notable changes to mare_mark are documented in this file.
   coverage of the percentile bootstrap interval for small samples (87.5 % for
   a nominal 95 % with seven pairs), corrects the coverage-error orders and the
   support of the resampled median for even samples, and documents the
-  threshold edge cases of `compare_paired` and `comparator_label` (`0`,
-  negative, `NaN`; issue #1). The tune pages document that `seeded_order`
-  clusters ids that differ only at the end, that the `exhaustive_scores`
-  policy is the raw minimum, and that ids are compared with MoonBit's
-  length-first `String` order. Smaller corrections in the runner (calibration
+  threshold rule of `compare_paired` and `comparator_label`. The tune pages
+  document that the `exhaustive_scores` policy is the raw minimum (#12) and
+  that ids are compared with MoonBit's length-first `String` order. The pages
+  describe the fixed behaviour listed below. Smaller corrections in the runner (calibration
   gap identity, `NaN` protocol values), generator, event and report designs.
 
 ### Fixed
