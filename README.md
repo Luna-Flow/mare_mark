@@ -1,34 +1,14 @@
-# MARE MARK
+# mare_mark
 
-Reproducible benchmarking, statistical comparison, tuning, and self-contained
-reports for MoonBit payloads.
+Reproducible benchmarking, statistical comparison, tuning and self-contained
+reports for MoonBit.
 
-`mare_mark` is an experiment harness, not a stopwatch wrapper. It keeps the
-input generator, fixture lifecycle, validation oracle, timing protocol,
-statistics, event schema, and report projection as explicit boundaries so a
-performance result can be replayed and audited.
-
-## 60-Second Tour
-
-```sh
-# Run the checked-in report fixture.
-moon run src/cli --target native -- report \
-  testdata/report/sample.jsonl report.html
-
-# Inspect a captured validation failure without executing it.
-moon run src/cli --target native -- replay \
-  testdata/replay/sample.jsonl --dry-run
-
-# Run the project checks.
-moon test --target native
-moon test --target js
-moon fmt
-```
-
-The report command produces a self-contained HTML file with inline SVG and CSS;
-it does not require a server or a network connection. `replay --dry-run` is the
-safe first step for a captured worker command. Executing a replay requires the
-native target and an explicit `--yes`.
+`mare_mark` is an experiment harness, not a stopwatch wrapper. It validates
+every implementation against an oracle before timing it, measures in
+calibrated batches with a balanced, seeded order, keeps every raw observation
+in an append-only JSONL record, decides with paired robust statistics and a
+seeded bootstrap, and renders reports that need no server. A result can be
+replayed, re-analysed and audited from its record.
 
 ## Installation
 
@@ -36,143 +16,103 @@ native target and an explicit `--yes`.
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-## Choose The Right Boundary
+Requires MoonBit with `moonc` 0.10 or later.
 
-| Need | Start here | Why |
-| --- | --- | --- |
-| Describe scales, inputs, outcomes, and protocol | [`model`](./doc/manual/package_reference.md#model) | Shared versioned vocabulary and event payloads |
-| Generate deterministic inputs | [`generator`](./doc/manual/package_reference.md#generator) | Seed derivation and stable fingerprints |
-| Clone, prepare, reset, and time setup | [`fixture`](./doc/manual/package_reference.md#fixture) | Lifecycle and setup-timing policy |
-| Compare implementations | [`runner`](./doc/manual/package_reference.md#runner) | Validation-before-timing, calibration, balanced blocks |
-| Build reference or relational checks | [`experiment`](./doc/manual/package_reference.md#experiment) | Oracles, shrinkers, and crossover decisions |
-| Store or stream JSONL events | [`event`](./doc/manual/package_reference.md#event) | In-memory, JSONL, and tee sinks |
-| Summarize paired measurements | [`stats`](./doc/manual/package_reference.md#stats) | Median deltas and deterministic bootstrap intervals |
-| Render artifacts | [`report`](./doc/manual/package_reference.md#report) | JSONL -> Plot IR -> SVG/HTML |
-| Search candidate configurations | [`tune`](./doc/manual/package_reference.md#tune) | Budgets, holdouts, scores, and Pareto fronts |
-| Tune the built-in GEMM example | [`tune_gemm`](./doc/manual/package_reference.md#tune_gemm) | Correctness, layouts, packing, workspace, and timing scope |
-| Use files from a shell | [`cli`](./doc/manual/package_reference.md#cli) | `report` and guarded `replay` commands |
+## Example
 
-The short path is `runner` + `generator` + `fixture` + `event`; add `stats`
-when making a decision and `report` when publishing an artifact. `tune` and
-`tune_gemm` are policy/data-model packages; they do not silently choose a
-microkernel or benchmark environment for an application.
-
-## Minimal Workflow
-
-```moonbit nocheck
+```text
 import {
-  "Luna-Flow/mare_mark/event"
-  "Luna-Flow/mare_mark/generator"
-  "Luna-Flow/mare_mark/model"
-  "Luna-Flow/mare_mark/report"
-  "Luna-Flow/mare_mark/runner"
-  "Luna-Flow/mare_mark/stats"
+  "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/event",
+  "Luna-Flow/mare_mark/runner",
+  "Luna-Flow/mare_mark/report",
+  "moonbitlang/async",
 }
-
-let scales = [1, 2, 4]
-let baseline = @runner.Implementation::stateless(
-  "baseline", "1", input => @model.OperationResult::completed(sum(input), ()),
-)
-let candidate = @runner.Implementation::stateless(
-  "candidate", "1", input => @model.OperationResult::completed(sum_fast(input), ()),
-)
-let plan = @runner.single_step("vector-add", scales)
-  .with_immutable_input(
-    ctx => make_input(ctx.dataset_key.scale),
-    input => fingerprint(input),
-  )
-  .compare([baseline, candidate])
-  .against_equal(reference, (expected, actual) => expected == actual)
-  .compile()
-  .unwrap()
-let jsonl_sink = @event.JsonlSink::new()
-let context = @runner.RunContext::new(environment, jsonl_sink.as_sink(), 42UL,
-  @runner.ProtocolPreset::Development.validated())
-let summary = @runner.run(plan, context)
-let comparison = @stats.compare_paired(
-  "baseline", "candidate", baseline_times, candidate_times,
-  1.0, @model.confirmatory_interval(),
-)
-let document = @report.document_from_jsonl(
-  jsonl_sink.to_jsonl(), target="native",
-).unwrap()
-let html = @report.html(document)
 ```
 
-The important ordering is:
+```moonbit
+async test "loop versus closed form" {
+  let looped = @runner.Implementation::stateless("loop", "1", (n : Int) => {
+    let mut total = 0
+    for i in 0..<n {
+      total += i
+    }
+    @model.OperationResult::completed(total, ())
+  })
+  let formula = @runner.Implementation::stateless("formula", "1", (n : Int) => {
+    @model.OperationResult::completed(n * (n - 1) / 2, ())
+  })
+  let plan = @runner.single_step("triangle", [1000, 100000])
+    .with_immutable_input(context => context.dataset_key.scale, n => n.to_string())
+    .compare([looped, formula])
+    .against_equal(n => n * (n - 1) / 2, (expected, actual) => expected == actual)
+    .compile()
+    .unwrap()
+  let record = @event.JsonlSink::new()
+  let environment = @model.EnvironmentSnapshot::new(
+    @model.SemanticEnvironment::new(@model.ExecutionTarget::Native, "moonc 0.10", "release", "i32"),
+    @model.PerformanceEnvironment::new("native", "my-cpu", "default", 1, "monotonic"),
+    @model.ProvenanceEnvironment::new("my-os", "my-host", "2026-10-08T12:00:00Z", "HEAD", "readme"),
+  )
+  let summary = @runner.run(
+    plan,
+    @runner.RunContext::new(environment, record.as_sink(), 42UL, @runner.ProtocolPreset::QuickCheck.validated()),
+  )
+  inspect(summary.passed_count, content="4")
+  let html = @report.html(@report.document_from_jsonl(record.to_jsonl(), target="native").unwrap())
+  inspect(html.has_prefix("<!doctype html>"), content="true")
+}
+```
 
-1. Build and validate an immutable plan.
-2. Generate and fingerprint inputs from a seed-derived context.
-3. Run oracle validation before timed blocks.
-4. Emit raw observations and failure artifacts.
-5. Compute summaries from preserved paired arrays.
-6. Project the event stream into Plot IR and HTML.
-
-## Measurement Contract
-
-- `mmkp_1` identifies the protocol vocabulary, `mmka_1` replayable artifacts,
-  and `mmks_1` Plot/JSON schema. Unknown versions must be rejected by readers.
-- Input generation is keyed by suite, case, dataset, generator id/version, and
-  seed. `generator.stable_fingerprint` is for provenance, not cryptographic
-  security.
-- Timed regions contain payload execution and output folding. Validation,
-  calibration, fixture materialization, final sink conversion, report
-  rendering, and file IO stay outside the timed closure unless a fixture's
-  explicit `SetupPolicy` says otherwise.
-- `BalancedBlocks(seed)` rotates implementation order by block id. Keep raw
-  observations; use `stats.filter_outliers` only on an analysis view.
-- Native and JS elapsed times are different populations. Compare them only as
-  separately labelled runs with compatible environment snapshots.
-
-## Event And Report Contract
-
-The event stream is JSONL: one object per line. Observation rows carry the
-`case`, `implementation`, `dataset_id`, `elapsed_us`, and `iterations` needed
-for scaling plots. Validation failures additionally carry the minimized input,
-fingerprint, command, arguments, timeout, and shrink path needed by replay.
-Summary rows close a run and provide the run id used by Plot IR.
-
-`report.document_from_jsonl` ignores calibration and validation rows for the
-default scaling projection, but retains validation failures and corpus counters
-in the differential section. Invalid observations and discarded batches are
-excluded from plotted series rather than silently treated as zero.
-
-## Documentation Map
-
-The manual is published at <https://luna-flow.github.io/en/mare_mark/>, with
-Chinese and Japanese translations. Its English source lives in
-[`doc/manual/`](./doc/manual/index.md).
-
-- [Getting started](./doc/manual/getting_started.md)
-- [Architecture and timing boundaries](./doc/manual/architecture.md)
-- [Package reference](./doc/manual/package_reference.md)
-- [Verification and evidence](./doc/manual/verification.md)
-- [Report fixture](./testdata/report/sample.jsonl)
-- [Replay fixture](./testdata/replay/sample.jsonl)
-
-## Development
+Both implementations are validated on both scales before timing; the JSONL
+record holds every observation, and `@stats.compare_paired` turns the paired
+confirmatory blocks into a decision. The command-line tool renders records and
+replays failures:
 
 ```sh
-moon test --target native
-moon test --target js
-moon check --target native
-moon check --target js
-moon fmt
-moon info
+moon run src/cli --target native -- report testdata/report/sample.jsonl report.html
+moon run src/cli --target native -- replay testdata/replay/sample.jsonl --dry-run
 ```
 
-The repository keeps application code under `src/`, documentation under
-`doc/manual/`, and checked-in smoke inputs under `testdata/`. Generated
-`pkg.generated.mbti` files are the authoritative public interface snapshots;
-update prose when a public boundary changes, but do not edit generated files.
+## Packages
 
-## Versioning And Scope
+| Package | Role |
+| --- | --- |
+| [`model`](doc/manual/api/model.md) | shared vocabulary: versions, protocols, environments, outcomes, events, decisions |
+| [`generator`](doc/manual/api/generator.md) | seed derivation and input fingerprints |
+| [`fixture`](doc/manual/api/fixture.md) | input lifecycle and setup timing |
+| [`experiment`](doc/manual/api/experiment.md) | oracles, shrinking, crossover analysis |
+| [`runner`](doc/manual/api/runner.md) | validation, warmup, calibration, balanced blocks, raw events |
+| [`event`](doc/manual/api/event.md) | sinks and the JSONL record |
+| [`ir_sink`](doc/manual/api/ir_sink.md) | short constructors for the common sinks |
+| [`stats`](doc/manual/api/stats.md) | summaries, paired comparisons, bootstrap intervals, outlier views |
+| [`ir_model`](doc/manual/api/ir_model.md) | Plot IR |
+| [`report`](doc/manual/api/report.md) | JSONL to JSON, SVG and self-contained HTML |
+| [`tune`](doc/manual/api/tune.md) | tuning policy: scores, practical ties, Pareto fronts, seeded subsets |
+| [`tune_gemm`](doc/manual/api/tune_gemm.md) | worked tuning domain: blocked matrix multiplication |
+| [`cli`](doc/manual/api/cli.md) | the `mare-mark` executable: `report` and guarded `replay` |
 
-The current module version is `0.3.0`. The project is pre-1.0: the `model`,
-`runner`, `event`, `stats`, `report`, and `tune` boundaries are intentional for
-this release, while algorithm thresholds, renderer styling details, and private
-implementation layouts are not compatibility promises.
+All packages build on every target. `runner.run` is asynchronous and runs on
+native, JS and wasm; subprocess workers and `replay` need native.
+
+## Documentation
+
+The manual is published at <https://lunaflow.cn/en/mare_mark/> in English,
+Chinese and Japanese. Its source is [`doc/manual/index.md`](doc/manual/index.md):
+an API page, a tutorial and a design page for every package, plus
+[getting started](doc/manual/getting_started.md),
+[architecture](doc/manual/architecture.md) and
+[verification](doc/manual/verification.md).
+
+## Contributing
+
+Run `moon fmt`, `moon info`, `moon check --target all`, and
+`moon test --target native` and `--target js` before a pull request; the
+[verification guide](doc/manual/verification.md) lists the full matrix and the
+smoke tests. Use Conventional Commits. `pkg.generated.mbti` files are generated:
+update them with `moon info`, never by hand, and update the API pages when they
+change. Agent-specific notes are in [AGENTS.md](AGENTS.md).
 
 ## License
 
-Apache-2.0. See [LICENSE](./LICENSE).
+Apache-2.0. See [LICENSE](LICENSE).

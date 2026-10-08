@@ -2,6 +2,27 @@
 
 All notable changes to mare_mark are documented in this file.
 
+## Unreleased
+
+- Migrate to MoonBit 0.10 (`moonc` 0.10 or later is now required).
+- Bump `moonbitlang/x` to 0.5.5 and `moonbitlang/async` to 0.22.4.
+- Declare the `cli` package with `pkgtype(kind: "executable")` instead of the
+  legacy `is-main` option.
+- Remove unused package imports (`moonbitlang/async/io`, `moonbitlang/core/json`,
+  `moonbitlang/core/string`, `moonbitlang/core/test` where unused), and scope
+  `-unused_package` to `cli` and `runner`, whose native-only files use imports
+  that are unused on other targets.
+- Replace the ambiguous `{}` map literal in `BenchSpec::compile` with
+  `Map([])`; reformat sources with the 0.10 formatter. No public API change.
+- Qualify package names in blackbox tests (`@experiment.`, `@stats.`,
+  `@tune.`, `@tune_gemm.`).
+- Documentation rewritten: an API page, a tutorial and a design page for every
+  package (13 packages), with derivations of the statistics, the experimental
+  design, calibration, seed derivation and the tuning policy, a Typst
+  attachment on the percentile bootstrap, and compiled examples. The former
+  package reference is folded into the package pages. Chinese and Japanese
+  translations are complete.
+
 ## 0.3.0 - 2026-07-15
 
 - Add deterministic percentile bootstrap intervals for paired measurements,
