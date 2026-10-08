@@ -9,6 +9,16 @@ threshold, and an interval whose randomness is pinned by a seed. Every function
 is a pure transformation of arrays, so a decision can be recomputed from the
 raw observations kept in the event stream.
 
+## Constraints
+
+- Timings are skewed and heavy-tailed, with a hard lower bound and rare large
+  outliers.
+- A benchmark has few blocks, often fewer than ten pairs per comparison.
+- Every result must be recomputable from the raw observations and identical on
+  every target.
+- The functions take flat arrays; pairing and phase selection happen before
+  they are called.
+
 ## Mathematical background
 
 ### Order statistics and the sample quantile
@@ -35,6 +45,11 @@ Three properties follow directly from the formula and are used below.
    commutes with the map and convex combinations commute with affine maps, so
    $Q_y(p) = a + b\,Q_x(p)$. Rescaling timings from µs to ns rescales every
    quantile, median, IQR and MAD by the same factor.
+
+When $h$ is an integer the second term vanishes, so $x_{(\lfloor h\rfloor+2)}$ is
+never read past the end of the sample (at $p = 1$, $h = n-1$). For an empty
+sample the implementation returns $0$ instead of a quantile; `summarize` makes
+that visible through `count == 0`.
 
 For $p = 1/2$ the formula gives the usual median: $x_{(m+1)}$ for $n = 2m+1$, and
 $\tfrac12(x_{(m)} + x_{(m+1)})$ for $n = 2m$.
@@ -97,8 +112,10 @@ $$
 whereas a difference taken across blocks $i \ne j$ has variance
 $\sigma_\varepsilon^2 + \sigma_\eta^2 + 2\sigma_\beta^2$. When drift between
 blocks dominates the noise inside a block, pairing removes most of the
-variance. `compare_paired` therefore summarizes the deltas $d_i$, never the two
-samples separately.
+variance. `compare_paired` therefore takes the location of the deltas,
+$\operatorname{med}(d)$, and never the difference
+$\operatorname{med}(c) - \operatorname{med}(b)$ of two separate locations; the
+baseline median enters only as the scale of the relative delta.
 
 ### The percentile bootstrap
 
@@ -129,12 +146,21 @@ $$
 \end{aligned}
 $$
 
-using $H^{-1}(q) = -H^{-1}(1-q)$. The coverage is
+using $H^{-1}(q) = -H^{-1}(1-q)$. For a continuous $H$ the coverage is
 $P\bigl(H^{-1}(\alpha/2) \le W \le H^{-1}(1-\alpha/2)\bigr) = 1-\alpha$. The
 interval never needs to know $\varphi$, which is why it is
-transformation-respecting.[^et] In general the condition holds only
-approximately, and the coverage error of the percentile interval is of order
-$n^{-1/2}$.
+transformation-respecting.[^et]
+
+In general the condition holds only approximately. For smooth statistics
+(means and smooth functions of means) Edgeworth expansions give the size of
+the error: each one-sided percentile bound misses its nominal tail probability
+by $O(n^{-1/2})$, and in the two-sided equal-tailed interval these leading
+terms cancel, leaving a coverage error of $O(n^{-1})$.[^hall] The median is not
+a smooth statistic: its bootstrap distribution is discrete (derived next), the
+expansions do not apply, and for the small $n$ of a benchmark the error is
+dominated by that discreteness.
+
+[^hall]: P. Hall, *The Bootstrap and Edgeworth Expansion*, Springer, 1992, §3.5. BCa and the bootstrap-$t$ reduce the one-sided error to $O(n^{-1})$.
 
 [^et]: B. Efron and R. J. Tibshirani, *An Introduction to the Bootstrap*, Chapman & Hall, 1993, §13.3 and §14.
 
@@ -147,11 +173,44 @@ $$
 \hat G\bigl(x_{(k)}\bigr) = \sum_{j=m+1}^{n} \binom{n}{j}\Bigl(\frac kn\Bigr)^{j}\Bigl(1-\frac kn\Bigr)^{n-j}.
 $$
 
-$\hat G$ is a step function on the data points (on midpoints of adjacent order
-statistics when $n$ is even). The interval endpoints therefore land on, or
+For odd $n$, $\hat G$ is a step function that jumps only at the data points.
+For even $n = 2m$ the resampled median is the midpoint of the $m$-th and
+$(m+1)$-th resampled order statistics, which can be any two data points, so the
+jumps sit at the midpoints $\tfrac12(x_{(j)} + x_{(k)})$ with $j \le k$, not only
+at midpoints of adjacent values. Either way the interval endpoints land on, or
 between, observed deltas, and with few blocks they move in coarse steps.
 
-The derivation of both results in full, with the discreteness bound, is in the
+**Actual coverage for small $n$.** Let the deltas be independent draws from a
+continuous distribution with median $\theta$, and $n$ odd. With many resamples
+the endpoints are order statistics, $L = d_{(i)}$ and $U = d_{(j)}$, where $i$
+is the smallest $k$ with $\hat G(d_{(k)}) \ge \alpha/2$ and $j$ the smallest
+$k$ with $\hat G(d_{(k)}) \ge 1-\alpha/2$; by the formula above, $i$ and $j$
+depend on $n$ and $\alpha$ only. The number
+$K = \lvert\{\, l : d_l \le \theta \,\}\rvert$ of deltas at or below the median is
+$\mathrm{Bin}(n, \tfrac12)$, and $d_{(i)} \le \theta \iff K \ge i$,
+$\theta < d_{(j)} \iff K \le j-1$, so
+
+$$
+P\bigl(d_{(i)} \le \theta \le d_{(j)}\bigr) = 2^{-n}\sum_{k=i}^{j-1}\binom{n}{k},
+$$
+
+for every continuous distribution. For a nominal 95 % interval:
+
+| $n$ | $[L, U]$ | actual coverage |
+| --- | --- | --- |
+| 5 | $[d_{(1)}, d_{(5)}]$ | 93.75 % |
+| 7 | $[d_{(2)}, d_{(6)}]$ | 87.5 % |
+| 9 | $[d_{(2)}, d_{(8)}]$ | 96.1 % |
+| 11 | $[d_{(3)}, d_{(9)}]$ | 93.5 % |
+| 21 | $[d_{(7)}, d_{(15)}]$ | 92.2 % |
+| 51 | $[d_{(19)}, d_{(33)}]$ | 95.1 % |
+
+The coverage oscillates around the nominal level and can fall well below it
+with a handful of blocks; it settles near 95 % only from about fifty pairs on.
+Treat the interval of a short run as a description of the spread of the
+resampled medians, not as a guarantee.
+
+The derivation of these results in full, with the discreteness bound, is in the
 attachment:
 
 [Percentile bootstrap of the median paired delta](../../attachments/design_stats_bootstrap.typ)
@@ -189,8 +248,9 @@ r = 100\,\frac{m_d}{m_b}, \qquad
 s = \frac{m_b}{m_b + m_d} = \frac{1}{1 + m_d/m_b} = \frac{1}{1 + r/100}.
 $$
 
-Both are functions of the same two medians, so they never disagree: $s$ is
-decreasing in $r$ on $r > -100$, and for a threshold $0 \le t < 100$
+Both are functions of the same two medians, so away from the guards below they
+never disagree: $s$ is decreasing in $r$ on $r > -100$, and for a threshold
+$0 \le t < 100$
 
 $$
 r \le -t \iff 1 + \frac{r}{100} \le 1 - \frac{t}{100} \iff s \ge \frac{1}{1 - t/100}.
@@ -201,8 +261,16 @@ $s \ge 1.0204$. When the candidate is a constant shift of the baseline,
 $c_i = b_i + \delta$, then $m_b + m_d = \operatorname{med}(c)$ and $s$ is the
 ratio of the medians; in general $m_b + m_d$ is a robust estimate of the typical
 candidate time built from the paired data. The guards $m_b = 0 \Rightarrow r = 0$
-and $m_d = 0 \Rightarrow s = 1$ keep degenerate input finite; $r = -100$
-($m_b + m_d = 0$) still gives an infinite speedup.
+and $m_d = 0 \Rightarrow s = 1$ keep degenerate input finite. They break the
+identity $s = 1/(1 + r/100)$ in one case: with $m_b = 0$ and $m_d \ne 0$ the
+code reports $r = 0$ but $s = 0/m_d = 0$. A baseline whose median time is $0$
+cannot be compared in relative terms; check `SummaryStats.median` first.
+$r = -100$ ($m_b + m_d = 0$, for example a candidate that always reports $0$)
+still gives an infinite speedup.
+
+When the arrays have different lengths, $m_d$ comes from the
+$\min(\lvert b\rvert, \lvert c\rvert)$ pairs but $m_b$ from the whole baseline;
+the decision is then `Invalid`, and $r$ and $s$ are not meaningful.
 
 ### A practical threshold instead of a significance test
 
@@ -220,11 +288,38 @@ $$
 checked after `Invalid` (unequal lengths) and `Unknown` (no pairs). *Why.* The
 threshold states the question the user is asking ("is it at least 2 % faster?")
 in the unit of the decision, the rule is reproducible from two medians, and it
-does not reward running more repetitions. For $t > 0$ the three regions
-partition $\mathbb R$. For $t = 0$ the first two overlap at $r = 0$, and because
-`Faster` is tested first an exact tie is reported as `Faster`; use a positive
-threshold. Uncertainty is reported next to the decision through the interval,
-not folded into it.
+does not reward running more repetitions. Uncertainty is reported next to the
+decision through the interval, not folded into it.
+
+The code evaluates the rule as an ordered chain, `Faster` first:
+
+$$
+\text{decision}(r, t) =
+\begin{cases}
+\text{Faster} & \text{if } r \le -t, \\
+\text{Slower} & \text{else if } r \ge t, \\
+\text{Equivalent} & \text{otherwise.}
+\end{cases}
+$$
+
+For $0 < t < \infty$ the three regions $(-\infty, -t]$, $[t, \infty)$ and
+$(-t, t)$ partition $\mathbb R$ and the chain is the rule above. For other
+thresholds it is not, and `compare_paired` does not reject them:[^issue1]
+
+- $t = 0$: $r \le -0$ holds at $r = 0$, so an exact tie is `Faster` and
+  `Equivalent` is never returned.
+- $t < 0$: the first test is $r \le \lvert t\rvert$, so every slowdown smaller
+  than $\lvert t\rvert$ percent is reported as `Faster`, and `Equivalent` is
+  never returned.
+- $t = \mathrm{NaN}$: every comparison with `NaN` is false, so every pair of
+  arrays, including a twofold slowdown, is `Equivalent`.
+- $t = +\infty$: every finite $r$ is `Equivalent`.
+
+A `NaN` relative delta (for example from a `NaN` in the input) is also
+`Equivalent`. `runner.validate_protocol` rejects $t < 0$ but accepts `NaN`, and
+`stats` is called with any `Double`. Use a finite, positive threshold.
+
+[^issue1]: Reported as [issue #1](https://github.com/Luna-Flow/mare_mark/issues/1). `experiment.comparator_label` uses the same chain and has the same behaviour.
 
 ### Seeded percentile bootstrap of the median delta
 
@@ -252,7 +347,10 @@ xorshift64\* does not carry over. What does carry over: each xorshift step is
 an invertible linear map over $\mathrm{GF}(2)^{64}$ (a unipotent triangular
 matrix), and multiplication by an odd constant is invertible modulo $2^{64}$, so
 one step is a permutation of the 64-bit words that fixes $0$. That is why seed
-`0` is replaced by the constant `88172645463393265`. The generator uses only
+`0` is replaced by the constant `88172645463393265`; as a consequence the seeds
+`0` and `88172645463393265` give the same stream. Because the step is a
+permutation that fixes $0$, a non-zero state never becomes $0$. The generator
+uses only
 wrapping 64-bit integer arithmetic, so the stream is identical on every target.
 
 A state $x$ is mapped to an index by $j = x \bmod n$. Writing
@@ -291,10 +389,12 @@ $$
 \end{aligned}
 $$
 
-Because the MAD is unscaled, the MAD trim is about four times more aggressive
-than the Tukey fence on normal data. It is also degenerate when more than half
-of the values coincide: the MAD is then $0$ and only values equal to the median
-survive.
+Because the MAD is unscaled, the MAD trim removes about six times as many
+points as the Tukey fence from clean normal data ($4.3\,\%$ against
+$0.70\,\%$). It is also degenerate when more than half of the values coincide:
+the MAD is then $0$ and only values equal to the median survive. Both filters
+drop `NaN` values, because every comparison with `NaN` is false, but a `NaN`
+also corrupts the quartiles they are computed from.
 
 ### Errors as values
 
@@ -332,10 +432,11 @@ sample would otherwise yield a plausible-looking interval of zeros or `NaN`.
 
 ## Alternatives rejected
 
-- **BCa and studentized bootstrap.** They reduce the coverage error to order
-  $n^{-1}$ but need a jackknife acceleration estimate or a variance estimate
-  for every resample; for the median both are unstable with the small $n$ that
-  benchmarks have. Not implemented.
+- **BCa and studentized bootstrap.** For smooth statistics they reduce the
+  one-sided coverage error from $O(n^{-1/2})$ to $O(n^{-1})$, but they need a
+  jackknife acceleration estimate or a variance estimate for every resample;
+  for the median both are unstable with the small $n$ that benchmarks have,
+  and neither removes the discreteness derived above. Not implemented.
 - **Hierarchical bootstrap.** Resampling datasets, then repetitions, matches
   `HierarchicalDatasetsAndRepeats` better, but the comparison functions take
   flat arrays. Callers can still resample per dataset themselves.
@@ -359,4 +460,12 @@ sample would otherwise yield a plausible-looking interval of zeros or `NaN`.
   blocks dependent; the interval does not model that.
 - `filter_outliers` is never applied automatically, and `OutlierPolicy` in a
   `RunProtocol` is a recorded intent, not an action.
-- Non-finite values are rejected only by the bootstrap functions.
+- Non-finite values are rejected only by the bootstrap functions. A `NaN` in
+  the input of `summarize` or `compare_paired` lands at an unspecified position
+  of the sort and can produce any decision.
+- The practical threshold is not validated: `0`, negative values and `NaN`
+  give the decisions listed under the decision rule above.
+- The bootstrap interval has no coverage guarantee for small $n$ (see the
+  coverage table). An interval with guaranteed coverage for the median is the
+  order-statistic interval $[d_{(i)}, d_{(j)}]$ with $i$ and $j$ chosen from
+  $\mathrm{Bin}(n, \tfrac12)$; it is not provided.

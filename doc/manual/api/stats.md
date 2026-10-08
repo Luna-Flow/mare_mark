@@ -1,5 +1,7 @@
 # stats API
 
+## Purpose
+
 `Luna-Flow/mare_mark/stats` turns arrays of timings into descriptive summaries,
 paired comparisons, seeded bootstrap intervals and outlier-filtered views. Every
 function is pure: it reads its arguments, allocates its result and never touches
@@ -8,12 +10,19 @@ an event stream. The mathematics behind each estimator is derived in the
 
 Source: [`src/stats/stats.mbt`](../../../src/stats/stats.mbt).
 
-```text
+## Importing
+
+Add the packages to the `moon.pkg` of the package that uses them:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/stats",
 }
 ```
+
+The examples on this page call them through their default aliases (`@model`,
+`@stats`).
 
 ## Descriptive summaries
 
@@ -190,9 +199,41 @@ the point estimate $r$ only; the interval is the interquartile range
 $[Q_d(0.25), Q_d(0.75)]$ of the deltas and is descriptive, not a confidence
 interval.
 
+The decision is the first test that holds: `Invalid` if the lengths differ,
+`Unknown` if there are no pairs, `Faster` if $r \le -t$, `Slower` if
+$r \ge t$, `Equivalent` otherwise. Other edge cases:
+
+- When the lengths differ, $r$ and `speedup` mix the median of the truncated
+  deltas with the median of the whole baseline; ignore them for `Invalid`.
+- When $\operatorname{med}(b) = 0$, $r$ is `0.0` (so the decision is
+  `Equivalent` for $t > 0$) and `speedup` is `0.0` unless
+  $\operatorname{med}(d) = 0$.
+- A `NaN` in either array is not rejected; it lands at an unspecified position
+  of the sort and can produce any decision. Filter non-finite values first.
+
 > [!WARNING]
-> With $t = 0$ an exact tie ($r = 0$) is classified as `Faster`, because the
-> test is $r \le -t$. Use a positive threshold.
+> The threshold is not validated
+> ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$
+> an exact tie is `Faster`, because $0 \le -0$. With $t < 0$ every slowdown
+> smaller than $\lvert t\rvert$ percent is `Faster`. With $t$ = `NaN` (or
+> $+\infty$) every comparison is `Equivalent`, even a twofold slowdown. Pass a
+> finite, positive threshold.
+
+```moonbit
+test "threshold edge cases" {
+  let base = [10.0, 10.0, 10.0]
+  let tie = @stats.compare_paired(
+    "base", "cand", base, base, 0.0, @model.confirmatory_interval(),
+  )
+  inspect(tie.decision is Faster, content="true")
+  let nan = 0.0 / 0.0
+  let slow = @stats.compare_paired(
+    "base", "cand", base, [20.0, 20.0, 20.0], nan, @model.confirmatory_interval(),
+  )
+  inspect(slow.relative_delta_pct, content="100")
+  inspect(slow.decision is Equivalent, content="true")
+}
+```
 
 ```moonbit
 test "paired comparison" {
@@ -268,8 +309,15 @@ count, confidence, finiteness, and the first failure is returned.
 
 The result is a function of its arguments only: the same values, seed, $B$ and
 $\gamma$ give the same bounds on every target. The bounds always satisfy
-$\min_i x_i \le$ `low` $\le$ `high` $\le \max_i x_i$. Seed `0` is replaced by a
-fixed non-zero constant. Cost: $O(B\, n \log n)$ time and $O(n + B)$ space.
+$\min_i x_i \le$ `low` $\le$ `high` $\le \max_i x_i$. Seed `0` is replaced by
+the fixed constant `88172645463393265`, so these two seeds give the same
+interval. Cost: $O(B\, n \log n + B \log B)$ time and $O(n + B)$ space.
+
+The interval is a percentile bootstrap interval, not an exact confidence
+interval. With few values its actual coverage can be well below $\gamma$: for
+seven values a nominal 95 % interval covers the true median only 87.5 % of the
+time. The [stats design](../design/stats.md) derives the coverage for small
+samples.
 
 ```moonbit
 test "bootstrap interval of a median" {
@@ -307,8 +355,10 @@ The first six arguments are those of `compare_paired`; the last three are the
 seed, the resample count and the confidence in percent. Unlike
 `compare_paired`, unequal lengths are an error (`MismatchedPairs`) and so are
 empty arrays (`EmptySamples`). `relative_delta_pct`, `speedup`, `decision` and
-`valid_samples` are the same as from `compare_paired`; only `interval` changes.
-The interval is in the unit of the input, while the decision is in percent.
+`valid_samples` are the same as from `compare_paired`; only `interval` changes,
+and it does not influence the decision. The interval is in the unit of the
+input, while the decision is in percent. The threshold is not validated here
+either: the warning under `compare_paired` applies unchanged.
 
 ```moonbit
 test "paired comparison with a bootstrap interval" {

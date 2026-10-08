@@ -6,6 +6,14 @@ interval, and a cleaned view for plots that leaves the raw data alone. The
 examples are complete tests; paste one into a package that imports the modules
 shown below and run `moon test`.
 
+| I want to | Use |
+| --- | --- |
+| describe one sample robustly | `@stats.summarize` |
+| decide whether a candidate is faster | `@stats.compare_paired` with a positive threshold |
+| add a reproducible interval | `@stats.compare_paired_with_bootstrap` or `@stats.bootstrap_interval` |
+| pair observations from a run | filter by phase and implementation, sort by block |
+| clean a plot without touching the data | `@stats.filter_outliers` |
+
 ## Quick start
 
 Add the module and import the two packages:
@@ -14,7 +22,7 @@ Add the module and import the two packages:
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/stats",
@@ -243,7 +251,8 @@ the per-scale labels to `@experiment.crossover_from_labels` to find the scale
 where the winner changes; see the [experiment tutorial](experiment.md).
 
 **Speedup from the relative delta.** `speedup` and `relative_delta_pct` are
-tied by $s = 1/(1 + r/100)$; the [design page](../design/stats.md) derives it.
+tied by $s = 1/(1 + r/100)$ whenever the baseline median is not zero; the
+[design page](../design/stats.md) derives it.
 
 ## Common pitfalls
 
@@ -251,8 +260,18 @@ tied by $s = 1/(1 + r/100)$; the [design page](../design/stats.md) derives it.
   and candidate separately destroys the pairing; sort pairs, not arrays.
 - **Mixing phases or targets.** Exploratory and confirmatory observations,
   native and JS timings are different populations. Filter before pairing.
-- **A zero threshold.** With `practical_delta_pct = 0.0` an exact tie is
-  reported as `Faster`.
+- **A zero, negative or `NaN` threshold.** The threshold is not validated. With
+  `practical_delta_pct = 0.0` an exact tie is reported as `Faster`; a negative
+  threshold reports small slowdowns as `Faster`; `NaN` reports everything,
+  even a twofold slowdown, as `Equivalent`
+  ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). Use a finite,
+  positive threshold such as `2.0`.
+- **Trusting the interval of a short run.** With a handful of blocks the
+  bootstrap interval of the median covers the true median less often than its
+  nominal level (87.5 % instead of 95 % for seven pairs); the
+  [stats design](../design/stats.md) has the table.
+- **`NaN` timings.** `compare_paired` does not reject them and can return any
+  decision; the bootstrap functions return `NonFiniteSample`.
 - **Reading `summarize([])`.** An empty sample returns zeros; check `count`.
 - **Comparing interval and threshold directly.** The interval is in the input
   unit, the threshold in percent.

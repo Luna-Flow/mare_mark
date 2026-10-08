@@ -116,11 +116,37 @@ range of the deltas.
   probability of both is $H(H^(-1)(1 - alpha \/ 2)) - H(H^(-1)(alpha \/ 2)) = 1 - alpha$.
 ]
 
-When the assumption holds only asymptotically, the coverage error of the
-two-sided percentile interval is of order $n^(-1 \/ 2)$ in general
-(Efron and Tibshirani, _An Introduction to the Bootstrap_, 1993, ch. 14). The
-discreteness of Proposition 3 adds an error that does not vanish with $B$; it
-only vanishes as $n$ grows.
+When the assumption holds only asymptotically and the statistic is smooth (a
+smooth function of means), Edgeworth expansions show that each one-sided
+percentile bound has a coverage error of order $n^(-1 \/ 2)$, while in the
+two-sided equal-tailed interval the leading terms cancel and the error is of
+order $n^(-1)$ (P. Hall, _The Bootstrap and Edgeworth Expansion_, 1992, §3.5).
+The median is not smooth: by Proposition 3 its bootstrap distribution is
+discrete, the expansions do not apply, and the discreteness adds an error that
+does not vanish with $B$. Proposition 5 computes the resulting coverage exactly.
+
+#proposition("Proposition 5 (actual coverage, odd n)")[
+  Let $d_1, dots, d_n$ be independent with a common continuous distribution
+  whose median is $theta$, and $n$ odd. Let $i$ be the smallest $k$ with
+  $hat(G)(d_((k))) >= alpha \/ 2$ and $j$ the smallest $k$ with
+  $hat(G)(d_((k))) >= 1 - alpha \/ 2$. Then
+
+  $ P(d_((i)) <= theta <= d_((j))) = 2^(-n) sum_(k = i)^(j - 1) binom(n, k). $
+]
+
+#proof[
+  By Proposition 3, $hat(G)(d_((k)))$ depends on $n$ and $k$ only, so $i$ and
+  $j$ are constants. Let $K$ be the number of $d_l <= theta$; then
+  $K ~ "Bin"(n, 1 \/ 2)$. Now $d_((i)) <= theta$ exactly when $K >= i$, and,
+  since ties with $theta$ have probability $0$, $theta <= d_((j))$ exactly when
+  $K <= j - 1$.
+]
+
+For $alpha = 0.05$ this gives $93.75$ % for $n = 5$ (interval
+$[d_((1)), d_((5))]$), $87.5$ % for $n = 7$ ($[d_((2)), d_((6))]$), $96.1$ % for
+$n = 9$, $93.5$ % for $n = 11$, $92.2$ % for $n = 21$ and $95.1$ % for $n = 51$.
+The coverage oscillates around the nominal level and approaches it only
+slowly.
 
 = Monte Carlo error
 
