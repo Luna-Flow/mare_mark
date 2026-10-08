@@ -13,8 +13,8 @@ keywords = [ "benchmark", "experiment", "statistics", "tuning", "report" ]
 description = "Reproducible benchmarking, statistical comparison, tuning, and self-contained reports for MoonBit payloads."
 
 import {
-  "moonbitlang/x@0.4.46",
-  "moonbitlang/async@0.20.1",
+  "moonbitlang/x@0.5.5",
+  "moonbitlang/async@0.22.4",
 }
 
 source = "src"
