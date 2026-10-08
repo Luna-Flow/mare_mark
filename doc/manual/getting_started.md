@@ -1,109 +1,144 @@
-# Getting Started
+# Getting started
 
-This guide takes a small case from a checked-in JSONL artifact to a typed
-benchmark plan and back to a report. For package ownership, see the
-[package reference](./package_reference.md).
+This guide takes you from an empty package to a validated benchmark, a
+statistical decision and an HTML report in one test. It then shows the
+command-line tools on the fixtures shipped with the repository.
 
-## 1. Check the toolchain
+## 1. Add the module
 
-```sh
-moon --version
-moon test --target native
-moon test --target js
-```
-
-`mare_mark` is a MoonBit module. Native is required for subprocess workers and
-replay; the pure model, stats, report, and most runner paths are also tested on
-JS.
-
-## 2. Render the fixture
+You need MoonBit with `moonc` 0.10 or later.
 
 ```sh
-moon run src/cli --target native -- report \
-  testdata/report/sample.jsonl report.html
+moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-Open `report.html` locally. The renderer emits inline SVG/CSS, so the artifact
-is portable and reviewable without a running service. To stream a report to
-stdout:
+In the `moon.pkg` of the package that holds your benchmarks:
 
-```sh
-moon run src/cli --target native -- report - - < testdata/report/sample.jsonl
+```text
+import {
+  "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/event",
+  "Luna-Flow/mare_mark/runner",
+  "Luna-Flow/mare_mark/stats",
+  "Luna-Flow/mare_mark/report",
+  "moonbitlang/async",
+}
 ```
 
-## 3. Inspect a replay artifact
+## 2. Benchmark, decide, report
 
-```sh
-moon run src/cli --target native -- replay \
-  testdata/replay/sample.jsonl --dry-run
-```
+The test below compares two ways to compute the sum of squares
+$0^2 + 1^2 + \dots + (n-1)^2$: a loop and the closed form
+$(n-1)n(2n-1)/6$.
 
-Dry-run prints the recorded command, arguments, and timeout. Only run an
-artifact you trust, and make execution explicit:
+```moonbit
+fn squares_loop(n : Int) -> Int64 {
+  let mut total = 0L
+  for i in 0..<n {
+    total += i.to_int64() * i.to_int64()
+  }
+  total
+}
 
-```sh
-moon run src/cli --target native -- replay \
-  testdata/replay/sample.jsonl --yes
-```
+fn squares_formula(n : Int) -> Int64 {
+  let m = n.to_int64()
+  (m - 1L) * m * (2L * m - 1L) / 6L
+}
 
-## 4. Define a case
-
-Use a deterministic input callback. The single-step builder creates an
-immutable fixture; advanced cases can use `Fixture::new` when cloning,
-preparation, reset, or setup timing must be explicit. Keep the payload closure
-small; validation and output conversion are runner responsibilities.
-
-```moonbit nocheck
-let baseline = @runner.Implementation::stateless(
-  "baseline", "1", input => @model.OperationResult::completed(run_a(input), ()),
-)
-let candidate = @runner.Implementation::stateless(
-  "candidate", "1", input => @model.OperationResult::completed(run_b(input), ()),
-)
-```
-
-## 5. Add an oracle and compile
-
-Reference or relational checks should be attached before timing. Compilation
-rejects empty cases, duplicate ids, missing sinks/oracles, invalid scales, and
-invalid sequence lengths.
-
-```moonbit nocheck
-let plan = @runner.single_step("vector-add", [64, 256, 1024])
-  .with_immutable_input(
-    ctx => make_input(ctx.dataset_key.scale),
-    input => @generator.stable_fingerprint(serialize(input)),
+async test "loop versus closed form" {
+  // 1. Describe the case: inputs, implementations, oracle.
+  let looped = @runner.Implementation::stateless("loop", "1", (n : Int) => {
+    @model.OperationResult::completed(squares_loop(n), ())
+  })
+  let formula = @runner.Implementation::stateless("formula", "1", (n : Int) => {
+    @model.OperationResult::completed(squares_formula(n), ())
+  })
+  let plan = @runner.single_step("sum-of-squares", [100, 10000])
+    .with_immutable_input(context => context.dataset_key.scale, n => n.to_string())
+    .compare([looped, formula])
+    .against_equal(squares_loop, (expected, actual) => expected == actual)
+    .compile()
+    .unwrap()
+  // 2. Run it with a seed, an environment and two sinks.
+  let memory = @event.InMemorySink::new()
+  let record = @event.JsonlSink::new()
+  let environment = @model.EnvironmentSnapshot::new(
+    @model.SemanticEnvironment::new(@model.ExecutionTarget::Native, "moonc 0.10", "release", "i64"),
+    @model.PerformanceEnvironment::new("native", "my-cpu", "default", 1, "monotonic"),
+    @model.ProvenanceEnvironment::new("my-os", "my-host", "2026-10-08T12:00:00Z", "HEAD", "getting-started"),
   )
-  .compare([baseline, candidate])
-  .against_equal(reference, (expected, actual) => expected == actual)
-  .compile()
-  .unwrap()
+  let summary = @runner.run(
+    plan,
+    @runner.RunContext::new(
+      environment,
+      @event.tee(memory.as_sink(), record.as_sink()),
+      42UL,
+      @runner.ProtocolPreset::Development.validated(),
+    ),
+  )
+  inspect(summary.passed_count, content="4")
+  inspect(summary.failed_count, content="0")
+  // 3. Decide on the larger dataset with paired confirmatory blocks.
+  let baseline = memory.observations
+    .filter(o => o.dataset_id == 1 && o.implementation_id == "loop" && o.phase is Confirmatory)
+    .map(o => o.raw_elapsed_us)
+  let candidate = memory.observations
+    .filter(o => o.dataset_id == 1 && o.implementation_id == "formula" && o.phase is Confirmatory)
+    .map(o => o.raw_elapsed_us)
+  let comparison = @stats.compare_paired_with_bootstrap(
+    "loop", "formula", baseline, candidate, 5.0, @model.confirmatory_interval(), 42UL, 2000, 95.0,
+  ).unwrap()
+  inspect(comparison.valid_samples, content="10")
+  // 4. Render the record.
+  let document = @report.document_from_jsonl(record.to_jsonl(), target="native").unwrap()
+  inspect(@report.html(document).has_prefix("<!doctype html>"), content="true")
+}
 ```
 
-## 6. Run, analyze, publish
+What happened:
 
-```moonbit nocheck
-let validated = @runner.ProtocolPreset::Development.validated()
-let sink = @event.JsonlSink::new()
-let context = @runner.RunContext::new(environment, sink.as_sink(), 42UL, validated)
-let run_result = @runner.run(plan, context)
-let comparison = @stats.compare_paired(
-  "baseline", "candidate", baseline_us, candidate_us,
-  1.0, @model.confirmatory_interval(),
-)
-let document = @report.document_from_jsonl(sink.to_jsonl(), target="native")
-  .unwrap()
-let html = @report.html(document)
+1. `against_equal` attached the loop as the reference oracle. Both
+   implementations were validated on both scales before any timing (four
+   passed validations).
+2. `Development` warmed every implementation up, calibrated a batch size per
+   implementation, then ran 3 exploratory and 10 confirmatory blocks per
+   scale, rotating the order of the two implementations.
+3. The confirmatory blocks are paired by position (block $i$ of the loop with
+   block $i$ of the formula). `comparison.decision` and
+   `comparison.speedup` depend on your machine; the formula is expected to be
+   `Faster`.
+4. The JSONL record (`record.to_jsonl()`) holds every event; save it next to
+   the HTML.
+
+Run it with `moon test --target native`. The test also runs on `js` and
+`wasm`.
+
+## 3. Use the command line
+
+From a checkout of the repository:
+
+```sh
+moon run src/cli --target native -- report testdata/report/sample.jsonl report.html
+moon run src/cli --target native -- report - - < testdata/report/sample.jsonl > report.html
+moon run src/cli --target native -- replay testdata/replay/sample.jsonl --dry-run
 ```
 
-Keep the JSONL beside the HTML. The JSONL is the audit record; HTML is a
-projection that can be regenerated after renderer changes.
+`report` writes a self-contained HTML file. `replay --dry-run` prints the
+command recorded in a validation failure; add `--yes` instead of `--dry-run`
+to execute it. See the [cli tutorial](tutorial/cli.md).
 
 ## Common first mistakes
 
-- Timing fixture allocation or report rendering by placing them inside the
-  payload closure.
-- Comparing arrays with different block/repetition alignment.
-- Treating `Unsupported`, timeout, or validation failure as a numeric zero.
-- Running a native replay without inspecting it with `--dry-run` first.
-- Mixing native and JS observations in one statistical population.
+- Doing setup work (allocation, parsing, copying) inside the implementation
+  function, where it is timed. Put it in a fixture.
+- Comparing arrays from different blocks, phases, datasets or targets.
+- Treating `Unsupported`, a timeout or a validation failure as a number.
+- Executing a replay artifact without reading it with `--dry-run` first.
+- Reusing `summary.run_id` as a unique id; it names the protocol and the case.
+
+## Where to go next
+
+- [runner tutorial](tutorial/runner.md) for fixtures, sequences, shrinking and
+  protocols.
+- [stats tutorial](tutorial/stats.md) for decisions and intervals.
+- [architecture](architecture.md) for how the packages fit together.
