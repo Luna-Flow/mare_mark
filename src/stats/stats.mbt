@@ -170,7 +170,7 @@ pub fn compare_paired(
     candidate_id,
     relative_delta_pct,
     speedup,
-    interval: { low: delta_stats.q1, high: delta_stats.q3, mode },
+    interval: { low: delta_stats.q1, high: delta_stats.q3, mode, },
     decision,
     valid_samples: deltas.length(),
   }

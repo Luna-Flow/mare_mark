@@ -15,7 +15,7 @@ pub fn[Prepared, Output, Context] WorkerSpec::new(
   timeout_ms? : Int = 5000,
   cwd? : String,
 ) -> WorkerSpec[Prepared, Output, Context] {
-  { command, build_arguments, decode, timeout_ms, cwd }
+  { command, build_arguments, decode, timeout_ms, cwd, }
 }
 
 ///|
@@ -41,7 +41,7 @@ pub fn[Prepared, Output, Context] Implementation::in_process(
   run : (Prepared, Context) -> @model.OperationResult[Output, Context],
   synchronize? : () -> Unit = () => (),
 ) -> Implementation[Prepared, Output, Context] {
-  { id, version, initial_context, execution: InProcess(run), synchronize }
+  { id, version, initial_context, execution: InProcess(run), synchronize, }
 }
 
 ///|
@@ -52,7 +52,7 @@ pub fn[Prepared, Output, Context] Implementation::worker(
   worker : WorkerSpec[Prepared, Output, Context],
   synchronize? : () -> Unit = () => (),
 ) -> Implementation[Prepared, Output, Context] {
-  { id, version, initial_context, execution: Subprocess(worker), synchronize }
+  { id, version, initial_context, execution: Subprocess(worker), synchronize, }
 }
 
 ///|
@@ -68,7 +68,7 @@ pub fn[Output, State, SinkValue] OutputSink::new(
   fold : (State, Output) -> State,
   finish : (State) -> SinkValue,
 ) -> OutputSink[Output, State, SinkValue] {
-  { initial, fold, finish }
+  { initial, fold, finish, }
 }
 
 ///|
@@ -551,7 +551,7 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] run_batch(
     }
     let sink_value = (sink.finish)(current_state)
     @bench.Bench::keep(bench, sink_value)
-    { elapsed_us: elapsed, valid, cached_prepared: None }
+    { elapsed_us: elapsed, valid, cached_prepared: None, }
   } else {
     let batch_timestamp = if included {
       (implementation.synchronize)()
@@ -610,7 +610,7 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] run_batch(
     }
     let sink_value = (sink.finish)(current_state)
     @bench.Bench::keep(bench, sink_value)
-    { elapsed_us: elapsed, valid, cached_prepared: prepared_cache }
+    { elapsed_us: elapsed, valid, cached_prepared: prepared_cache, }
   }
 }
 

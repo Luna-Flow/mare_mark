@@ -97,7 +97,7 @@ pub fn[Input, Output] RelationalOracle::new(
     @model.ExecutionOutcome[Output],
   ) -> @model.ValidationStatus,
 ) -> RelationalOracle[Input, Output] {
-  { id, validate_pair }
+  { id, validate_pair, }
 }
 
 ///|
@@ -141,7 +141,7 @@ pub fn[Input] Shrinker::new(
   text : (Input) -> String,
   max_steps? : Int = 128,
 ) -> Shrinker[Input] {
-  { candidates, text, max_steps }
+  { candidates, text, max_steps, }
 }
 
 ///|
@@ -187,7 +187,7 @@ pub fn[Scale] ScaleDomain::new(
   compare : (Scale, Scale) -> Int,
   text : (Scale) -> String,
 ) -> ScaleDomain[Scale] {
-  { values, compare, text }
+  { values, compare, text, }
 }
 
 ///|

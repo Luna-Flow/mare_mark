@@ -15,7 +15,7 @@ pub fn ObservationSink::new(
   finish : (@model.RunSummary) -> String,
   emit_failure? : (@model.ValidationFailure) -> Unit = _ => (),
 ) -> ObservationSink {
-  { emit_observation, emit_validation, emit_failure, emit_calibration, finish }
+  { emit_observation, emit_validation, emit_failure, emit_calibration, finish, }
 }
 
 ///|
@@ -28,7 +28,7 @@ pub struct InMemorySink {
 
 ///|
 pub fn InMemorySink::new() -> InMemorySink {
-  { observations: [], validations: [], failures: [], calibrations: [] }
+  { observations: [], validations: [], failures: [], calibrations: [], }
 }
 
 ///|
@@ -49,7 +49,7 @@ pub struct JsonlSink {
 
 ///|
 pub fn JsonlSink::new() -> JsonlSink {
-  { lines: [] }
+  { lines: [], }
 }
 
 ///|

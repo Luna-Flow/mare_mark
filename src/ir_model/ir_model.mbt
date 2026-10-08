@@ -77,7 +77,7 @@ pub fn CapabilityCell::new(
   outcome_kind : String,
   count : Int,
 ) -> CapabilityCell {
-  { implementation, outcome_kind, count }
+  { implementation, outcome_kind, count, }
 }
 
 ///|
@@ -97,7 +97,7 @@ pub fn Counterexample::new(
   shrink_path : Array[String],
   replay_command : String,
 ) -> Counterexample {
-  { implementation, minimal_input, fingerprint, shrink_path, replay_command }
+  { implementation, minimal_input, fingerprint, shrink_path, replay_command, }
 }
 
 ///|
@@ -117,7 +117,7 @@ pub fn CorpusSummary::new(
   unsupported : Int,
   expected_difference : Int,
 ) -> CorpusSummary {
-  { total, passed, failed, unsupported, expected_difference }
+  { total, passed, failed, unsupported, expected_difference, }
 }
 
 ///|
@@ -135,7 +135,7 @@ pub fn DifferentialReport::new(
   counterexamples : Array[Counterexample],
   corpus : CorpusSummary,
 ) -> DifferentialReport {
-  { mismatches, capabilities, counterexamples, corpus }
+  { mismatches, capabilities, counterexamples, corpus, }
 }
 
 ///|
@@ -145,7 +145,7 @@ pub fn DifferentialReport::empty() -> DifferentialReport {
 
 ///|
 pub fn PlotPoint::new(x : String, y : Double, series : String) -> PlotPoint {
-  { x, y, series }
+  { x, y, series, }
 }
 
 ///|
@@ -156,7 +156,7 @@ pub fn Plot::new(
   interval_kind : String,
   points : Array[PlotPoint],
 ) -> Plot {
-  { kind, title, unit, interval_kind, points }
+  { kind, title, unit, interval_kind, points, }
 }
 
 ///|

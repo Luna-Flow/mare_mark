@@ -9,7 +9,7 @@ pub fn[Scale] DatasetKey::new(
   scale : Scale,
   dataset_id : Int,
 ) -> DatasetKey[Scale] {
-  { scale, dataset_id }
+  { scale, dataset_id, }
 }
 
 ///|
@@ -25,7 +25,7 @@ pub fn MeasurementKey::new(
   repetition_id : Int,
   block_id : Int,
 ) -> MeasurementKey {
-  { dataset_id, repetition_id, block_id }
+  { dataset_id, repetition_id, block_id, }
 }
 
 ///|
@@ -54,7 +54,7 @@ pub fn[Scale] GenerationContext::new(
   generator_id : String,
   generator_version : String,
 ) -> GenerationContext[Scale] {
-  { seed, suite_id, case_id, dataset_key, generator_id, generator_version }
+  { seed, suite_id, case_id, dataset_key, generator_id, generator_version, }
 }
 
 ///|
@@ -96,7 +96,7 @@ pub fn SetupPolicy::new(
   timing : SetupTiming,
   workspace_scope : WorkspaceScope,
 ) -> SetupPolicy {
-  { frequency, timing, workspace_scope }
+  { frequency, timing, workspace_scope, }
 }
 
 ///|
@@ -258,7 +258,7 @@ pub fn SemanticEnvironment::new(
   compiler_flags : String,
   dtype_abi : String,
 ) -> SemanticEnvironment {
-  { target, toolchain, compiler_flags, dtype_abi }
+  { target, toolchain, compiler_flags, dtype_abi, }
 }
 
 ///|
@@ -282,7 +282,7 @@ pub fn PerformanceEnvironment::new(
   device? : String = "host",
   frequency_policy? : String = "uncontrolled",
 ) -> PerformanceEnvironment {
-  { runtime, cpu, gc, concurrency, clock, device, frequency_policy }
+  { runtime, cpu, gc, concurrency, clock, device, frequency_policy, }
 }
 
 ///|
@@ -302,7 +302,7 @@ pub fn ProvenanceEnvironment::new(
   revision : String,
   run_id : String,
 ) -> ProvenanceEnvironment {
-  { os, hostname, timestamp, revision, run_id }
+  { os, hostname, timestamp, revision, run_id, }
 }
 
 ///|
@@ -318,7 +318,7 @@ pub fn EnvironmentSnapshot::new(
   performance : PerformanceEnvironment,
   provenance : ProvenanceEnvironment,
 ) -> EnvironmentSnapshot {
-  { semantic, performance, provenance }
+  { semantic, performance, provenance, }
 }
 
 ///|
@@ -407,7 +407,7 @@ pub fn[Value, Context] OperationResult::new(
   stderr? : String = "",
   exit_code? : Int,
 ) -> OperationResult[Value, Context] {
-  { outcome, next_context, stdout, stderr, exit_code }
+  { outcome, next_context, stdout, stderr, exit_code, }
 }
 
 ///|
@@ -433,7 +433,7 @@ pub fn CaseDescriptor::new(
   context : String,
   rounding : String,
 ) -> CaseDescriptor {
-  { operation, operands, context, rounding }
+  { operation, operands, context, rounding, }
 }
 
 ///|
@@ -449,7 +449,7 @@ pub fn ReplaySpec::new(
   arguments : Array[String],
   timeout_ms? : Int = 5000,
 ) -> ReplaySpec {
-  { command, arguments, timeout_ms }
+  { command, arguments, timeout_ms, }
 }
 
 ///|
@@ -491,7 +491,7 @@ pub fn Validation::new(
   implementation_id : String,
   scale_text : String,
 ) -> Validation {
-  { status, oracle_id, implementation_id, scale_text, evidence: None }
+  { status, oracle_id, implementation_id, scale_text, evidence: None, }
 }
 
 ///|
@@ -502,7 +502,13 @@ pub fn Validation::detailed(
   scale_text : String,
   evidence : ValidationEvidence,
 ) -> Validation {
-  { status, oracle_id, implementation_id, scale_text, evidence: Some(evidence) }
+  {
+    status,
+    oracle_id,
+    implementation_id,
+    scale_text,
+    evidence: Some(evidence),
+  }
 }
 
 ///|
@@ -696,7 +702,7 @@ pub fn[Scale] ScaleBoundary::new(
   below : Scale,
   at_or_above : Scale,
 ) -> ScaleBoundary[Scale] {
-  { below, at_or_above }
+  { below, at_or_above, }
 }
 
 ///|
@@ -714,7 +720,7 @@ pub fn[Key, Choice] Region::new(
   choice : Choice,
   evidence_ids : Array[String],
 ) -> Region[Key, Choice] {
-  { lower, upper, choice, evidence_ids }
+  { lower, upper, choice, evidence_ids, }
 }
 
 ///|
@@ -732,7 +738,7 @@ pub fn[Key, Choice] ParetoPoint::new(
   primary : Double,
   secondary : Double,
 ) -> ParetoPoint[Key, Choice] {
-  { key, choice, primary, secondary }
+  { key, choice, primary, secondary, }
 }
 
 ///|

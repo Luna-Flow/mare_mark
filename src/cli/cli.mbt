@@ -78,7 +78,17 @@ pub fn parse_args(arguments : Array[String]) -> CliRequest {
   if values.length() > 2 && error is None {
     error = Some("too many positional arguments")
   }
-  { command, input, output, dry_run, yes, quiet, open, show_help: false, error }
+  {
+    command,
+    input,
+    output,
+    dry_run,
+    yes,
+    quiet,
+    open,
+    show_help: false,
+    error,
+  }
 }
 
 ///|

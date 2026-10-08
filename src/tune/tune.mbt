@@ -13,7 +13,7 @@ pub fn[Candidate] CandidateSpace::new(
   valid : (Candidate) -> Bool,
   neighbors : (Candidate) -> Array[Candidate],
 ) -> CandidateSpace[Candidate] {
-  { enumerate, candidate_id, valid, neighbors }
+  { enumerate, candidate_id, valid, neighbors, }
 }
 
 ///|
@@ -29,7 +29,7 @@ pub fn[Prepared, Output, Context] BuiltCandidate::new(
   implementation : @runner.Implementation[Prepared, Output, Context],
   kernel_id : String,
 ) -> BuiltCandidate[Prepared, Output, Context] {
-  { candidate_id, implementation, kernel_id }
+  { candidate_id, implementation, kernel_id, }
 }
 
 ///|
@@ -86,7 +86,7 @@ pub fn TuningObjective::new(
   max_workspace_bytes : UInt64?,
   minimize_secondary : Bool,
 ) -> TuningObjective {
-  { practical_delta_pct, max_workspace_bytes, minimize_secondary }
+  { practical_delta_pct, max_workspace_bytes, minimize_secondary, }
 }
 
 ///|
@@ -104,7 +104,7 @@ pub fn CandidateScore::new(
   secondary : Double,
   valid : Bool,
 ) -> CandidateScore {
-  { candidate_id, primary, secondary, valid }
+  { candidate_id, primary, secondary, valid, }
 }
 
 ///|
@@ -175,7 +175,7 @@ pub fn[Candidate] exhaustive_scores(
       })
     }
   }
-  { scores, build_events: events, policy: "global:" + best_id }
+  { scores, build_events: events, policy: "global:" + best_id, }
 }
 
 ///|

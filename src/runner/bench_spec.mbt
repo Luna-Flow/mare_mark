@@ -182,7 +182,7 @@ pub fn RunContext::new(
   seed : UInt64,
   protocol : ValidatedProtocol,
 ) -> RunContext {
-  { seed, environment, sink, protocol }
+  { seed, environment, sink, protocol, }
 }
 
 ///|
@@ -297,7 +297,7 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Benc
   if self.case.sequence_length <= 0 {
     errors.push(InvalidSequenceLength(self.case.sequence_length))
   }
-  let ids : Map[String, Bool] = {}
+  let ids : Map[String, Bool] = Map([])
   for index, implementation in self.case.implementations {
     if implementation.id.is_empty() {
       errors.push(EmptyImplementationId(index))
@@ -308,7 +308,7 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Benc
     }
   }
   if errors.is_empty() {
-    Ok({ case: self.case })
+    Ok({ case: self.case, })
   } else {
     Err(errors)
   }
@@ -337,7 +337,7 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Benc
   State,
   SinkValue,
 ] {
-  { case: { ..self.case, sequence_length, } }
+  { case: { ..self.case, sequence_length, }, }
 }
 
 ///|
@@ -371,7 +371,7 @@ pub fn[Scale] single_step(
   id : String,
   scales : Array[Scale],
 ) -> SingleStepCase[Scale] {
-  { id, scales: scales.copy() }
+  { id, scales: scales.copy(), }
 }
 
 ///|

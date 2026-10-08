@@ -78,7 +78,7 @@ pub fn GemmScale::new(
   layout_b : Layout,
   layout_c : Layout,
 ) -> GemmScale {
-  { m, n, k, batch, reuse_count, layout_a, layout_b, layout_c }
+  { m, n, k, batch, reuse_count, layout_a, layout_b, layout_c, }
 }
 
 ///|
@@ -396,7 +396,7 @@ pub fn GemmProblem::new(
   b : Array[Double],
   c : Array[Double],
 ) -> GemmProblem {
-  { scale, a, b, c }
+  { scale, a, b, c, }
 }
 
 ///|
@@ -692,7 +692,7 @@ pub fn validate_gemm(
   let mut mismatches = expected.length() - count + actual.length() - count
   let mut max_error = 0.0
   if tolerance.is_nan() || tolerance.is_inf() || tolerance < 0.0 {
-    return { valid: false, mismatches: count.max(1), max_abs_error: max_error }
+    return { valid: false, mismatches: count.max(1), max_abs_error: max_error, }
   }
   for index = 0; index < count; index = index + 1 {
     let expected_value = expected[index]
@@ -712,7 +712,7 @@ pub fn validate_gemm(
       }
     }
   }
-  { valid: mismatches == 0, mismatches, max_abs_error: max_error }
+  { valid: mismatches == 0, mismatches, max_abs_error: max_error, }
 }
 
 ///|

@@ -11,7 +11,7 @@ pub fn SampleContext::new(
   implementation_id : String,
   repetition_id : Int,
 ) -> SampleContext {
-  { sample_id, implementation_id, repetition_id }
+  { sample_id, implementation_id, repetition_id, }
 }
 
 ///|
@@ -25,7 +25,7 @@ pub fn ResetContext::new(
   sample_id : Int,
   implementation_id : String,
 ) -> ResetContext {
-  { sample_id, implementation_id }
+  { sample_id, implementation_id, }
 }
 
 ///|

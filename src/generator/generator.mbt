@@ -13,7 +13,7 @@ pub fn[Scale, Input] Generator::new(
   generate : (@model.GenerationContext[Scale]) -> Input,
   fingerprint : (Input) -> String,
 ) -> Generator[Scale, Input] {
-  { id, version, generate, fingerprint }
+  { id, version, generate, fingerprint, }
 }
 
 ///|
