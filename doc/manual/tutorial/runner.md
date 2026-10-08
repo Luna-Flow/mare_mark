@@ -7,13 +7,23 @@ before it is timed, and a protocol of your own. Every example is a complete
 `async test`; the outputs shown are the parts that do not depend on the speed
 of your machine.
 
+| I want to | Use |
+| --- | --- |
+| compare implementations on the same input | `@runner.Case::single_step(...).with_immutable_input(...).compare(...)` |
+| validate against a reference first | `.against_equal(...)` or a full oracle with `BenchSpec::advanced` |
+| keep the raw record | an `@event.JsonlSink` in the `RunContext` |
+| give a mutable input a lifecycle | a `@fixture.Fixture` with `prepare` and `reset` |
+| measure a stateful operation sequence | `Implementation::in_process` with a `Context` |
+| choose how carefully to measure | `@runner.ProtocolPreset` or `@runner.validate_protocol` |
+| isolate a payload that may crash | `Implementation::worker` (native) |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/event",
@@ -346,6 +356,9 @@ see the [generator tutorial](generator.md).
 - **Assuming `run_id` is unique.** It identifies protocol and case; put a
   unique id in `ProvenanceEnvironment.run_id`.
 - **Calling `run` outside an async context.** It is an `async fn`.
+- **Relying on `validate_protocol` to catch `NaN`.** It rejects negative and
+  zero values but not `NaN`; a `NaN` threshold makes every later comparison
+  `Equivalent`.
 
 ## Next steps
 

@@ -8,6 +8,15 @@ small enough to debug (shrinking), and decides when a size-dependent preference
 is strong enough to become a deployment rule (crossover analysis). Everything
 is a pure function of explicit inputs.
 
+## Constraints
+
+- Correctness is case-specific: tolerances, flags, traps and accepted
+  deviations differ between cases.
+- One oracle evaluation may run a whole operation sequence, so every search
+  over inputs needs a budget.
+- A deployment rule must not claim anything about scales that were not
+  measured.
+
 ## Mathematical background
 
 ### Oracles as relations
@@ -71,8 +80,13 @@ threshold; $T = 0$ means no adjacent pair of definite, different labels.
 
 `comparator_label(r, t)` maps the relative delta to the labels with the same
 threshold rule as `stats`: $A$ if $r \le -t$, $B$ if $r \ge t$, `Unknown`
-otherwise. The `Unknown` band of width $2t$ keeps noise around $r = 0$ from
-creating spurious transitions.
+otherwise, tested in this order. The `Unknown` band of width $2t$ keeps noise
+around $r = 0$ from creating spurious transitions. The band exists only for
+$0 < t < \infty$: with $t = 0$ the first test catches $r = 0$ and a tie becomes
+$A$, with $t < 0$ every $r \le \lvert t\rvert$ becomes $A$, and with
+$t = \mathrm{NaN}$ every label is `Unknown`, so $T = 0$ whatever the data. The
+function does not reject such thresholds; see
+[issue #1](https://github.com/Luna-Flow/mare_mark/issues/1).
 
 ## Design decisions
 
@@ -117,7 +131,8 @@ would encode noise.
 - `ReferenceOracle::equal` returns `Valid` only for two `Value` outcomes
   accepted by the comparator.
 - `comparator_label` partitions the real line into
-  $(-\infty, -t]$, $(-t, t)$, $[t, \infty)$ for $t > 0$.
+  $(-\infty, -t]$, $(-t, t)$, $[t, \infty)$ for $0 < t < \infty$; other
+  thresholds are accepted and behave as described above.
 
 ## Alternatives rejected
 

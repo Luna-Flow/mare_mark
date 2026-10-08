@@ -1,5 +1,7 @@
 # runner API
 
+## Purpose
+
 `Luna-Flow/mare_mark/runner` owns the measurement loop. You describe a
 benchmark case, compile it into a validated plan, and `run` it with a seed, an
 environment snapshot, an event sink and a validated protocol. The runner
@@ -10,7 +12,11 @@ each step are in the [runner design](../design/runner.md).
 Source: [`src/runner/runner.mbt`](../../../src/runner/runner.mbt),
 [`src/runner/bench_spec.mbt`](../../../src/runner/bench_spec.mbt).
 
-```text
+## Importing
+
+Add the packages to the `moon.pkg` of the package that uses them:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/event",
@@ -18,6 +24,11 @@ import {
   "moonbitlang/async",
 }
 ```
+
+The examples on this page call them through their default aliases (`@model`,
+`@event`, `@runner`, `@async`).
+
+## Asynchrony and type parameters
 
 `run` and `execute_operation` are `async`. Call them from an `async fn main`
 or an `async test`; the `moonbitlang/async` runtime that drives them is
@@ -182,6 +193,17 @@ pub fn validate_protocol(@model.RunProtocol) -> Result[ValidatedProtocol, Array[
 | `practical_delta_pct >= 0` | `InvalidPracticalDelta(pct)` |
 
 All rules are checked; the errors are returned together, in this order.
+
+Each rule is implemented as a test for its violation (`x < 0.0`, `x <= 0.0`,
+`target > max`), and every comparison with `NaN` is false, so `NaN` passes all
+the `Double` rules. In particular a `NaN` `practical_delta_pct` is accepted and
+makes every `stats.compare_paired` decision on it `Equivalent`
+([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)), a `NaN`
+`target_batch_time_us` disables calibration (the first batch is kept), and a
+`NaN` `warmup_time_us` leaves only the `warmup_iterations` count. Infinite
+durations pass as well, except a `target_batch_time_us` above a finite
+`max_sample_time_us`. A threshold of `0.0` is accepted although it reports
+exact ties as `Faster`.
 
 ```moonbit
 test "protocol validation reports every problem" {

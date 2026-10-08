@@ -10,6 +10,16 @@ payloads, and it is built so that these properties hold by construction rather
 than by discipline: validation precedes timing, the order of implementations is
 balanced, batch sizes are calibrated, and every raw observation is emitted.
 
+## Constraints
+
+- It is the only package that executes payloads, and payloads may be wrong,
+  slow, crash or loop.
+- Timers have a finite resolution (`performance.now()` may be coarsened to
+  100 µs or more in browsers), and machines drift during a run.
+- `run` is asynchronous and must work wherever `moonbitlang/async` has a
+  runtime; subprocesses exist only on native.
+- No event may be emitted inside a timed region.
+
 ## Mathematical background
 
 ### Blocks and the measurement model
@@ -86,7 +96,8 @@ $$
 
 which shrinks as the batch grows. Calibration chooses $n$ so that $T(n)$
 reaches `target_batch_time_us` $= t$. Starting from
-$n_0 = \min(\max(\text{min\_batch\_iterations}, 1), \text{max\_batch\_iterations})$,
+$n_0 = \min(\max(\text{min\_batch\_iterations}, 1), n_{\max})$ with
+$n_{\max} = \max(\text{max\_batch\_iterations}, 1)$,
 while the batch is valid, $T(n) < t$, $T(n) <$ `max_sample_time_us` and
 $n <$ `max_batch_iterations`, the next size is
 
@@ -107,13 +118,34 @@ $$
 f'(n) = \frac{a\, t}{(a + c n)^2}, \qquad f'(n^*) = \frac{a}{t} < 1 .
 $$
 
-The iteration contracts with rate $a/t$ near $n^*$: when the fixed cost is 10 %
-of the target, each retry reduces the remaining gap tenfold. Because every
-step increases $n$ by at least one and $n$ is capped by `max_batch_iterations`,
-the loop terminates after at most $n_{\max} - n_0$ retries.
+The iteration contracts with rate $a/t$ near $n^*$. In fact the gap obeys an
+exact identity: for $n < n^*$,
+
+$$
+\begin{aligned}
+n^* - f(n) &= \frac{t - a}{c} - \frac{n t}{a + c n}
+= \frac{(t - a)(a + c n) - c n t}{c\,(a + c n)} \\
+&= \frac{a\,(t - a - c n)}{c\,(a + c n)}
+= \frac{a}{T(n)}\,\bigl(n^* - n\bigr).
+\end{aligned}
+$$
+
+Since $0 < a < T(n) < t$ while the loop runs, $n < f(n) < n^*$: the iteration
+approaches $n^*$ from below without overshooting (up to the rounding by
+$\lceil\cdot\rceil$), and each retry multiplies the remaining gap by
+$a/T(n_j)$. That factor is close to $1$ while the fixed cost dominates a small
+batch, and falls to $a/t$ as $T(n_j)$ approaches the target: when the fixed
+cost is 10 % of the target, the last retries reduce the gap about tenfold each.
+If $a \ge t$ there is no fixed point, and the batch grows until
+`max_batch_iterations` or `max_sample_time_us` stops it. Because every step
+increases $n$ by at least one and $n$ is capped by
+$n_{\max} = \max(\text{max\_batch\_iterations}, 1)$, the loop terminates
+after at most $n_{\max} - n_0$ retries.
 
 With the `QuickCheck` preset ($t = 1000$ µs) and a 1 µs timer, the quantization
-error of a calibrated batch is at most $0.1\,\%$. In the browser,
+error $\rho / T(n)$ of a batch that reached the target is at most $0.1\,\%$; a
+batch stopped early by `max_batch_iterations` or `max_sample_time_us` can be
+shorter, and its `CalibrationEvent` shows it. In the browser,
 `performance.now()` may be coarsened to 100 µs or more; raise the target
 accordingly.
 
@@ -291,6 +323,9 @@ snapshot, the seed determines everything except the timings.
 - It materializes one input per scale; it does not regenerate inputs per block.
 - `protocol_identity`, and hence `run_id`, covers only the warmup count, the
   confirmatory sample count and the practical threshold.
+- `validate_protocol` does not reject `NaN` durations or a `NaN` threshold: a
+  `NaN` target disables calibration and a `NaN` warmup time disables the time
+  criterion of the warmup.
 - Subprocess workers need the native target; `run` itself needs an async
   runtime (native, JS or wasm, not wasm-gc).
 - First-order carryover between implementations is not balanced.

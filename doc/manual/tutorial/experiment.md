@@ -5,13 +5,21 @@ tolerance, a relational check between implementations, a shrinker that makes
 failures small, and a crossover analysis that tells you at which size to
 switch implementations. Every example is a complete test.
 
+| I want to | Use |
+| --- | --- |
+| check results against a reference | `@experiment.ReferenceOracle::equal` or `ReferenceOracle::new` |
+| compare floating-point results with a tolerance | a comparator in `ReferenceOracle::equal` |
+| check implementations against each other | `@experiment.RelationalOracle::new` |
+| make a failing input small | `@experiment.Shrinker::new` and `@experiment.shrink` |
+| find the scale where the winner changes | `@experiment.comparator_label` and `@experiment.crossover_from_labels` |
+
 ## Quick start
 
 ```sh
 moon add Luna-Flow/mare_mark@0.3.0
 ```
 
-```text
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/experiment",
@@ -136,6 +144,9 @@ crossover. Measure the gap more finely, or decide the policy yourself.
 - **Shrinkers that grow the input.** Candidates should be smaller, or the
   budget is spent without progress.
 - **Reading `NonMonotonic` as a crossover.** It is not; the preference flips.
+- **A zero or `NaN` threshold in `comparator_label`.** With `0.0` a tie is
+  labelled `"A"`; with `NaN` every label is `"Unknown"` and no crossover can
+  be found. Use a finite, positive threshold.
 
 ## Next steps
 

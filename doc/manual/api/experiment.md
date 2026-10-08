@@ -1,5 +1,7 @@
 # experiment API
 
+## Purpose
+
 `Luna-Flow/mare_mark/experiment` holds the correctness side of a benchmark:
 reference and relational oracles, input shrinking, and the crossover analysis
 that turns per-scale verdicts into a scale boundary. The runner uses the
@@ -8,12 +10,19 @@ oracles and shrinkers; you can also call them directly. See the
 
 Source: [`src/experiment/experiment.mbt`](../../../src/experiment/experiment.mbt).
 
-```text
+## Importing
+
+Add the packages to the `moon.pkg` of the package that uses them:
+
+```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/experiment",
 }
 ```
+
+The examples on this page call them through their default aliases (`@model`,
+`@experiment`).
 
 ## Oracles
 
@@ -195,9 +204,17 @@ them; pass them sorted.
 pub fn comparator_label(Double, Double) -> String
 ```
 
-`comparator_label(r, t)` is `"A"` when $r \le -t$, `"B"` when $r \ge t$ and
-`"Unknown"` otherwise. Pass the relative delta of A measured against B as the
+`comparator_label(r, t)` is `"A"` when $r \le -t$, else `"B"` when $r \ge t$,
+else `"Unknown"`, the same ordered chain as the decision of
+`@stats.compare_paired`. Pass the relative delta of A measured against B as the
 baseline, so that `"A"` means A is faster.
+
+> [!WARNING]
+> The threshold is not validated
+> ([issue #1](https://github.com/Luna-Flow/mare_mark/issues/1)). With $t = 0$
+> an exact tie ($r = 0$) is `"A"`; with $t < 0$ small slowdowns of A are `"A"`
+> too; with $t$ = `NaN` every delta is `"Unknown"`, so `crossover_from_labels`
+> can only report `NoCrossover`. Pass a finite, positive threshold.
 
 ### `crossover_from_labels`
 
