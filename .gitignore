@@ -13,3 +13,14 @@ bench_data/reports/*
 !bench_data/raw/.gitkeep
 !bench_data/csv/.gitkeep
 !bench_data/reports/.gitkeep
+
+# AI agent / assistant local state (never track)
+.claude/
+.codex/
+.codex-tmp/
+.cursor/
+.gemini/
+.kiro/
+.windsurf/
+.aider*
+CLAUDE.local.md
