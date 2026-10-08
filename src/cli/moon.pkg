@@ -12,11 +12,15 @@ import {
   "moonbitlang/x/path",
   "moonbitlang/x/sys",
   "moonbitlang/async/stdio",
-  "moonbitlang/async/io",
 }
 
+pkgtype(kind: "executable")
+
+// Native-only files (see `targets`) use some imports, so they are unused on other targets.
+
+warnings = "-unused_package"
+
 options(
-  "is-main": true,
   targets: {
     "main.mbt": [ "native" ],
     "main_unimplemented.mbt": [ "js", "wasm", "wasm-gc", "llvm" ],

@@ -1,4 +1,7 @@
 import {
   "Luna-Flow/mare_mark/model",
-  "moonbitlang/core/json",
 }
+
+import {
+  "moonbitlang/core/json",
+} for "wbtest"
