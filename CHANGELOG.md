@@ -68,6 +68,29 @@ All notable changes to mare_mark are documented in this file.
   `included_in_measurement`), and validation and `validation_failure` lines
   carry the `reason` of every status that has one. Both fields are additive
   within `mmka_1`; readers that ignore unknown fields are unaffected (#8).
+- `model.protocol_identity` covers every `RunProtocol` field, including the
+  calibration, the `BalancedBlocks` seed and the optional warm-up time; it
+  covered only `warmup_iterations`, `confirmatory_samples` and
+  `practical_delta_pct`, so different protocols shared an identity. **The
+  identity format changes** from `mmkp_1:<w>:<c>:<d>` to
+  `mmkp_2:<16 hex digits>`, the 64-bit FNV-1a digest of the new
+  `model.protocol_canonical_encoding`; `ProtocolVersion::V2` is added and `V1`
+  is `Deprecated`. `artifact_identity` values change with it.
+  `ExperimentDesign`, `BatchPolicy`, `OutlierPolicy` and `ValidationCoverage`
+  gain `text()`, the snake_case tags used by the encoding (#3).
+- `RunSummary.run_id` distinguishes separate runs. **The run id format
+  changes** from `<protocol identity>:<case id>` to
+  `<case id>|<protocol identity>|<seed>|<provenance run_id>|<provenance timestamp>`
+  (built by the new `model.run_identity`, which escapes `%` and `|` in the
+  free-text parts), so runs with a different seed, provenance run id or
+  timestamp no longer share an id (#3).
+- JSONL `summary` events carry `protocol_identity`, `seed` (a decimal string)
+  and a `protocol` object with every protocol field, so a record can be
+  audited and re-analysed; `event.protocol_from_json` decodes the object back
+  into the exact `RunProtocol` and `event.protocol_json` encodes it.
+  `RunSummary` gains `protocol` and `seed` (optional labelled arguments of
+  `RunSummary::new`). The fields are additive within `mmka_1`; readers that
+  ignore unknown fields are unaffected (#3).
 
 ## 0.3.0 - 2026-07-15
 

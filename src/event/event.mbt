@@ -239,6 +239,19 @@ fn summary_json(summary : @model.RunSummary) -> Json {
     Some(environment) => fields["environment"] = environment_json(environment)
     None => ()
   }
+  match summary.protocol {
+    Some(protocol) => {
+      fields["protocol_identity"] = Json::string(
+        @model.protocol_identity(protocol),
+      )
+      fields["protocol"] = protocol_json(protocol)
+    }
+    None => ()
+  }
+  match summary.seed {
+    Some(seed) => fields["seed"] = Json::string(seed.to_string())
+    None => ()
+  }
   Json::object(fields)
 }
 
