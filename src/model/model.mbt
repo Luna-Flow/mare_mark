@@ -222,6 +222,7 @@ pub struct RunProtocol {
   validation_coverage : ValidationCoverage
   exploratory_samples : Int
   confirmatory_samples : Int
+  repeats_per_dataset : Int
 }
 
 ///|
@@ -236,6 +237,7 @@ pub fn RunProtocol::new(
   validation_coverage : ValidationCoverage,
   exploratory_samples : Int,
   confirmatory_samples : Int,
+  repeats_per_dataset? : Int = 1,
 ) -> RunProtocol {
   {
     experiment_design,
@@ -248,6 +250,7 @@ pub fn RunProtocol::new(
     validation_coverage,
     exploratory_samples,
     confirmatory_samples,
+    repeats_per_dataset,
   }
 }
 
@@ -525,6 +528,7 @@ pub struct Validation {
   implementation_id : String
   scale_text : String
   evidence : ValidationEvidence?
+  measurement : MeasurementKey?
 }
 
 ///|
@@ -533,8 +537,16 @@ pub fn Validation::new(
   oracle_id : String,
   implementation_id : String,
   scale_text : String,
+  measurement? : MeasurementKey,
 ) -> Validation {
-  { status, oracle_id, implementation_id, scale_text, evidence: None, }
+  {
+    status,
+    oracle_id,
+    implementation_id,
+    scale_text,
+    evidence: None,
+    measurement,
+  }
 }
 
 ///|
@@ -544,6 +556,7 @@ pub fn Validation::detailed(
   implementation_id : String,
   scale_text : String,
   evidence : ValidationEvidence,
+  measurement? : MeasurementKey,
 ) -> Validation {
   {
     status,
@@ -551,6 +564,7 @@ pub fn Validation::detailed(
     implementation_id,
     scale_text,
     evidence: Some(evidence),
+    measurement,
   }
 }
 
@@ -600,6 +614,8 @@ pub struct Observation {
   batch_sink : BatchSinkStatus
   setup_timing : SetupTiming
   valid : Bool
+  setup_frequency : SetupFrequency?
+  workspace_scope : WorkspaceScope?
 }
 
 ///|
@@ -644,6 +660,8 @@ pub fn Observation::new(
   batch_sink : BatchSinkStatus,
   setup_timing : SetupTiming,
   valid : Bool,
+  setup_frequency? : SetupFrequency,
+  workspace_scope? : WorkspaceScope,
 ) -> Observation {
   {
     case_id,
@@ -658,6 +676,8 @@ pub fn Observation::new(
     batch_sink,
     setup_timing,
     valid,
+    setup_frequency,
+    workspace_scope,
   }
 }
 
@@ -709,6 +729,7 @@ pub struct RunSummary {
   failed_count : Int
   unsupported_count : Int
   expected_difference_count : Int
+  measurement_validation_count : Int
   environment : EnvironmentSnapshot?
   protocol : RunProtocol?
   seed : UInt64?
@@ -726,6 +747,7 @@ pub fn RunSummary::new(
   failed_count? : Int = 0,
   unsupported_count? : Int = 0,
   expected_difference_count? : Int = 0,
+  measurement_validation_count? : Int = 0,
   environment? : EnvironmentSnapshot,
   protocol? : RunProtocol,
   seed? : UInt64,
@@ -741,6 +763,7 @@ pub fn RunSummary::new(
     failed_count,
     unsupported_count,
     expected_difference_count,
+    measurement_validation_count,
     environment,
     protocol,
     seed,
