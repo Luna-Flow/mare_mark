@@ -62,16 +62,35 @@ unknown version is rejected before anything runs.
 `native`, and writes one HTML file. `-` for input or output connects it to
 pipes, so it composes with other tools.
 
+### Decisions on the terminal
+
+*Problem.* In CI the HTML is an artifact someone has to download, but the
+question "did it get slower?" should be answered in the job log. *Choice.*
+After writing the report, `report` prints the comparison table of
+`@report.comparisons_text` on stdout. When the HTML itself goes to stdout
+(`-`), the table goes to stderr, so a pipeline still receives a clean HTML
+document; `--quiet` suppresses it with the progress lines. `--baseline <id>`
+chooses the implementation the others are compared with. *Why.* The table is
+computed by `report` from the record, so the terminal and the HTML show the
+same decisions; the CLI only decides where the text goes. A baseline that
+names no implementation of the record exits with `1`, not `2`: the command
+line is well formed, but it does not fit the data, like an input file with
+invalid events. A `--baseline` without a value is a usage error and exits
+with `2`.
+
 ## Correctness and invariants
 
 - `parse_args` is total and does not touch the environment.
 - `replay` never executes without `--yes`, and never on a non-native target.
 - Usage errors exit with `2`; runtime failures with `1`.
-- `report` writes nothing when parsing the events fails.
+- `report` writes nothing when parsing the events fails, including for an
+  unknown baseline.
+- The HTML on stdout is never mixed with progress or table text.
 
 ## Alternatives rejected
 
-- **A flag library.** Two commands and four flags do not justify a dependency.
+- **A flag library.** Two commands and five options do not justify a
+  dependency.
 - **Executing replays by default.** Unsafe for artifacts from elsewhere.
 - **Embedding the CLI logic in `report`.** Would bring file IO into a pure
   package.
