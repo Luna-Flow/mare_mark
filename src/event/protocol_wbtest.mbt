@@ -14,6 +14,7 @@ fn sample_protocol(
   outlier_policy? : @model.OutlierPolicy = MADTrim,
   validation_coverage? : @model.ValidationCoverage = ConfirmatoryOnly,
   exploratory_samples? : Int = 100,
+  repeats_per_dataset? : Int = 1,
 ) -> @model.RunProtocol {
   @model.RunProtocol::new(
     experiment_design,
@@ -28,6 +29,7 @@ fn sample_protocol(
     validation_coverage,
     exploratory_samples,
     5,
+    repeats_per_dataset~,
   )
 }
 
@@ -243,4 +245,38 @@ test "protocol decoder reports the offending field" {
   }
   // Unknown keys are ignored, so later additive fields stay readable.
   assert_true(protocol_from_json(with_field("future", Json::null())) is Ok(_))
+}
+
+///|
+test "protocol JSON records repeats per dataset" {
+  let protocol = sample_protocol(exploratory_samples=10, repeats_per_dataset=5)
+  let encoded = protocol_json(protocol).stringify()
+  assert_true(encoded.contains("\"repeats_per_dataset\":5"))
+  assert_protocol_round_trip(protocol)
+}
+
+///|
+test "protocol decoder defaults a missing repeats_per_dataset to 1" {
+  guard protocol_json(sample_protocol(repeats_per_dataset=5)) is Object(fields) else {
+    fail("protocol must be an object")
+  }
+  let legacy = Map::from_iter(fields.iter())
+  legacy.remove("repeats_per_dataset")
+  let decoded = protocol_from_json(Json::object(legacy)).unwrap()
+  assert_eq(decoded.repeats_per_dataset, 1)
+  assert_eq(
+    @model.protocol_identity(decoded),
+    @model.protocol_identity(sample_protocol()),
+  )
+  let invalid = Map::from_iter(fields.iter())
+  invalid["repeats_per_dataset"] = Json::string("5")
+  assert_true(
+    protocol_from_json(Json::object(invalid))
+    is Err("protocol.repeats_per_dataset: expected an Int"),
+  )
+  invalid["repeats_per_dataset"] = Json::number(2.5)
+  assert_true(
+    protocol_from_json(Json::object(invalid))
+    is Err("protocol.repeats_per_dataset: expected an Int"),
+  )
 }

@@ -68,6 +68,9 @@ pub fn protocol_json(protocol : @model.RunProtocol) -> Json {
     "confirmatory_samples": Json::number(
       protocol.confirmatory_samples.to_double(),
     ),
+    "repeats_per_dataset": Json::number(
+      protocol.repeats_per_dataset.to_double(),
+    ),
   })
 }
 
@@ -257,6 +260,13 @@ fn decode_protocol(json : Json) -> @model.RunProtocol raise ProtocolDecodeError 
     ),
     decode_int(fields, path, "exploratory_samples"),
     decode_int(fields, path, "confirmatory_samples"),
+    // Records written before `repeats_per_dataset` existed omit it; their
+    // runs used the default of 1.
+    repeats_per_dataset=if fields.contains("repeats_per_dataset") {
+      decode_int(fields, path, "repeats_per_dataset")
+    } else {
+      1
+    },
   )
 }
 
@@ -264,7 +274,8 @@ fn decode_protocol(json : Json) -> @model.RunProtocol raise ProtocolDecodeError 
 /// Decodes the `protocol` object of a JSONL `summary` event, as written by
 /// `protocol_json`, back into the `RunProtocol` the run used.
 ///
-/// Every field is required; unknown keys are ignored. The result is exact:
+/// Every field is required except `repeats_per_dataset`, which defaults to `1`
+/// for records written before it existed; unknown keys are ignored. The result is exact:
 /// `@model.protocol_identity` of the decoded protocol equals the
 /// `protocol_identity` recorded next to it. Errors name the offending field,
 /// e.g. `protocol.calibration.batch_policy: unknown value 'x'`.

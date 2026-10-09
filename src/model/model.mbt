@@ -936,6 +936,7 @@ fn protocol_canonical_fields(protocol : RunProtocol) -> Array[(String, String)] 
     ("validation_coverage", protocol.validation_coverage.text()),
     ("exploratory_samples", protocol.exploratory_samples.to_string()),
     ("confirmatory_samples", protocol.confirmatory_samples.to_string()),
+    ("repeats_per_dataset", protocol.repeats_per_dataset.to_string()),
   ]
 }
 

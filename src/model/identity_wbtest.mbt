@@ -53,6 +53,7 @@ fn identity_single_field_variants() -> Array[(String, RunProtocol)] {
     ("validation_coverage", { ..base, validation_coverage: ConfirmatoryOnly, }),
     ("exploratory_samples", { ..base, exploratory_samples: 1, }),
     ("confirmatory_samples", { ..base, confirmatory_samples: 6, }),
+    ("repeats_per_dataset", { ..base, repeats_per_dataset: 5, }),
   ]
 }
 
@@ -162,7 +163,9 @@ test "protocol identity is mmkp_2 and a 16-digit hex digest" {
   let protocol = identity_base_protocol()
   inspect(
     protocol_canonical_encoding(protocol),
-    content="mmkp_2;experiment_design=fixed_dataset_repeated_measurements;warmup_iterations=1;warmup_time_us=none;calibration.target_batch_time_us=0x408f400000000000;calibration.min_batch_iterations=1;calibration.max_batch_iterations=1000;calibration.max_sample_time_us=0x40f86a0000000000;calibration.batch_policy=per_implementation;practical_delta_pct=0x4000000000000000;order_policy=balanced_blocks(42);outlier_policy=report_only;validation_coverage=every_measurement;exploratory_samples=0;confirmatory_samples=5",
+    content=(
+      #|mmkp_2;experiment_design=fixed_dataset_repeated_measurements;warmup_iterations=1;warmup_time_us=none;calibration.target_batch_time_us=0x408f400000000000;calibration.min_batch_iterations=1;calibration.max_batch_iterations=1000;calibration.max_sample_time_us=0x40f86a0000000000;calibration.batch_policy=per_implementation;practical_delta_pct=0x4000000000000000;order_policy=balanced_blocks(42);outlier_policy=report_only;validation_coverage=every_measurement;exploratory_samples=0;confirmatory_samples=5;repeats_per_dataset=1
+    ),
   )
   let identity = protocol_identity(protocol)
   assert_eq(identity.length(), "mmkp_2:".length() + 16)
@@ -171,7 +174,7 @@ test "protocol identity is mmkp_2 and a 16-digit hex digest" {
   inspect(
     identity,
     content=(
-      #|mmkp_2:dc8adf1f09c6e5c3
+      #|mmkp_2:32e7e1e2bd8ea771
     ),
   )
   inspect(
