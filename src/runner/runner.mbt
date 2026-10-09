@@ -1081,7 +1081,7 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] ru
     }
   }
   let summary = @model.RunSummary::new(
-    @model.protocol_identity(protocol) + ":" + case.id,
+    @model.run_identity(case.id, protocol, seed, environment.provenance),
     observation_count,
     validation_count,
     calibration_count,
@@ -1092,6 +1092,8 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] ru
     unsupported_count=unsupported_count.val,
     expected_difference_count=expected_difference_count.val,
     environment~,
+    protocol~,
+    seed~,
   )
   let location = (sink.finish)(summary)
   @model.RunSummary::new(
@@ -1106,6 +1108,8 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] ru
     unsupported_count=summary.unsupported_count,
     expected_difference_count=summary.expected_difference_count,
     environment~,
+    protocol~,
+    seed~,
   )
 }
 

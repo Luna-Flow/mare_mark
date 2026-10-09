@@ -36,6 +36,17 @@ pub(all) enum ExperimentDesign {
 }
 
 ///|
+/// Stable snake_case tag, used by `protocol_canonical_encoding` and the JSONL
+/// `protocol` object.
+pub fn ExperimentDesign::text(self : ExperimentDesign) -> String {
+  match self {
+    FixedDatasetRepeatedMeasurements => "fixed_dataset_repeated_measurements"
+    MultipleDatasetsSingleMeasurement => "multiple_datasets_single_measurement"
+    HierarchicalDatasetsAndRepeats => "hierarchical_datasets_and_repeats"
+  }
+}
+
+///|
 pub struct GenerationContext[Scale] {
   seed : UInt64
   suite_id : String
@@ -106,6 +117,16 @@ pub(all) enum BatchPolicy {
 }
 
 ///|
+/// Stable snake_case tag, used by `protocol_canonical_encoding` and the JSONL
+/// `protocol` object.
+pub fn BatchPolicy::text(self : BatchPolicy) -> String {
+  match self {
+    PerImplementation => "per_implementation"
+    SharedBatchSize => "shared_batch_size"
+  }
+}
+
+///|
 pub struct CalibrationProtocol {
   target_batch_time_us : Double
   min_batch_iterations : Int
@@ -161,10 +182,32 @@ pub(all) enum OutlierPolicy {
 }
 
 ///|
+/// Stable snake_case tag, used by `protocol_canonical_encoding` and the JSONL
+/// `protocol` object.
+pub fn OutlierPolicy::text(self : OutlierPolicy) -> String {
+  match self {
+    ReportOnly => "report_only"
+    TukeyFence => "tukey_fence"
+    MADTrim => "mad_trim"
+  }
+}
+
+///|
 pub(all) enum ValidationCoverage {
   EveryMeasurement
   EveryDataset
   ConfirmatoryOnly
+}
+
+///|
+/// Stable snake_case tag, used by `protocol_canonical_encoding` and the JSONL
+/// `protocol` object.
+pub fn ValidationCoverage::text(self : ValidationCoverage) -> String {
+  match self {
+    EveryMeasurement => "every_measurement"
+    EveryDataset => "every_dataset"
+    ConfirmatoryOnly => "confirmatory_only"
+  }
 }
 
 ///|
@@ -648,6 +691,13 @@ pub fn CalibrationEvent::new(
 }
 
 ///|
+/// Outcome of one run.
+///
+/// `run_id` is built by the runner with `run_identity`: case id, protocol
+/// identity, run seed, and the provenance `run_id` and `timestamp` of the
+/// environment. `protocol` and `seed` record what the run was executed with,
+/// so a JSONL record can be audited and re-analysed; both are `None` for
+/// summaries built without them.
 pub struct RunSummary {
   run_id : String
   observation_count : Int
@@ -660,6 +710,8 @@ pub struct RunSummary {
   unsupported_count : Int
   expected_difference_count : Int
   environment : EnvironmentSnapshot?
+  protocol : RunProtocol?
+  seed : UInt64?
 }
 
 ///|
@@ -675,6 +727,8 @@ pub fn RunSummary::new(
   unsupported_count? : Int = 0,
   expected_difference_count? : Int = 0,
   environment? : EnvironmentSnapshot,
+  protocol? : RunProtocol,
+  seed? : UInt64,
 ) -> RunSummary {
   {
     run_id,
@@ -688,6 +742,8 @@ pub fn RunSummary::new(
     unsupported_count,
     expected_difference_count,
     environment,
+    protocol,
+    seed,
   }
 }
 
@@ -791,14 +847,151 @@ pub fn[Scale] CrossoverResult::inconclusive(
 }
 
 ///|
+/// Exact text of a `Double`: `0x` and the 16 hex digits of its IEEE 754 bit
+/// pattern. Independent of decimal formatting, distinguishes `-0.0` from
+/// `0.0`, and is the same on every backend.
+fn canonical_double(value : Double) -> String {
+  "0x" + hex16(value.reinterpret_as_uint64())
+}
+
+///|
+fn hex16(value : UInt64) -> String {
+  let buffer = StringBuilder()
+  for shift = 60; shift >= 0; shift = shift - 4 {
+    let nibble = ((value >> shift) & 15UL).to_int()
+    let code = if nibble < 10 { 48 + nibble } else { 87 + nibble }
+    buffer.write_char(code.unsafe_to_char())
+  }
+  buffer.to_string()
+}
+
+///|
+/// The `RunProtocol` fields in canonical order as `(key, value)` pairs.
+///
+/// Every field appears exactly once, nested fields with a dotted key. Values
+/// are decimal integers, `canonical_double` texts, `none` / `some(...)` for
+/// options, and `text()` tags for enums; `OrderPolicy` is `fixed_order` or
+/// `balanced_blocks(<seed>)`. A new `RunProtocol` field is one more line here.
+fn protocol_canonical_fields(protocol : RunProtocol) -> Array[(String, String)] {
+  let calibration = protocol.calibration
+  [
+    ("experiment_design", protocol.experiment_design.text()),
+    ("warmup_iterations", protocol.warmup_iterations.to_string()),
+    (
+      "warmup_time_us",
+      match protocol.warmup_time_us {
+        None => "none"
+        Some(value) => "some(" + canonical_double(value) + ")"
+      },
+    ),
+    (
+      "calibration.target_batch_time_us",
+      canonical_double(calibration.target_batch_time_us),
+    ),
+    (
+      "calibration.min_batch_iterations",
+      calibration.min_batch_iterations.to_string(),
+    ),
+    (
+      "calibration.max_batch_iterations",
+      calibration.max_batch_iterations.to_string(),
+    ),
+    (
+      "calibration.max_sample_time_us",
+      canonical_double(calibration.max_sample_time_us),
+    ),
+    ("calibration.batch_policy", calibration.batch_policy.text()),
+    ("practical_delta_pct", canonical_double(protocol.practical_delta_pct)),
+    (
+      "order_policy",
+      match protocol.order_policy {
+        FixedOrder => "fixed_order"
+        BalancedBlocks(seed) => "balanced_blocks(" + seed.to_string() + ")"
+      },
+    ),
+    ("outlier_policy", protocol.outlier_policy.text()),
+    ("validation_coverage", protocol.validation_coverage.text()),
+    ("exploratory_samples", protocol.exploratory_samples.to_string()),
+    ("confirmatory_samples", protocol.confirmatory_samples.to_string()),
+  ]
+}
+
+///|
+/// Canonical, unambiguous ASCII encoding of every `RunProtocol` field:
+/// `mmkp_2` followed by `;<key>=<value>` for each field in a fixed order.
+///
+/// Keys are fixed and values never contain `;` or `=`, so two protocols have
+/// the same encoding exactly when every field is equal (doubles compared by
+/// bit pattern). `protocol_identity` is a digest of this text.
+pub fn protocol_canonical_encoding(protocol : RunProtocol) -> String {
+  let buffer = StringBuilder()
+  buffer.write_string(ProtocolVersion::V2.identifier())
+  for field in protocol_canonical_fields(protocol) {
+    let (key, value) = field
+    buffer.write_char(';')
+    buffer.write_string(key)
+    buffer.write_char('=')
+    buffer.write_string(value)
+  }
+  buffer.to_string()
+}
+
+///|
+/// 64-bit FNV-1a over the code units of an ASCII string.
+fn fnv1a64(text : String) -> UInt64 {
+  let mut hash = 0xCBF29CE484222325UL
+  for index = 0; index < text.length(); index = index + 1 {
+    hash = (hash ^ text[index].to_int().to_uint64()) * 0x100000001B3UL
+  }
+  hash
+}
+
+///|
+/// Identity of a run protocol: `mmkp_2:<16 lowercase hex digits>`, the 64-bit
+/// FNV-1a digest of `protocol_canonical_encoding(protocol)`.
+///
+/// It covers every `RunProtocol` field, including the calibration, the
+/// `BalancedBlocks` seed and the optional warm-up time. Equal protocols get
+/// equal identities; protocols that differ in any field get different ones
+/// (up to 64-bit digest collisions). Use `protocol_canonical_encoding` or the
+/// JSONL `protocol` object to see the fields behind an identity.
 pub fn protocol_identity(protocol : RunProtocol) -> String {
-  ProtocolVersion::V1.identifier() +
+  ProtocolVersion::V2.identifier() +
   ":" +
-  protocol.warmup_iterations.to_string() +
-  ":" +
-  protocol.confirmatory_samples.to_string() +
-  ":" +
-  protocol.practical_delta_pct.to_string()
+  hex16(fnv1a64(protocol_canonical_encoding(protocol)))
+}
+
+///|
+fn escape_run_component(text : String) -> String {
+  text.replace_all(old="%", new="%25").replace_all(old="|", new="%7C")
+}
+
+///|
+/// `RunSummary.run_id` of one run: five components joined by `|`, in order
+///
+/// 1. the case id,
+/// 2. `protocol_identity(protocol)`,
+/// 3. the run seed in decimal,
+/// 4. the provenance `run_id` of the environment,
+/// 5. the provenance `timestamp` of the environment.
+///
+/// `%` and `|` inside the case id, provenance run id and timestamp are written
+/// as `%25` and `%7C`, so the components can be recovered by splitting on `|`.
+/// Two runs of the same case and protocol get different ids when their seeds,
+/// provenance run ids or timestamps differ.
+pub fn run_identity(
+  case_id : String,
+  protocol : RunProtocol,
+  seed : UInt64,
+  provenance : ProvenanceEnvironment,
+) -> String {
+  [
+    escape_run_component(case_id),
+    protocol_identity(protocol),
+    seed.to_string(),
+    escape_run_component(provenance.run_id),
+    escape_run_component(provenance.timestamp),
+  ].join("|")
 }
 
 ///|

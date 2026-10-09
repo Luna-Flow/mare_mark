@@ -1,9 +1,11 @@
 ///|
 test "version ADTs own identifiers and lifecycle" {
   assert_eq(ProtocolVersion::V1.identifier(), "mmkp_1")
+  assert_eq(ProtocolVersion::V2.identifier(), "mmkp_2")
   assert_eq(ArtifactVersion::V1.identifier(), "mmka_1")
   assert_eq(SchemaVersion::V1.identifier(), "mmks_1")
-  assert_true(ProtocolVersion::V1.lifecycle() is Supported)
+  assert_true(ProtocolVersion::V1.lifecycle() is Deprecated)
+  assert_true(ProtocolVersion::V2.lifecycle() is Supported)
   assert_true(ArtifactVersion::V1.lifecycle() is Supported)
   assert_true(SchemaVersion::V1.lifecycle() is Supported)
 }
