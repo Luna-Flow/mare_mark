@@ -4,10 +4,16 @@ All notable changes to mare_mark are documented in this file.
 
 ## Unreleased
 
-- `ReferenceOracle.sequence_length` now determines the expected and candidate
-  validation sequence length per input and must be positive and equal the case
-  length; mismatches fail explicitly instead of silently validating a prefix
-  (#6).
+- **Breaking:** `ReferenceOracle.sequence_length` now determines the expected
+  and candidate validation sequence length per input and must be positive and
+  equal the case length, otherwise `run` raises `RunConfigError` when it
+  reaches that dataset. A reference sequence that ends early after every
+  common step passed now emits an `Invalid` length-mismatch validation and a
+  `ValidationFailure` instead of silently validating a prefix; a sequence that
+  stops on an unsupported, expected-difference, failing or
+  infrastructure-failure step is still reported by that step alone. The
+  `pub(all) enum BenchConfigError` gains `InvalidOracleSequenceLength` and
+  `OracleSequenceLengthMismatch`, so exhaustive matches must handle them (#6).
 - Scaling plots use independent base-10 logarithmic axes when all values on an
   axis are positive and finite and span at least 100×. Log axes label every
   power of ten (every k-th decade when decades are dense), add 2× and 5× ticks

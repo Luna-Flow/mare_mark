@@ -363,6 +363,126 @@ async test "matching early termination still fails the configured sequence lengt
 }
 
 ///|
+/// Runs a three-step reference case whose only implementation returns
+/// `outcome` with no next context at step 0, and returns the emitted
+/// validations and failures.
+async fn early_stop_run(
+  outcome : @model.ExecutionOutcome[Int],
+) -> (Array[@model.Validation], Array[@model.ValidationFailure]) {
+  let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
+  let reference : @experiment.ReferenceOracle[Int, Int, Int, Int] = @experiment.ReferenceOracle::new(
+    "early-stop-reference",
+    () => 0,
+    _ => 3,
+    (input, _, context) => {
+      @model.OperationResult::completed(input + context, context + 1)
+    },
+    (_, _, _, _) => @model.ValidationStatus::Valid,
+    value => value.to_string(),
+  )
+  let implementation = Implementation::in_process("early-stop", "1", () => 0, (
+    _,
+    _,
+  ) => @model.OperationResult::new(outcome, None))
+  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+    case: {
+      ..spec.case,
+      sequence_length: 3,
+      implementations: [implementation],
+      oracle: @experiment.OracleSpec::Reference(reference),
+    },
+  }
+  let validations : Array[@model.Validation] = []
+  let failures : Array[@model.ValidationFailure] = []
+  let sink = @event.ObservationSink::new(
+    _ => (),
+    validation => validations.push(validation),
+    _ => (),
+    _ => "trace://early-stop",
+    emit_failure=failure => failures.push(failure),
+  )
+  ignore(
+    run(
+      spec.compile().unwrap(),
+      RunContext::new(
+        test_environment("early-stop"),
+        sink,
+        11UL,
+        validate_protocol(
+          protocol_with(
+            @model.ExperimentDesign::FixedDatasetRepeatedMeasurements,
+            @model.ValidationCoverage::EveryDataset,
+            0,
+            1,
+            warmup=0,
+          ),
+        ).unwrap(),
+      ),
+    ),
+  )
+  (validations, failures)
+}
+
+///|
+async test "an unsupported early stop is not also a sequence length mismatch" {
+  let (validations, failures) = early_stop_run(
+    @model.ExecutionOutcome::Unsupported("no such operation"),
+  )
+  assert_eq(validations.length(), 1)
+  assert_true(validations[0].status is @model.ValidationStatus::Unsupported(_))
+  assert_true(failures.is_empty())
+}
+
+///|
+async test "an infrastructure early stop is counted once" {
+  let (validations, failures) = early_stop_run(
+    @model.ExecutionOutcome::Timeout(5, "worker exceeded timeout"),
+  )
+  assert_eq(validations.length(), 1)
+  assert_true(
+    validations[0].status is @model.ValidationStatus::InfrastructureFailure(_),
+  )
+  assert_eq(failures.length(), 1)
+  assert_true(
+    failures[0].validation.status
+    is @model.ValidationStatus::InfrastructureFailure(_),
+  )
+  let (validations, _) = early_stop_run(
+    @model.ExecutionOutcome::ExpectedDifference("documented divergence"),
+  )
+  assert_eq(validations.length(), 1)
+  assert_true(
+    validations[0].status is @model.ValidationStatus::ExpectedDifference(_),
+  )
+}
+
+///|
+async test "an early stop after passing steps reports a replayable mismatch" {
+  let (validations, failures) = early_stop_run(
+    @model.ExecutionOutcome::Value(100),
+  )
+  assert_eq(validations.length(), 2)
+  assert_true(validations[0].status is @model.ValidationStatus::Valid)
+  assert_true(validations[1].status is @model.ValidationStatus::Invalid(_))
+  assert_eq(failures.length(), 1)
+  let failure = failures[0]
+  assert_eq(failure.seed, 11UL)
+  assert_eq(failure.original_fingerprint, "fp:100")
+  assert_true(failure.shrink_path.is_empty())
+  guard failure.validation.evidence is Some(evidence) else {
+    abort("expected mismatch evidence")
+  }
+  assert_eq(evidence.step_id, 1)
+  assert_eq(evidence.dataset_id, 0)
+  assert_eq(evidence.expected_kind, "value")
+  assert_eq(evidence.expected, "101")
+  assert_eq(evidence.actual_kind, "missing")
+  assert_eq(evidence.actual, "sequence ended after 1 steps")
+  assert_eq(evidence.fingerprint, "fp:100")
+  assert_eq(evidence.implementation_version, "1")
+}
+
+///|
 async test "non-positive reference sequence length is a run configuration error" {
   let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
   let reference = @experiment.ReferenceOracle::new(
@@ -474,6 +594,64 @@ async test "case and oracle sequence length mismatch is rejected before operatio
   }
   assert_true(raised is Some([OracleSequenceLengthMismatch(2, 3)]))
   assert_true(trace.is_empty())
+}
+
+///|
+async test "an oracle length error on a later dataset stops the run at that dataset" {
+  let trace = []
+  let spec = traced_spec(trace, @model.SetupFrequency::PerDataset, [1, 2])
+  let reference = @experiment.ReferenceOracle::new(
+    "later-dataset-reference",
+    () => 0,
+    input => if input >= 200 { 3 } else { 2 },
+    (input, _, context) => {
+      @model.OperationResult::completed(input + context, context + 1)
+    },
+    (_, _, _, _) => @model.ValidationStatus::Valid,
+    value => value.to_string(),
+  )
+  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+    case: {
+      ..spec.case,
+      sequence_length: 2,
+      oracle: @experiment.OracleSpec::Reference(reference),
+    },
+  }
+  let raised = try {
+    ignore(
+      run(
+        spec.compile().unwrap(),
+        RunContext::new(
+          test_environment("later-dataset-length"),
+          traced_sink(trace),
+          11UL,
+          validate_protocol(
+            protocol_with(
+              @model.ExperimentDesign::FixedDatasetRepeatedMeasurements,
+              @model.ValidationCoverage::EveryDataset,
+              0,
+              1,
+              warmup=0,
+            ),
+          ).unwrap(),
+        ),
+      ),
+    )
+    None
+  } catch {
+    RunConfigError(errors) => Some(errors)
+    _ => None
+  }
+  assert_true(raised is Some([OracleSequenceLengthMismatch(2, 3)]))
+  // The check runs per dataset: the first scale was already validated and
+  // measured, and nothing ran on the second scale's dataset.
+  assert_true(
+    trace.any(line => line.has_prefix("observation impl=left dataset=0")),
+  )
+  assert_true(trace.contains("materialize scale=2 dataset=1 seed=11"))
+  assert_true(!trace.any(line => line.contains("input=201")))
+  assert_true(!trace.any(line => line.contains(" dataset=1 step=")))
+  assert_true(!trace.any(line => line.has_prefix("summary")))
 }
 
 ///|

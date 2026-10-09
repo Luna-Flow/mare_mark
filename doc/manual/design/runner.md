@@ -176,11 +176,19 @@ values:
 
 For a relational oracle every unordered pair $i < j$ of implementations is
 compared step by step; the event is attributed to the second implementation of
-the pair. A sequence that ends early (`next_context = None`) is compared on
-the steps both sides produced. `Invalid` and `InfrastructureFailure` count as
-failures; a failure triggers the shrinker, if one is configured, and emits a
-`ValidationFailure` with the seed, both fingerprints, the shrink path and the
-minimal input.
+the pair. A relational sequence that ends early (`next_context = None`) is
+compared on the steps both sides produced. A reference-oracle sequence must
+reach the configured length: when the oracle or the implementation ends early
+and every common step passed, the runner adds an `Invalid` length-mismatch
+validation whose evidence describes the first missing step. When a common
+step did not pass (a failure, `Unsupported`, `ExpectedDifference` or an
+infrastructure failure), that step already accounts for the stop and no
+mismatch is added, so a timed-out worker is counted once. `Invalid` and
+`InfrastructureFailure` count as failures; a failure triggers the shrinker, if
+one is configured, and emits a `ValidationFailure` with the seed, both
+fingerprints, the shrink path and the minimal input. A length mismatch is not
+shrunk; its `ValidationFailure` has an empty shrink path and the original
+input.
 
 A failure does not stop the measurement. The report removes the series of the
 failing implementation for that dataset and shows the mismatch instead.

@@ -799,7 +799,9 @@ fn blocks_per_dataset(protocol : @model.RunProtocol) -> Int {
 ///|
 /// Emits one validation per comparable step of `actual` against the reference
 /// `expected`, counts it and, on failure, emits a minimized
-/// `ValidationFailure`.
+/// `ValidationFailure`. When either sequence is shorter than the case length
+/// and every comparable step passed, it also emits an `Invalid` length
+/// mismatch with its `ValidationFailure`.
 async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] emit_reference_validations(
   case : DifferentialCase[
     Scale,
@@ -825,6 +827,7 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] em
   measurement : @model.MeasurementKey?,
 ) -> Unit {
   let comparable_steps = expected.length().min(actual.length())
+  let mut prefix_passed = true
   for step_id = 0; step_id < comparable_steps; step_id = step_id + 1 {
     let validation = detailed_reference_validation(
       case.id,
@@ -845,6 +848,9 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] em
     )
     (sink.emit_validation)(validation)
     tally.count(validation)
+    if !(validation.status is (Valid | Skipped(_))) {
+      prefix_passed = false
+    }
     if status_is_failure(validation.status) {
       let (minimal_input, shrink_path) = match case.shrinker {
         Some(shrinker) =>
@@ -871,22 +877,119 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] em
       )
     }
   }
-  if expected.length() != case.sequence_length ||
-    actual.length() != case.sequence_length {
-    let expected_count = expected.length()
-    let actual_count = actual.length()
-    let validation = @model.Validation::new(
-      @model.ValidationStatus::Invalid(
-        "sequence length mismatch: configured \{case.sequence_length} steps, oracle produced \{expected_count}, implementation produced \{actual_count}",
-      ),
-      reference.id,
-      implementation.id,
-      scale_text,
-      measurement?,
+  // A length mismatch is reported only when every common step passed: a
+  // sequence that stopped on a failure, an unsupported operation, an expected
+  // difference or an infrastructure failure has already been reported, and
+  // counting its missing suffix again would double-count it.
+  if prefix_passed &&
+    (
+      expected.length() != case.sequence_length ||
+      actual.length() != case.sequence_length
+    ) {
+    let validation = sequence_length_mismatch(
+      case, reference, input, dataset_id, scale_text, fingerprint, implementation,
+      expected, actual, measurement,
     )
     (sink.emit_validation)(validation)
     tally.count(validation)
+    (sink.emit_failure)(
+      @model.ValidationFailure::new(
+        validation,
+        seed,
+        scale_text,
+        fingerprint,
+        fingerprint,
+        [],
+        (case.input_text)(input),
+      ),
+    )
   }
+}
+
+///|
+/// The `Invalid` validation for a reference sequence whose expected or actual
+/// side stopped before the configured length. Its evidence describes the first
+/// step that only one side (or neither) produced.
+fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] sequence_length_mismatch(
+  case : DifferentialCase[
+    Scale,
+    Input,
+    Prepared,
+    Expected,
+    Output,
+    Context,
+    State,
+    SinkValue,
+  ],
+  reference : @experiment.ReferenceOracle[Input, Expected, Output, Context],
+  input : Input,
+  dataset_id : Int,
+  scale_text : String,
+  fingerprint : String,
+  implementation : Implementation[Prepared, Output, Context],
+  expected : Array[@model.OperationResult[Expected, Context]],
+  actual : Array[@model.OperationResult[Output, Context]],
+  measurement : @model.MeasurementKey?,
+) -> @model.Validation {
+  let expected_count = expected.length()
+  let actual_count = actual.length()
+  let step_id = expected_count.min(actual_count)
+  let descriptor = (case.describe)(input, step_id)
+  let ended = (count : Int) => "sequence ended after \{count} steps"
+  let (expected_value, expected_kind, expected_flags) = if step_id <
+    expected_count {
+    let outcome = expected[step_id].outcome
+    (
+      outcome_text(outcome, reference.expected_text),
+      outcome.kind(),
+      outcome.flags(),
+    )
+  } else {
+    (ended(expected_count), "missing", [])
+  }
+  let (actual_value, actual_kind, actual_flags, trap) = if step_id <
+    actual_count {
+    let outcome = actual[step_id].outcome
+    (
+      outcome_text(outcome, case.output_text),
+      outcome.kind(),
+      outcome.flags(),
+      trap_text(outcome),
+    )
+  } else {
+    (ended(actual_count), "missing", [], "")
+  }
+  let last_actual = actual[(actual_count - 1).max(0)]
+  @model.Validation::detailed(
+    @model.ValidationStatus::Invalid(
+      "sequence length mismatch: configured \{case.sequence_length} steps, oracle produced \{expected_count}, implementation produced \{actual_count}",
+    ),
+    reference.id,
+    implementation.id,
+    scale_text,
+    {
+      case_id: case.id,
+      dataset_id,
+      step_id,
+      operation: descriptor.operation,
+      operands: descriptor.operands,
+      context: descriptor.context,
+      rounding: descriptor.rounding,
+      expected: expected_value,
+      actual: actual_value,
+      expected_kind,
+      actual_kind,
+      expected_flags,
+      actual_flags,
+      trap,
+      stderr: last_actual.stderr,
+      exit_code: last_actual.exit_code,
+      fingerprint,
+      implementation_version: implementation.version,
+      replay: (case.replay)(input, implementation.id),
+    },
+    measurement?,
+  )
 }
 
 ///|
