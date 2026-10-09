@@ -245,6 +245,12 @@ async test "a running total validated over five steps" {
 Step 4 of the sequence returns $3 \cdot 5 = 15$, and the evidence records both
 the value and the context after the step.
 
+For a reference oracle, `sequence_length(input)` must return a positive value
+equal to the case length shown above. The runner uses that value for both
+sequences. A disagreement is a `RunConfigError`; an implementation or oracle
+that stops early produces an explicit invalid length-mismatch result. This
+prevents the shared prefix from being mistaken for a complete check.
+
 ### Catch and minimize a wrong implementation
 
 An off-by-one implementation fails validation. With a shrinker, the runner

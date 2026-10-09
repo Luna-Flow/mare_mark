@@ -312,106 +312,106 @@ msgid "`ReferenceOracle` computes the expected result of every step and judges a
 msgstr ""
 
 #: manual/api/experiment.md:46
-msgid "`compute_expected(input, step, context)` returns the expected outcome of step `step` and the oracle's next context; the sequence stops when it returns no context. `validate(input, step, expected, actual)` returns the verdict. `expected_text` renders expected values in evidence. The runner uses the case's `sequence_length`, not the oracle's `sequence_length` function."
-msgstr ""
-
-#: manual/api/experiment.md:54
-msgid "`ReferenceOracle::equal` builds a one-step oracle from a reference function and an equality."
+msgid "`compute_expected(input, step, context)` returns the expected outcome of step `step` and the oracle's next context; the sequence stops when it returns no context. `validate(input, step, expected, actual)` returns the verdict. `expected_text` renders expected values in evidence. For each dataset selected for validation, the runner calls `sequence_length(input)` once and uses that positive length for both the expected and candidate validation sequences. It must equal the `BenchSpec` case length; a non-positive value or disagreement is a `RunConfigError` before candidate validation or measurement begins. If either sequence terminates early, the common steps are checked and an additional `Invalid` validation reports the expected and actual sequence lengths, so an unchecked suffix cannot be reported as a complete pass. The case length remains the sequence length for relational-only cases."
 msgstr ""
 
 #: manual/api/experiment.md:61
+msgid "`ReferenceOracle::equal` builds a one-step oracle from a reference function and an equality."
+msgstr ""
+
+#: manual/api/experiment.md:68
 msgid "The verdict is `Valid` when both outcomes are `Value` and the comparator accepts them, `Invalid(\"value mismatch\")` when the comparator rejects them, and `Invalid(\"outcome mismatch\")` for any other pair of outcomes. Expected values are rendered as `\"<expected>\"`."
 msgstr ""
 
-#: manual/api/experiment.md:82
+#: manual/api/experiment.md:89
 msgid "`validate_reference` applies a reference oracle to one step and wraps the verdict in a `Validation` without evidence."
 msgstr ""
 
-#: manual/api/experiment.md:89
+#: manual/api/experiment.md:96
 msgid "Arguments: oracle, input, step, expected outcome, actual outcome, implementation id, scale text."
 msgstr ""
 
-#: manual/api/experiment.md:94
+#: manual/api/experiment.md:101
 msgid "`RelationalOracle` judges two implementations against each other when there is no single reference."
 msgstr ""
 
-#: manual/api/experiment.md:105
+#: manual/api/experiment.md:112
 msgid "`validate_pair(input, step, left_id, left, right_id, right)` returns the verdict for the pair; the runner attributes it to the right implementation."
 msgstr ""
 
-#: manual/api/experiment.md:124
+#: manual/api/experiment.md:131
 msgid "`OracleSpec` selects the oracles of a case."
 msgstr ""
 
-#: manual/api/experiment.md:134
+#: manual/api/experiment.md:141
 msgid "With `ReferenceAndRelational` the runner runs both checks and reports each separately."
 msgstr ""
 
-#: manual/api/experiment.md:137
+#: manual/api/experiment.md:144
 msgid "Shrinking"
 msgstr ""
 
-#: manual/api/experiment.md:141
+#: manual/api/experiment.md:148
 msgid "`Shrinker` proposes smaller variants of a failing input."
 msgstr ""
 
-#: manual/api/experiment.md:152
+#: manual/api/experiment.md:159
 msgid "`candidates(x)` lists smaller inputs, most aggressive first. `text` renders an accepted candidate for the shrink path. `max_steps` (default `128`) bounds the number of candidates tried."
 msgstr ""
 
-#: manual/api/experiment.md:158
+#: manual/api/experiment.md:165
 msgid "`shrink` minimizes an input while a predicate keeps holding."
 msgstr ""
 
-#: manual/api/experiment.md:164
+#: manual/api/experiment.md:171
 msgid "Starting from the input, it repeatedly takes the first candidate for which the predicate is true, until no candidate satisfies it or `max_steps` candidates have been tried. It returns the last accepted input and the texts of the accepted candidates in order. The initial input is not tested."
 msgstr ""
 
-#: manual/api/experiment.md:181
+#: manual/api/experiment.md:188
 msgid "Crossover analysis"
 msgstr ""
 
-#: manual/api/experiment.md:185
+#: manual/api/experiment.md:192
 msgid "`ScaleDomain` lists the scales of an analysis with their order and text."
 msgstr ""
 
-#: manual/api/experiment.md:210
+#: manual/api/experiment.md:217
 msgid "`comparator_label` turns a relative delta into a label for crossover analysis."
 msgstr ""
 
-#: manual/api/experiment.md:216
+#: manual/api/experiment.md:223
 msgid "`comparator_label(r, t)` is `\"A\"` when $r < 0$ and $r \\le -t$, `\"B\"` when $r > 0$ and $r \\ge t$, and `\"Unknown\"` otherwise, the same rule as the decision of `@stats.compare_paired`. An exact tie is `\"Unknown\"` for every threshold, including `0`. A `NaN` delta and a threshold that is `NaN`, infinite or negative also give `\"Unknown\"`. Pass the relative delta of A measured against B as the baseline, so that `\"A\"` means A is faster."
 msgstr ""
 
-#: manual/api/experiment.md:233
+#: manual/api/experiment.md:240
 msgid "`crossover_from_labels` finds the scale at which the preferred implementation changes."
 msgstr ""
 
-#: manual/api/experiment.md:240
+#: manual/api/experiment.md:247
 msgid "`labels[i]` is the verdict at `values[i]`. The pairs (`values[i]`, `labels[i]`) are first sorted stably with `domain.compare`, so the values may be given in any order; below, `values` and `labels` mean the sorted sequences. A transition is a pair of adjacent labels that differ and are both not `\"Unknown\"`."
 msgstr ""
 
-#: manual/api/experiment.md:246
+#: manual/api/experiment.md:253
 msgid "Situation"
 msgstr ""
 
-#: manual/api/experiment.md:246
+#: manual/api/experiment.md:253
 msgid "Result"
 msgstr ""
 
-#: manual/api/experiment.md:248
+#: manual/api/experiment.md:255
 msgid "no labels, or a different number of labels and values"
 msgstr ""
 
-#: manual/api/experiment.md:249
+#: manual/api/experiment.md:256
 msgid "no transition"
 msgstr ""
 
-#: manual/api/experiment.md:250
+#: manual/api/experiment.md:257
 msgid "exactly one transition, between $i-1$ and $i$"
 msgstr ""
 
-#: manual/api/experiment.md:251
+#: manual/api/experiment.md:258
 msgid "more than one transition"
 msgstr ""
 
@@ -1672,23 +1672,23 @@ msgstr ""
 msgid "`BenchConfigError` names one problem in a case description."
 msgstr ""
 
-#: manual/api/runner.md:626
-msgid "`EmptyImplementationId` carries the index of the implementation, `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the rejected length. The `Missing*` constructors come from `SingleStepCase::compile`; `MissingSerializer` is reserved and not produced by the current code."
+#: manual/api/runner.md:628
+msgid "`EmptyImplementationId` carries the index of the implementation, `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the rejected case length. `InvalidOracleSequenceLength` carries a non-positive length returned by a reference oracle; `OracleSequenceLengthMismatch` carries the configured case length and the oracle length, in that order. The `Missing*` constructors come from `SingleStepCase::compile`; `MissingSerializer` is reserved and not produced by the current code."
 msgstr ""
 
-#: manual/api/runner.md:634
+#: manual/api/runner.md:638
 msgid "`DifferentialCase` is the record behind a spec or a plan."
 msgstr ""
 
-#: manual/api/runner.md:655
+#: manual/api/runner.md:659
 msgid "Its fields mirror the arguments of `BenchSpec::advanced`."
 msgstr ""
 
-#: manual/api/runner.md:659
+#: manual/api/runner.md:663
 msgid "`ValidatedBenchPlan` is a case that passed `BenchSpec::compile`."
 msgstr ""
 
-#: manual/api/runner.md:667
+#: manual/api/runner.md:671
 msgid "It can only be created by `compile`, and `run` accepts nothing else."
 msgstr ""
 
@@ -3061,10 +3061,10 @@ msgid "A transition across an `Unknown` label (A, Unknown, B) is not counted, so
 msgstr ""
 
 #: manual/design/experiment.md:160
-msgid "Oracles are not run here; the runner runs them. `ReferenceOracle.sequence_length` is not used by the runner."
+msgid "Oracles are not run here; the runner runs them. For each input selected for reference validation, the runner evaluates `ReferenceOracle.sequence_length` once. The result must be positive and equal the case's configured sequence length; otherwise the run raises `RunConfigError` before candidate execution. This equality is a correctness precondition: checking only the common prefix would leave a suffix without a verdict. If an expected or actual operation sequence terminates early, the runner emits an `Invalid` validation for the length mismatch after validating the common steps."
 msgstr ""
 
-#: manual/design/experiment.md:162
+#: manual/design/experiment.md:168
 msgid "`shrink` does not check that the initial input fails."
 msgstr ""
 
@@ -5514,7 +5514,7 @@ msgstr ""
 #: manual/tutorial/ir_sink.md:53
 #: manual/tutorial/model.md:118
 #: manual/tutorial/report.md:143
-#: manual/tutorial/runner.md:322
+#: manual/tutorial/runner.md:328
 #: manual/tutorial/stats.md:225
 #: manual/tutorial/tune.md:118
 #: manual/tutorial/tune_gemm.md:157
@@ -5538,7 +5538,7 @@ msgstr ""
 #: manual/tutorial/ir_sink.md:58
 #: manual/tutorial/model.md:126
 #: manual/tutorial/report.md:154
-#: manual/tutorial/runner.md:345
+#: manual/tutorial/runner.md:351
 #: manual/tutorial/stats.md:257
 #: manual/tutorial/tune.md:132
 #: manual/tutorial/tune_gemm.md:165
@@ -5570,7 +5570,7 @@ msgstr ""
 #: manual/tutorial/ir_sink.md:63
 #: manual/tutorial/model.md:135
 #: manual/tutorial/report.md:163
-#: manual/tutorial/runner.md:363
+#: manual/tutorial/runner.md:369
 #: manual/tutorial/stats.md:281
 #: manual/tutorial/tune.md:143
 #: manual/tutorial/tune_gemm.md:175
@@ -6462,90 +6462,94 @@ msgid "Step 4 of the sequence returns $3 \\cdot 5 = 15$, and the evidence record
 msgstr ""
 
 #: manual/tutorial/runner.md:248
+msgid "For a reference oracle, `sequence_length(input)` must return a positive value equal to the case length shown above. The runner uses that value for both sequences. A disagreement is a `RunConfigError`; an implementation or oracle that stops early produces an explicit invalid length-mismatch result. This prevents the shared prefix from being mistaken for a complete check."
+msgstr ""
+
+#: manual/tutorial/runner.md:254
 msgid "Catch and minimize a wrong implementation"
 msgstr ""
 
-#: manual/tutorial/runner.md:250
+#: manual/tutorial/runner.md:256
 msgid "An off-by-one implementation fails validation. With a shrinker, the runner reduces the failing input before writing the failure artifact:"
 msgstr ""
 
-#: manual/tutorial/runner.md:288
+#: manual/tutorial/runner.md:294
 msgid "The failure event carries the seed, the original and minimal fingerprints, the shrink path and the replay command `identity-worker off-by-one 40`. The implementation is still timed; the report hides its series and shows the mismatch instead."
 msgstr ""
 
-#: manual/tutorial/runner.md:293
+#: manual/tutorial/runner.md:299
 msgid "Write your own protocol"
 msgstr ""
 
-#: manual/tutorial/runner.md:295
+#: manual/tutorial/runner.md:301
 msgid "Presets cover common cases. For a gate in CI you may want more confirmatory blocks, a multiple of the number of implementations so that every rotation cycle is complete:"
 msgstr ""
 
-#: manual/tutorial/runner.md:320
+#: manual/tutorial/runner.md:326
 msgid "With two implementations, $2 + 30 = 32$ blocks form 16 complete cycles."
 msgstr ""
 
-#: manual/tutorial/runner.md:324
+#: manual/tutorial/runner.md:330
 msgid "**Isolate unsafe code.** `Implementation::worker` runs each operation in a child process with a timeout; a crash becomes an `Aborted` outcome and a hang a `Timeout`, both counted as infrastructure failures. Workers need the native target. See [`WorkerSpec`](../api/runner.md#workerspec)."
 msgstr ""
 
-#: manual/tutorial/runner.md:329
+#: manual/tutorial/runner.md:335
 msgid "**Asynchronous devices.** Pass `synchronize=` to `Implementation::in_process` with a function that blocks until queued work is done. The runner calls it right before starting and right before stopping the clock."
 msgstr ""
 
-#: manual/tutorial/runner.md:333
+#: manual/tutorial/runner.md:339
 msgid "**Equal work per batch.** `BatchPolicy::SharedBatchSize` gives every implementation the smallest calibrated batch size."
 msgstr ""
 
-#: manual/tutorial/runner.md:336
+#: manual/tutorial/runner.md:342
 msgid "**Several implementations against each other.** Use `OracleSpec::Relational` or `ReferenceAndRelational` to compare implementations pairwise when no single reference exists; see the [experiment tutorial](experiment.md)."
 msgstr ""
 
-#: manual/tutorial/runner.md:341
+#: manual/tutorial/runner.md:347
 msgid "**Reproducible inputs.** Derive dataset seeds inside the fixture with `@generator.derive_seed(context.seed, context.case_id, context.dataset_key.dataset_id)`; see the [generator tutorial](generator.md)."
 msgstr ""
 
-#: manual/tutorial/runner.md:347
+#: manual/tutorial/runner.md:353
 msgid "**Work inside the payload that is not the payload.** Allocation, parsing or printing inside the implementation function is timed. Move it into the fixture."
 msgstr ""
 
-#: manual/tutorial/runner.md:350
+#: manual/tutorial/runner.md:356
 msgid "**Forgetting `clone_input` for mutating code.** Later batches then measure a different input."
 msgstr ""
 
-#: manual/tutorial/runner.md:352
+#: manual/tutorial/runner.md:358
 msgid "**Reading timings from invalid observations.** Filter on `valid` and drop datasets with validation failures before comparing."
 msgstr ""
 
-#: manual/tutorial/runner.md:354
+#: manual/tutorial/runner.md:360
 msgid "**Mixing phases.** Exploratory blocks are for orientation; decide on confirmatory ones."
 msgstr ""
 
-#: manual/tutorial/runner.md:356
+#: manual/tutorial/runner.md:362
 msgid "**Assuming `run_id` is unique.** It identifies protocol and case; put a unique id in `ProvenanceEnvironment.run_id`."
 msgstr ""
 
-#: manual/tutorial/runner.md:358
+#: manual/tutorial/runner.md:364
 msgid "**Calling `run` outside an async context.** It is an `async fn`."
 msgstr ""
 
-#: manual/tutorial/runner.md:359
+#: manual/tutorial/runner.md:365
 msgid "**A zero threshold with noisy data.** `validate_protocol` accepts `0.0`, and `stats.compare_paired` then calls every non-zero difference `Faster` or `Slower`. Choose the smallest change you care about."
 msgstr ""
 
-#: manual/tutorial/runner.md:365
+#: manual/tutorial/runner.md:371
 msgid "[runner API](../api/runner.md) and [runner design](../design/runner.md)."
 msgstr ""
 
-#: manual/tutorial/runner.md:366
+#: manual/tutorial/runner.md:372
 msgid "[stats tutorial](stats.md) to turn observations into a decision."
 msgstr ""
 
-#: manual/tutorial/runner.md:367
+#: manual/tutorial/runner.md:373
 msgid "[report tutorial](report.md) to publish the JSONL as HTML."
 msgstr ""
 
-#: manual/tutorial/runner.md:368
+#: manual/tutorial/runner.md:374
 msgid "[fixture tutorial](fixture.md) and [experiment tutorial](experiment.md) for lifecycles and oracles."
 msgstr ""
 

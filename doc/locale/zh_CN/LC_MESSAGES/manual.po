@@ -314,106 +314,106 @@ msgid "`ReferenceOracle` computes the expected result of every step and judges a
 msgstr "`ReferenceOracle` 计算每一步的期望结果，并据此判定某个实现的结果。"
 
 #: manual/api/experiment.md:46
-msgid "`compute_expected(input, step, context)` returns the expected outcome of step `step` and the oracle's next context; the sequence stops when it returns no context. `validate(input, step, expected, actual)` returns the verdict. `expected_text` renders expected values in evidence. The runner uses the case's `sequence_length`, not the oracle's `sequence_length` function."
-msgstr "`compute_expected(input, step, context)` 返回第 `step` 步的期望结果以及判定器的下一个上下文；当它不再返回上下文时序列结束。`validate(input, step, expected, actual)` 返回判定结果。`expected_text` 在证据中渲染期望值。运行器使用用例的 `sequence_length`，而不是判定器的 `sequence_length` 函数。"
+msgid "`compute_expected(input, step, context)` returns the expected outcome of step `step` and the oracle's next context; the sequence stops when it returns no context. `validate(input, step, expected, actual)` returns the verdict. `expected_text` renders expected values in evidence. For each dataset selected for validation, the runner calls `sequence_length(input)` once and uses that positive length for both the expected and candidate validation sequences. It must equal the `BenchSpec` case length; a non-positive value or disagreement is a `RunConfigError` before candidate validation or measurement begins. If either sequence terminates early, the common steps are checked and an additional `Invalid` validation reports the expected and actual sequence lengths, so an unchecked suffix cannot be reported as a complete pass. The case length remains the sequence length for relational-only cases."
+msgstr "`compute_expected(input, step, context)` 返回第 `step` 步的期望结果以及判定器的下一个上下文；当它不再返回上下文时，序列结束。`validate(input, step, expected, actual)` 返回判定结果。`expected_text` 在证据中渲染期望值。对于需要验证的每个数据集，运行器会调用一次 `sequence_length(input)`，并将该正长度同时用于期望序列和候选实现的验证序列。它必须等于 `BenchSpec` 用例的长度；若该值非正，或两者不一致，运行器会在候选验证或测量开始前抛出 `RunConfigError`。若任一序列提前终止，运行器会检查双方共有的步骤，并额外生成一条 `Invalid` 验证，报告期望序列与实际序列的长度，因此未检查的后缀不会被误报为完整通过。对于仅使用关系判定器的用例，序列长度仍由用例配置决定。"
 
-#: manual/api/experiment.md:54
+#: manual/api/experiment.md:61
 msgid "`ReferenceOracle::equal` builds a one-step oracle from a reference function and an equality."
 msgstr "`ReferenceOracle::equal` 由一个参考函数和一个相等性判断构建单步判定器。"
 
-#: manual/api/experiment.md:61
+#: manual/api/experiment.md:68
 msgid "The verdict is `Valid` when both outcomes are `Value` and the comparator accepts them, `Invalid(\"value mismatch\")` when the comparator rejects them, and `Invalid(\"outcome mismatch\")` for any other pair of outcomes. Expected values are rendered as `\"<expected>\"`."
 msgstr "当两个结果都是 `Value` 且比较器接受它们时，判定结果为 `Valid`；比较器拒绝时为 `Invalid(\"value mismatch\")`；其他任何结果组合则为 `Invalid(\"outcome mismatch\")`。期望值渲染为 `\"<expected>\"`。"
 
-#: manual/api/experiment.md:82
+#: manual/api/experiment.md:89
 msgid "`validate_reference` applies a reference oracle to one step and wraps the verdict in a `Validation` without evidence."
 msgstr "`validate_reference` 把参考判定器应用于一步，并将判定结果包装为不带证据的 `Validation`。"
 
-#: manual/api/experiment.md:89
+#: manual/api/experiment.md:96
 msgid "Arguments: oracle, input, step, expected outcome, actual outcome, implementation id, scale text."
 msgstr "参数：判定器、输入、步骤、期望结果、实际结果、实现 id、规模文本。"
 
-#: manual/api/experiment.md:94
+#: manual/api/experiment.md:101
 msgid "`RelationalOracle` judges two implementations against each other when there is no single reference."
 msgstr "`RelationalOracle` 在没有唯一参考时让两个实现相互判定。"
 
-#: manual/api/experiment.md:105
+#: manual/api/experiment.md:112
 msgid "`validate_pair(input, step, left_id, left, right_id, right)` returns the verdict for the pair; the runner attributes it to the right implementation."
 msgstr "`validate_pair(input, step, left_id, left, right_id, right)` 返回这一对的判定结果；运行器把它归于右侧实现。"
 
-#: manual/api/experiment.md:124
+#: manual/api/experiment.md:131
 msgid "`OracleSpec` selects the oracles of a case."
 msgstr "`OracleSpec` 选择用例的判定器。"
 
-#: manual/api/experiment.md:134
+#: manual/api/experiment.md:141
 msgid "With `ReferenceAndRelational` the runner runs both checks and reports each separately."
 msgstr "使用 `ReferenceAndRelational` 时，运行器执行两种检查并分别报告。"
 
-#: manual/api/experiment.md:137
+#: manual/api/experiment.md:144
 msgid "Shrinking"
 msgstr "缩减"
 
-#: manual/api/experiment.md:141
+#: manual/api/experiment.md:148
 msgid "`Shrinker` proposes smaller variants of a failing input."
 msgstr "`Shrinker` 为失败的输入提出更小的变体。"
 
-#: manual/api/experiment.md:152
+#: manual/api/experiment.md:159
 msgid "`candidates(x)` lists smaller inputs, most aggressive first. `text` renders an accepted candidate for the shrink path. `max_steps` (default `128`) bounds the number of candidates tried."
 msgstr "`candidates(x)` 列出更小的输入，最激进的排在最前。`text` 为缩减路径渲染被接受的候选。`max_steps`（默认 `128`）限制尝试的候选数量。"
 
-#: manual/api/experiment.md:158
+#: manual/api/experiment.md:165
 msgid "`shrink` minimizes an input while a predicate keeps holding."
 msgstr "`shrink` 在谓词持续成立的前提下最小化输入。"
 
-#: manual/api/experiment.md:164
+#: manual/api/experiment.md:171
 msgid "Starting from the input, it repeatedly takes the first candidate for which the predicate is true, until no candidate satisfies it or `max_steps` candidates have been tried. It returns the last accepted input and the texts of the accepted candidates in order. The initial input is not tested."
 msgstr "从输入开始，它反复选取第一个使谓词为真的候选，直到没有候选满足谓词或已尝试 `max_steps` 个候选为止。它返回最后被接受的输入，以及按顺序排列的被接受候选的文本。初始输入本身不会被测试。"
 
-#: manual/api/experiment.md:181
+#: manual/api/experiment.md:188
 msgid "Crossover analysis"
 msgstr "交叉点分析"
 
-#: manual/api/experiment.md:185
+#: manual/api/experiment.md:192
 msgid "`ScaleDomain` lists the scales of an analysis with their order and text."
 msgstr "`ScaleDomain` 列出分析所用的规模及其顺序和文本。"
 
-#: manual/api/experiment.md:210
+#: manual/api/experiment.md:217
 msgid "`comparator_label` turns a relative delta into a label for crossover analysis."
 msgstr "`comparator_label` 把相对差值转换为交叉点分析所用的标签。"
 
-#: manual/api/experiment.md:216
+#: manual/api/experiment.md:223
 msgid "`comparator_label(r, t)` is `\"A\"` when $r < 0$ and $r \\le -t$, `\"B\"` when $r > 0$ and $r \\ge t$, and `\"Unknown\"` otherwise, the same rule as the decision of `@stats.compare_paired`. An exact tie is `\"Unknown\"` for every threshold, including `0`. A `NaN` delta and a threshold that is `NaN`, infinite or negative also give `\"Unknown\"`. Pass the relative delta of A measured against B as the baseline, so that `\"A\"` means A is faster."
 msgstr "当 $r < 0$ 且 $r \\le -t$ 时 `comparator_label(r, t)` 为 `\"A\"`，当 $r > 0$ 且 $r \\ge t$ 时为 `\"B\"`，否则为 `\"Unknown\"`，这与 `@stats.compare_paired` 的决策规则相同。对于每个阈值（包括 `0`），完全持平都是 `\"Unknown\"`。`NaN` 的差值，以及为 `NaN`、无穷大或负数的阈值，也都给出 `\"Unknown\"`。请传入以 B 为基线测得的 A 的相对差值，这样 `\"A\"` 就表示 A 更快。"
 
-#: manual/api/experiment.md:233
+#: manual/api/experiment.md:240
 msgid "`crossover_from_labels` finds the scale at which the preferred implementation changes."
 msgstr "`crossover_from_labels` 找出首选实现发生变化的规模。"
 
-#: manual/api/experiment.md:240
+#: manual/api/experiment.md:247
 msgid "`labels[i]` is the verdict at `values[i]`. The pairs (`values[i]`, `labels[i]`) are first sorted stably with `domain.compare`, so the values may be given in any order; below, `values` and `labels` mean the sorted sequences. A transition is a pair of adjacent labels that differ and are both not `\"Unknown\"`."
 msgstr "`labels[i]` 是在 `values[i]` 处的判定。（`values[i]`, `labels[i]`）对会先用 `domain.compare` 稳定排序，因此值可以按任意顺序给出；下文中的 `values` 和 `labels` 指排序后的序列。转变是指一对相邻且不同、并且都不是 `\"Unknown\"` 的标签。"
 
-#: manual/api/experiment.md:246
+#: manual/api/experiment.md:253
 msgid "Situation"
 msgstr "情形"
 
-#: manual/api/experiment.md:246
+#: manual/api/experiment.md:253
 msgid "Result"
 msgstr "结果"
 
-#: manual/api/experiment.md:248
+#: manual/api/experiment.md:255
 msgid "no labels, or a different number of labels and values"
 msgstr "没有标签，或标签与值的数量不同"
 
-#: manual/api/experiment.md:249
+#: manual/api/experiment.md:256
 msgid "no transition"
 msgstr "没有转变"
 
-#: manual/api/experiment.md:250
+#: manual/api/experiment.md:257
 msgid "exactly one transition, between $i-1$ and $i$"
 msgstr "恰好一次转变，位于 $i-1$ 与 $i$ 之间"
 
-#: manual/api/experiment.md:251
+#: manual/api/experiment.md:258
 msgid "more than one transition"
 msgstr "多于一次转变"
 
@@ -1676,23 +1676,23 @@ msgstr "它依次检查：非空的用例 id、至少一个规模、至少一个
 msgid "`BenchConfigError` names one problem in a case description."
 msgstr "`BenchConfigError` 指明用例描述中的一个问题。"
 
-#: manual/api/runner.md:626
-msgid "`EmptyImplementationId` carries the index of the implementation, `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the rejected length. The `Missing*` constructors come from `SingleStepCase::compile`; `MissingSerializer` is reserved and not produced by the current code."
-msgstr "`EmptyImplementationId` 携带实现的索引，`DuplicateImplementationId` 携带重复的 id，`InvalidSequenceLength` 携带被拒绝的长度。`Missing*` 构造器来自 `SingleStepCase::compile`；`MissingSerializer` 是保留项，当前代码不会产生它。"
+#: manual/api/runner.md:628
+msgid "`EmptyImplementationId` carries the index of the implementation, `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the rejected case length. `InvalidOracleSequenceLength` carries a non-positive length returned by a reference oracle; `OracleSequenceLengthMismatch` carries the configured case length and the oracle length, in that order. The `Missing*` constructors come from `SingleStepCase::compile`; `MissingSerializer` is reserved and not produced by the current code."
+msgstr "`EmptyImplementationId` 携带实现的索引，`DuplicateImplementationId` 携带重复的 id，`InvalidSequenceLength` 携带被拒绝的用例长度。`InvalidOracleSequenceLength` 携带参考判定器返回的非正长度；`OracleSequenceLengthMismatch` 按顺序携带配置的用例长度和判定器长度。`Missing*` 构造器来自 `SingleStepCase::compile`；`MissingSerializer` 是保留项，当前代码不会产生它。"
 
-#: manual/api/runner.md:634
+#: manual/api/runner.md:638
 msgid "`DifferentialCase` is the record behind a spec or a plan."
 msgstr "`DifferentialCase` 是规格或计划背后的记录。"
 
-#: manual/api/runner.md:655
+#: manual/api/runner.md:659
 msgid "Its fields mirror the arguments of `BenchSpec::advanced`."
 msgstr "它的字段与 `BenchSpec::advanced` 的参数一一对应。"
 
-#: manual/api/runner.md:659
+#: manual/api/runner.md:663
 msgid "`ValidatedBenchPlan` is a case that passed `BenchSpec::compile`."
 msgstr "`ValidatedBenchPlan` 是通过了 `BenchSpec::compile` 的用例。"
 
-#: manual/api/runner.md:667
+#: manual/api/runner.md:671
 msgid "It can only be created by `compile`, and `run` accepts nothing else."
 msgstr "它只能由 `compile` 创建，而 `run` 只接受它。"
 
@@ -3067,10 +3067,10 @@ msgid "A transition across an `Unknown` label (A, Unknown, B) is not counted, so
 msgstr "跨越 `Unknown` 标签的转变（A、Unknown、B）不计数，因此这样的序列报告 `NoCrossover`。"
 
 #: manual/design/experiment.md:160
-msgid "Oracles are not run here; the runner runs them. `ReferenceOracle.sequence_length` is not used by the runner."
-msgstr "判定器不在这里运行；由运行器运行它们。运行器不使用 `ReferenceOracle.sequence_length`。"
+msgid "Oracles are not run here; the runner runs them. For each input selected for reference validation, the runner evaluates `ReferenceOracle.sequence_length` once. The result must be positive and equal the case's configured sequence length; otherwise the run raises `RunConfigError` before candidate execution. This equality is a correctness precondition: checking only the common prefix would leave a suffix without a verdict. If an expected or actual operation sequence terminates early, the runner emits an `Invalid` validation for the length mismatch after validating the common steps."
+msgstr "判定器不在这里运行；由运行器运行它们。对于每个需要进行参考验证的输入，运行器会计算一次 `ReferenceOracle.sequence_length`。结果必须为正，并且等于用例配置的序列长度；否则运行器会在候选执行前抛出 `RunConfigError`。长度相等是正确性前提：如果只检查共有前缀，剩余后缀就没有判定结果。若期望操作序列或实际操作序列提前终止，运行器会先验证共有步骤，然后针对长度不匹配生成一条 `Invalid` 验证。"
 
-#: manual/design/experiment.md:162
+#: manual/design/experiment.md:168
 msgid "`shrink` does not check that the initial input fails."
 msgstr "`shrink` 不检查初始输入是否失败。"
 
@@ -5529,7 +5529,7 @@ msgstr "[runner 教程](runner.md)展示了一次产生此类事件的运行。"
 #: manual/tutorial/ir_sink.md:53
 #: manual/tutorial/model.md:118
 #: manual/tutorial/report.md:143
-#: manual/tutorial/runner.md:322
+#: manual/tutorial/runner.md:328
 #: manual/tutorial/stats.md:225
 #: manual/tutorial/tune.md:118
 #: manual/tutorial/tune_gemm.md:157
@@ -5553,7 +5553,7 @@ msgstr "在其他目标上，该命令只支持使用文件路径的 `report`。
 #: manual/tutorial/ir_sink.md:58
 #: manual/tutorial/model.md:126
 #: manual/tutorial/report.md:154
-#: manual/tutorial/runner.md:345
+#: manual/tutorial/runner.md:351
 #: manual/tutorial/stats.md:257
 #: manual/tutorial/tune.md:132
 #: manual/tutorial/tune_gemm.md:165
@@ -5585,7 +5585,7 @@ msgstr "**忘记产物。** 即使使用 `--dry-run`，`replay` 也需要产物�
 #: manual/tutorial/ir_sink.md:63
 #: manual/tutorial/model.md:135
 #: manual/tutorial/report.md:163
-#: manual/tutorial/runner.md:363
+#: manual/tutorial/runner.md:369
 #: manual/tutorial/stats.md:281
 #: manual/tutorial/tune.md:143
 #: manual/tutorial/tune_gemm.md:175
@@ -6477,90 +6477,94 @@ msgid "Step 4 of the sequence returns $3 \\cdot 5 = 15$, and the evidence record
 msgstr "序列的第 4 步返回 $3 \\cdot 5 = 15$，证据同时记录了该值和该步之后的上下文。"
 
 #: manual/tutorial/runner.md:248
+msgid "For a reference oracle, `sequence_length(input)` must return a positive value equal to the case length shown above. The runner uses that value for both sequences. A disagreement is a `RunConfigError`; an implementation or oracle that stops early produces an explicit invalid length-mismatch result. This prevents the shared prefix from being mistaken for a complete check."
+msgstr "对于参考判定器，`sequence_length(input)` 必须返回一个正值，且等于上文所示的用例长度。运行器会将该值用于两个序列。若长度不一致，会抛出 `RunConfigError`；若实现或判定器提前停止，则会明确生成一条长度不匹配的无效结果。这样，共有前缀就不会被误认为是完整检查。"
+
+#: manual/tutorial/runner.md:254
 msgid "Catch and minimize a wrong implementation"
 msgstr "捕获并最小化错误的实现"
 
-#: manual/tutorial/runner.md:250
+#: manual/tutorial/runner.md:256
 msgid "An off-by-one implementation fails validation. With a shrinker, the runner reduces the failing input before writing the failure artifact:"
 msgstr "一个差一错误的实现没有通过验证。有了缩减器，运行器会在写出失败产物之前缩小失败的输入："
 
-#: manual/tutorial/runner.md:288
+#: manual/tutorial/runner.md:294
 msgid "The failure event carries the seed, the original and minimal fingerprints, the shrink path and the replay command `identity-worker off-by-one 40`. The implementation is still timed; the report hides its series and shows the mismatch instead."
 msgstr "失败事件携带种子、原始指纹和最小指纹、缩减路径以及重放命令 `identity-worker off-by-one 40`。该实现仍会被计时；报告会隐藏它的系列，改为显示不匹配。"
 
-#: manual/tutorial/runner.md:293
+#: manual/tutorial/runner.md:299
 msgid "Write your own protocol"
 msgstr "编写你自己的协议"
 
-#: manual/tutorial/runner.md:295
+#: manual/tutorial/runner.md:301
 msgid "Presets cover common cases. For a gate in CI you may want more confirmatory blocks, a multiple of the number of implementations so that every rotation cycle is complete:"
 msgstr "预设涵盖了常见情形。对于 CI 中的门禁，你可能需要更多的验证性区组，并取实现数量的倍数，使每个轮换周期都完整："
 
-#: manual/tutorial/runner.md:320
+#: manual/tutorial/runner.md:326
 msgid "With two implementations, $2 + 30 = 32$ blocks form 16 complete cycles."
 msgstr "对于两个实现，$2 + 30 = 32$ 个区组构成 16 个完整周期。"
 
-#: manual/tutorial/runner.md:324
+#: manual/tutorial/runner.md:330
 msgid "**Isolate unsafe code.** `Implementation::worker` runs each operation in a child process with a timeout; a crash becomes an `Aborted` outcome and a hang a `Timeout`, both counted as infrastructure failures. Workers need the native target. See [`WorkerSpec`](../api/runner.md#workerspec)."
 msgstr "**隔离不安全的代码。** `Implementation::worker` 在带超时的子进程中运行每次操作；崩溃会变成 `Aborted` 结果，挂起会变成 `Timeout`，两者都计为基础设施失败。工作者需要 native 目标。参见 [`WorkerSpec`](../api/runner.md#workerspec)。"
 
-#: manual/tutorial/runner.md:329
+#: manual/tutorial/runner.md:335
 msgid "**Asynchronous devices.** Pass `synchronize=` to `Implementation::in_process` with a function that blocks until queued work is done. The runner calls it right before starting and right before stopping the clock."
 msgstr "**异步设备。** 向 `Implementation::in_process` 传入 `synchronize=`，其函数会阻塞直到排队的工作完成。运行器会在启动时钟之前和停止时钟之前立即调用它。"
 
-#: manual/tutorial/runner.md:333
+#: manual/tutorial/runner.md:339
 msgid "**Equal work per batch.** `BatchPolicy::SharedBatchSize` gives every implementation the smallest calibrated batch size."
 msgstr "**每批次相等的工作量。** `BatchPolicy::SharedBatchSize` 为每个实现提供校准得到的最小批次大小。"
 
-#: manual/tutorial/runner.md:336
+#: manual/tutorial/runner.md:342
 msgid "**Several implementations against each other.** Use `OracleSpec::Relational` or `ReferenceAndRelational` to compare implementations pairwise when no single reference exists; see the [experiment tutorial](experiment.md)."
 msgstr "**多个实现相互比较。** 当不存在唯一参考时，使用 `OracleSpec::Relational` 或 `ReferenceAndRelational` 对实现进行两两比较；参见 [experiment 教程](experiment.md)。"
 
-#: manual/tutorial/runner.md:341
+#: manual/tutorial/runner.md:347
 msgid "**Reproducible inputs.** Derive dataset seeds inside the fixture with `@generator.derive_seed(context.seed, context.case_id, context.dataset_key.dataset_id)`; see the [generator tutorial](generator.md)."
 msgstr "**可复现的输入。** 在夹具中用 `@generator.derive_seed(context.seed, context.case_id, context.dataset_key.dataset_id)` 派生数据集种子；参见 [generator 教程](generator.md)。"
 
-#: manual/tutorial/runner.md:347
+#: manual/tutorial/runner.md:353
 msgid "**Work inside the payload that is not the payload.** Allocation, parsing or printing inside the implementation function is timed. Move it into the fixture."
 msgstr "**负载内部不属于负载的工作。** 实现函数内部的分配、解析或打印都会被计时。请把它们移到夹具中。"
 
-#: manual/tutorial/runner.md:350
+#: manual/tutorial/runner.md:356
 msgid "**Forgetting `clone_input` for mutating code.** Later batches then measure a different input."
 msgstr "**对会修改数据的代码忘记 `clone_input`。** 这样之后的批次测量的是另一个输入。"
 
-#: manual/tutorial/runner.md:352
+#: manual/tutorial/runner.md:358
 msgid "**Reading timings from invalid observations.** Filter on `valid` and drop datasets with validation failures before comparing."
 msgstr "**从无效观测中读取计时。** 比较之前请按 `valid` 过滤，并丢弃有验证失败的数据集。"
 
-#: manual/tutorial/runner.md:354
+#: manual/tutorial/runner.md:360
 msgid "**Mixing phases.** Exploratory blocks are for orientation; decide on confirmatory ones."
 msgstr "**混合不同阶段。** 探索性区组用于摸底；请基于验证性区组做决策。"
 
-#: manual/tutorial/runner.md:356
+#: manual/tutorial/runner.md:362
 msgid "**Assuming `run_id` is unique.** It identifies protocol and case; put a unique id in `ProvenanceEnvironment.run_id`."
 msgstr "**以为 `run_id` 是唯一的。** 它标识的是协议和用例；请把唯一 id 放入 `ProvenanceEnvironment.run_id`。"
 
-#: manual/tutorial/runner.md:358
+#: manual/tutorial/runner.md:364
 msgid "**Calling `run` outside an async context.** It is an `async fn`."
 msgstr "**在异步上下文之外调用 `run`。** 它是一个 `async fn`。"
 
-#: manual/tutorial/runner.md:359
+#: manual/tutorial/runner.md:365
 msgid "**A zero threshold with noisy data.** `validate_protocol` accepts `0.0`, and `stats.compare_paired` then calls every non-zero difference `Faster` or `Slower`. Choose the smallest change you care about."
 msgstr "**在有噪声的数据上使用零阈值。** `validate_protocol` 接受 `0.0`，此时 `stats.compare_paired` 会把每个非零差异都判为 `Faster` 或 `Slower`。请选择你关心的最小变化。"
 
-#: manual/tutorial/runner.md:365
+#: manual/tutorial/runner.md:371
 msgid "[runner API](../api/runner.md) and [runner design](../design/runner.md)."
 msgstr "[runner API](../api/runner.md) 和 [runner 设计](../design/runner.md)。"
 
-#: manual/tutorial/runner.md:366
+#: manual/tutorial/runner.md:372
 msgid "[stats tutorial](stats.md) to turn observations into a decision."
 msgstr "[stats 教程](stats.md)：把观测转化为决策。"
 
-#: manual/tutorial/runner.md:367
+#: manual/tutorial/runner.md:373
 msgid "[report tutorial](report.md) to publish the JSONL as HTML."
 msgstr "[report 教程](report.md)：把 JSONL 发布为 HTML。"
 
-#: manual/tutorial/runner.md:368
+#: manual/tutorial/runner.md:374
 msgid "[fixture tutorial](fixture.md) and [experiment tutorial](experiment.md) for lifecycles and oracles."
 msgstr "[fixture 教程](fixture.md)和 [experiment 教程](experiment.md)：生命周期与判定器。"
 
@@ -7051,6 +7055,12 @@ msgstr "`tune` 与 `tune_gemm`：中位数打分、与顺序无关的选择、Pa
 #: manual/verification.md:93
 msgid "`cli`: argument parsing, help texts, replay extraction. The native `main` is exercised by the smoke tests only."
 msgstr "`cli`：参数解析、帮助文本、重放信息提取。native 的 `main` 只由冒烟测试覆盖。"
+
+#~ msgid "`compute_expected(input, step, context)` returns the expected outcome of step `step` and the oracle's next context; the sequence stops when it returns no context. `validate(input, step, expected, actual)` returns the verdict. `expected_text` renders expected values in evidence. The runner uses the case's `sequence_length`, not the oracle's `sequence_length` function."
+#~ msgstr "`compute_expected(input, step, context)` 返回第 `step` 步的期望结果以及判定器的下一个上下文；当它不再返回上下文时序列结束。`validate(input, step, expected, actual)` 返回判定结果。`expected_text` 在证据中渲染期望值。运行器使用用例的 `sequence_length`，而不是判定器的 `sequence_length` 函数。"
+
+#~ msgid "Oracles are not run here; the runner runs them. `ReferenceOracle.sequence_length` is not used by the runner."
+#~ msgstr "判定器不在这里运行；由运行器运行它们。运行器不使用 `ReferenceOracle.sequence_length`。"
 
 #~ msgid "Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range; x labels closer than 56 px are omitted. The SVG formats each tick from its original positive value and records each chosen axis scale in Plot IR and JSON. The plot note and axis label identify any log transform."
 #~ msgstr "对数轴刻度是观测数据范围内的 `1, 2, 5 × 10^k` 值；相距不足 56 px 的 x 轴标签会被省略。SVG 使用刻度对应的原始正值生成标签，Plot IR 和 JSON 则记录每个已选轴刻度。图表注释和轴标签会标明对数变换。"

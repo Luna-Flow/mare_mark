@@ -4,6 +4,10 @@ All notable changes to mare_mark are documented in this file.
 
 ## Unreleased
 
+- `ReferenceOracle.sequence_length` now determines the expected and candidate
+  validation sequence length per input and must be positive and equal the case
+  length; mismatches fail explicitly instead of silently validating a prefix
+  (#6).
 - Scaling plots use independent base-10 logarithmic axes when all values on an
   axis are positive and finite and span at least 100×. Log axes label every
   power of ten (every k-th decade when decades are dense), add 2× and 5× ticks

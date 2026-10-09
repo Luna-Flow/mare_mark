@@ -10,6 +10,8 @@ pub(all) enum BenchConfigError {
   EmptyImplementationId(Int)
   DuplicateImplementationId(String)
   InvalidSequenceLength(Int)
+  InvalidOracleSequenceLength(Int)
+  OracleSequenceLengthMismatch(Int, Int)
   PerRunSetupWithMultipleDatasets(Int)
 }
 
