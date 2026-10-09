@@ -367,6 +367,58 @@ fn axis_scale_name(scale : @ir.AxisScale) -> String {
 }
 
 ///|
+/// JSON number for a `Double`; non-finite values are the strings `"NaN"`,
+/// `"Infinity"` and `"-Infinity"`, as in the JSONL protocol.
+fn number_json(value : Double) -> Json {
+  if value.is_nan() {
+    Json::string("NaN")
+  } else if value.is_pos_inf() {
+    Json::string("Infinity")
+  } else if value.is_neg_inf() {
+    Json::string("-Infinity")
+  } else {
+    Json::number(value)
+  }
+}
+
+///|
+fn comparison_row_json(row : @ir.ComparisonRow) -> Json {
+  Json::object({
+    "case": Json::string(row.case_id),
+    "scale": Json::string(row.scale),
+    "baseline": Json::string(row.baseline),
+    "candidate": Json::string(row.candidate),
+    "decision": Json::string(row.decision.text()),
+    "reason": Json::string(row.reason),
+    "estimate": match row.estimate {
+      Some(estimate) =>
+        Json::object({
+          "baseline_median_us": number_json(estimate.baseline_median_us),
+          "candidate_median_us": number_json(estimate.candidate_median_us),
+          "median_delta_us": number_json(estimate.median_delta_us),
+          "relative_delta_pct": number_json(estimate.relative_delta_pct),
+          "speedup": number_json(estimate.speedup),
+        })
+      None => Json::null()
+    },
+    "interval": match row.interval {
+      Some(interval) =>
+        Json::object({
+          "low_us": number_json(interval.low_us),
+          "high_us": number_json(interval.high_us),
+          "low_pct": number_json(interval.low_pct),
+          "high_pct": number_json(interval.high_pct),
+        })
+      None => Json::null()
+    },
+    "blocks_used": Json::number(row.blocks_used.to_double()),
+    "blocks_incomplete": Json::number(row.blocks_incomplete.to_double()),
+    "blocks_outliers": Json::number(row.blocks_outliers.to_double()),
+    "seed": Json::string(row.seed.to_string()),
+  })
+}
+
+///|
 pub fn plot_json(document : @ir.PlotDocument) -> String {
   let plot_values = document.plots.map(plot => {
     let point_values = plot.points.map(point => {
@@ -417,6 +469,7 @@ pub fn plot_json(document : @ir.PlotDocument) -> String {
     })
   })
   let corpus = document.differential.corpus
+  let comparisons = document.comparisons
   Json::object({
     "schema_version": Json::string(document.schema_version.identifier()),
     "run_id": Json::string(document.run_id),
@@ -435,6 +488,30 @@ pub fn plot_json(document : @ir.PlotDocument) -> String {
           corpus.expected_difference.to_double(),
         ),
       }),
+    }),
+    "comparisons": Json::object({
+      "practical_delta_pct": number_json(comparisons.practical_delta_pct),
+      "outlier_policy": Json::string(comparisons.outlier_policy),
+      "confidence_pct": number_json(comparisons.confidence_pct),
+      "resamples": Json::number(comparisons.resamples.to_double()),
+      "min_blocks": Json::number(comparisons.min_blocks.to_double()),
+      "run_seed": Json::string(comparisons.run_seed.to_string()),
+      "protocol_source": Json::string(
+        if comparisons.protocol_recorded {
+          "record"
+        } else {
+          "default"
+        },
+      ),
+      "seed_source": Json::string(
+        if comparisons.seed_recorded {
+          "record"
+        } else {
+          "default"
+        },
+      ),
+      "note": Json::string(comparisons.note),
+      "rows": Json::array(comparisons.rows.map(comparison_row_json)),
     }),
   }).stringify()
 }
@@ -499,6 +576,8 @@ priv struct ReportObservation {
   phase : String
   /// The `scale` field, or `None` for records written before it existed.
   scale : String?
+  /// The `block_id` field, or `None` for records written without it.
+  block_id : Int?
   elapsed_us : Double
 }
 
@@ -539,11 +618,15 @@ priv struct TimingGroup {
   implementation : String
   /// Confirmatory per-iteration times (`elapsed_us`), in input order.
   elapsed_us : Array[Double]
+  /// The block of each entry of `elapsed_us`, `None` where it is not recorded.
+  block_ids : Array[Int?]
 }
 
 ///|
 priv struct CaseTimings {
   case_id : String
+  /// Implementations of every phase, in order of first appearance.
+  implementations : Array[String]
   /// Groups in order of first appearance of (scale, implementation).
   groups : Array[TimingGroup]
   /// Observations left out because their phase is not confirmatory, by phase,
@@ -580,12 +663,16 @@ fn confirmatory_timings(
       None => {
         let created = {
           case_id: observation.case_id,
+          implementations: [],
           groups: [],
           excluded_by_phase: {},
         }
         cases.push(created)
         created
       }
+    }
+    if !case_timings.implementations.contains(observation.implementation) {
+      case_timings.implementations.push(observation.implementation)
     }
     if !is_confirmatory(observation.phase) {
       let excluded = case_timings.excluded_by_phase
@@ -603,14 +690,18 @@ fn confirmatory_timings(
         group.scale_source == scale_source &&
         group.implementation == observation.implementation
       }) {
-      Some(index) =>
-        case_timings.groups[index].elapsed_us.push(observation.elapsed_us)
+      Some(index) => {
+        let group = case_timings.groups[index]
+        group.elapsed_us.push(observation.elapsed_us)
+        group.block_ids.push(observation.block_id)
+      }
       None =>
         case_timings.groups.push({
           scale,
           scale_source,
           implementation: observation.implementation,
           elapsed_us: [observation.elapsed_us],
+          block_ids: [observation.block_id],
         })
     }
   }
@@ -704,11 +795,23 @@ fn scaling_plot(timings : CaseTimings) -> @ir.Plot {
 }
 
 ///|
+
+///|
+/// Reads a JSONL record into a plot document: one scaling plot per case, the
+/// differential tables, and the paired comparison of every implementation
+/// against `baseline` at every scale of every case (see `ComparisonReport`).
+///
+/// `baseline` defaults to the first implementation that appears in each case;
+/// an id that names no observed implementation is an error.
 pub fn document_from_jsonl(
   source : String,
   target? : String = "unknown",
+  baseline? : String,
 ) -> Result[@ir.PlotDocument, String] {
   let observations : Array[ReportObservation] = []
+  let implementations_seen : Array[String] = []
+  let mut protocol : @model.RunProtocol? = None
+  let mut run_seed : UInt64? = None
   let failed_benchmarks : Array[FailedBenchmarkKey] = []
   let mismatches = []
   let capabilities = []
@@ -782,6 +885,15 @@ pub fn document_from_jsonl(
           Some(_) =>
             return Err("invalid scale at line " + line_number.to_string())
         }
+        let block_id = match object.get("block_id") {
+          Some(Number(value, ..)) => Some(value.to_int())
+          None => None
+          Some(_) =>
+            return Err("invalid block_id at line " + line_number.to_string())
+        }
+        if !implementations_seen.contains(implementation) {
+          implementations_seen.push(implementation)
+        }
         if valid && kept {
           observations.push({
             case_id: json_string(object, "case"),
@@ -789,6 +901,7 @@ pub fn document_from_jsonl(
             dataset_id: dataset_id.to_int(),
             phase,
             scale,
+            block_id,
             elapsed_us,
           })
         }
@@ -852,12 +965,55 @@ pub fn document_from_jsonl(
         failed = json_int(object, "failed_count")
         unsupported = json_int(object, "unsupported_count")
         expected_difference = json_int(object, "expected_difference_count")
+        match object.get("protocol") {
+          Some(json) =>
+            match @event.protocol_from_json(json) {
+              Ok(value) => protocol = Some(value)
+              Err(message) =>
+                return Err(
+                  "invalid protocol at line " +
+                  line_number.to_string() +
+                  ": " +
+                  message,
+                )
+            }
+          None => ()
+        }
+        match object.get("seed") {
+          Some(String(text)) =>
+            match decimal_uint64(text) {
+              Some(value) => run_seed = Some(value)
+              None =>
+                return Err("invalid seed at line " + line_number.to_string())
+            }
+          None => ()
+          Some(_) =>
+            return Err("invalid seed at line " + line_number.to_string())
+        }
       }
       _ => ()
     }
   }
-  let plots = confirmatory_timings(observations, failed_benchmarks).map(
-    scaling_plot,
+  match baseline {
+    Some(id) if !implementations_seen.contains(id) =>
+      return Err(
+        "unknown baseline '" +
+        id +
+        "'; implementations in the record: " +
+        (if implementations_seen.is_empty() {
+          "none"
+        } else {
+          implementations_seen.join(", ")
+        }),
+      )
+    _ => ()
+  }
+  let timings = confirmatory_timings(observations, failed_benchmarks)
+  let plots = timings.map(scaling_plot)
+  let comparisons = comparison_report(
+    timings,
+    baseline,
+    comparison_settings(protocol, run_seed),
   )
   if plots.is_empty() && mismatches.is_empty() && counterexamples.is_empty() {
     Err("JSONL contains no observation or differential events")
@@ -876,6 +1032,7 @@ pub fn document_from_jsonl(
             total, passed, failed, unsupported, expected_difference,
           ),
         ),
+        comparisons~,
       ),
     )
   }
@@ -1006,7 +1163,7 @@ pub fn html(document : @ir.PlotDocument) -> String {
     .join("\n")
   "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>mare_mark · " +
   escape_xml(document.run_id) +
-  "</title><style>:root{color-scheme:light;background:#f1f5f9;color:#0f172a;font-family:Inter,ui-sans-serif,system-ui,sans-serif}*{box-sizing:border-box}body{margin:0}.shell{width:min(1200px,calc(100% - 32px));margin:0 auto;padding:48px 0 72px}header{margin-bottom:28px}h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.04em;margin:0 0 10px}h2{margin:0 0 14px;font-size:1.2rem}.meta{display:flex;gap:10px;flex-wrap:wrap}.tag{background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:6px 11px;font-size:.8rem;font-weight:700}.panel,figure{margin:0 0 24px;background:#fff;border:1px solid #dbe3ee;border-radius:18px;padding:18px;box-shadow:0 14px 35px rgba(15,23,42,.07)}figcaption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;align-items:baseline;font-weight:750;padding:2px 8px 12px}figcaption small{color:#64748b;font-weight:600}figcaption .note{flex-basis:100%;margin:0;color:#475569;font-size:.85rem;font-weight:500}svg{display:block;width:100%;height:auto}.denominator{margin:0;color:#334155}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:.84rem}th,td{text-align:left;vertical-align:top;padding:9px;border-bottom:1px solid #e2e8f0}th{color:#475569;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}code{font-size:.78rem;overflow-wrap:anywhere}@media(max-width:640px){.shell{width:min(100% - 16px,1200px);padding-top:24px}.panel,figure{padding:8px;border-radius:12px}figcaption{align-items:flex-start;flex-direction:column}}</style></head><body><main class=\"shell\"><header><h1>mare_mark report</h1><div class=\"meta\"><span class=\"tag\">Run " +
+  "</title><style>:root{color-scheme:light;background:#f1f5f9;color:#0f172a;font-family:Inter,ui-sans-serif,system-ui,sans-serif}*{box-sizing:border-box}body{margin:0}.shell{width:min(1200px,calc(100% - 32px));margin:0 auto;padding:48px 0 72px}header{margin-bottom:28px}h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.04em;margin:0 0 10px}h2{margin:0 0 14px;font-size:1.2rem}.meta{display:flex;gap:10px;flex-wrap:wrap}.tag{background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:6px 11px;font-size:.8rem;font-weight:700}.panel,figure{margin:0 0 24px;background:#fff;border:1px solid #dbe3ee;border-radius:18px;padding:18px;box-shadow:0 14px 35px rgba(15,23,42,.07)}figcaption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;align-items:baseline;font-weight:750;padding:2px 8px 12px}figcaption small{color:#64748b;font-weight:600}figcaption .note{flex-basis:100%;margin:0;color:#475569;font-size:.85rem;font-weight:500}svg{display:block;width:100%;height:auto}.denominator{margin:0;color:#334155}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:.84rem}th,td{text-align:left;vertical-align:top;padding:9px;border-bottom:1px solid #e2e8f0}th{color:#475569;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}code{font-size:.78rem;overflow-wrap:anywhere}.panel .note{margin:0 0 12px;color:#475569;font-size:.85rem}td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.decision{display:inline-block;border-radius:999px;padding:3px 9px;font-size:.75rem;font-weight:700;border:1px solid currentColor}.decision-faster{background:#dcfce7;color:#166534}.decision-slower{background:#fee2e2;color:#991b1b}.decision-equivalent{background:#e2e8f0;color:#334155}.decision-unknown{background:#fef3c7;color:#92400e}.decision-invalid{background:#f3e8ff;color:#6b21a8}.reason{display:block;margin-top:4px;color:#64748b;font-size:.75rem}@media(max-width:640px){.shell{width:min(100% - 16px,1200px);padding-top:24px}.panel,figure{padding:8px;border-radius:12px}figcaption{align-items:flex-start;flex-direction:column}}</style></head><body><main class=\"shell\"><header><h1>mare_mark report</h1><div class=\"meta\"><span class=\"tag\">Run " +
   escape_xml(document.run_id) +
   "</span><span class=\"tag\">Target " +
   escape_xml(document.target) +
@@ -1014,6 +1171,614 @@ pub fn html(document : @ir.PlotDocument) -> String {
   escape_xml(document.schema_version.identifier()) +
   "</span></div></header>" +
   differential_html(document.differential) +
+  comparisons_html(document.comparisons) +
   figures +
   "</main></body></html>"
+}
+
+///|
+/// Bootstrap resamples per comparison. The stats design asks for at least
+/// 1000 at 95 %; 10000 puts the Monte Carlo error of each endpoint near 0.16
+/// percentage points of the 2.5 % tail mass and costs O(10000 n log n).
+const COMPARISON_RESAMPLES : Int = 10000
+
+///|
+/// Fewest used blocks for which a comparison is decided. With one or two
+/// pairs the median is the mean of the pairs and the percentile interval is
+/// the range of the data, so neither says anything about the spread.
+const COMPARISON_MIN_BLOCKS : Int = 3
+
+///|
+/// Confidence of the bootstrap interval, in percent.
+let comparison_confidence_pct : Double = 95.0
+
+///|
+/// What the comparisons of a report are computed with, and where each value
+/// comes from.
+priv struct ComparisonSettings {
+  practical_delta_pct : Double
+  outlier_policy : @model.OutlierPolicy
+  run_seed : UInt64
+  protocol_recorded : Bool
+  seed_recorded : Bool
+}
+
+///|
+/// The recorded protocol and seed, or the defaults of `ReportOnly`, a 1 %
+/// threshold and seed 0 for records written without them.
+fn comparison_settings(
+  protocol : @model.RunProtocol?,
+  run_seed : UInt64?,
+) -> ComparisonSettings {
+  let (practical_delta_pct, outlier_policy) = match protocol {
+    Some(protocol) => (protocol.practical_delta_pct, protocol.outlier_policy)
+    None => (1.0, @model.OutlierPolicy::ReportOnly)
+  }
+  {
+    practical_delta_pct,
+    outlier_policy,
+    run_seed: run_seed.unwrap_or(0UL),
+    protocol_recorded: protocol is Some(_),
+    seed_recorded: run_seed is Some(_),
+  }
+}
+
+///|
+/// Parses the canonical decimal text of a `UInt64`, as written by the JSONL
+/// summary.
+fn decimal_uint64(text : String) -> UInt64? {
+  let value = try @string.parse_uint64(text, base=10) catch {
+    _ => return None
+  } noraise {
+    value => value
+  }
+  if value.to_string() == text {
+    Some(value)
+  } else {
+    None
+  }
+}
+
+///|
+/// Bootstrap seed of one comparison row: 64-bit FNV-1a over the UTF-16 code
+/// units of `mare_mark/compare/v1`, the decimal run seed, the case, the scale,
+/// the baseline and the candidate, separated by U+001F. The same record gives
+/// the same seed on every target, and rows never share a resampling stream.
+fn comparison_seed(
+  run_seed : UInt64,
+  case_id : String,
+  scale : String,
+  baseline : String,
+  candidate : String,
+) -> UInt64 {
+  let text = [
+    "mare_mark/compare/v1",
+    run_seed.to_string(),
+    case_id,
+    scale,
+    baseline,
+    candidate,
+  ].join("\u{1f}")
+  let mut hash = 0xCBF29CE484222325UL
+  for index = 0; index < text.length(); index = index + 1 {
+    hash = (hash ^ text[index].to_int().to_uint64()) * 0x100000001B3UL
+  }
+  hash
+}
+
+///|
+/// The confirmatory times of `group` by block, in order of first appearance.
+/// Entries without a block id are left out.
+fn block_times(group : TimingGroup?) -> Map[Int, Array[Double]] {
+  let blocks : Map[Int, Array[Double]] = Map([])
+  guard group is Some(group) else { return blocks }
+  for index = 0; index < group.elapsed_us.length(); index = index + 1 {
+    guard group.block_ids[index] is Some(block) else { continue }
+    match blocks.get(block) {
+      Some(values) => values.push(group.elapsed_us[index])
+      None => blocks[block] = [group.elapsed_us[index]]
+    }
+  }
+  blocks
+}
+
+///|
+/// The complete blocks of a baseline and a candidate group, as
+/// `(block, baseline, candidate)` in ascending block order, and the number of
+/// blocks seen in either group that are not complete. A block is complete when
+/// it holds exactly one observation of each implementation.
+fn paired_blocks(
+  baseline : TimingGroup?,
+  candidate : TimingGroup,
+) -> (Array[(Int, Double, Double)], Int) {
+  let baseline_blocks = block_times(baseline)
+  let candidate_blocks = block_times(Some(candidate))
+  let blocks : Array[Int] = []
+  for block, _ in baseline_blocks {
+    blocks.push(block)
+  }
+  for block, _ in candidate_blocks {
+    if !baseline_blocks.contains(block) {
+      blocks.push(block)
+    }
+  }
+  blocks.sort()
+  let pairs = []
+  let mut incomplete = 0
+  for block in blocks {
+    match (baseline_blocks.get(block), candidate_blocks.get(block)) {
+      (Some([baseline_us]), Some([candidate_us])) =>
+        pairs.push((block, baseline_us, candidate_us))
+      _ => incomplete += 1
+    }
+  }
+  (pairs, incomplete)
+}
+
+///|
+/// Applies `policy` to the paired deltas `candidate - baseline` and keeps the
+/// pairs whose delta survives. `@stats.filter_outliers` keeps a value when it
+/// lies inside fences computed from all values, so whether a pair survives
+/// depends only on its delta, and membership in the filtered deltas
+/// identifies the surviving pairs exactly.
+fn filter_pairs(
+  pairs : Array[(Int, Double, Double)],
+  policy : @model.OutlierPolicy,
+) -> Array[(Int, Double, Double)] {
+  let deltas = pairs.map(pair => pair.2 - pair.1)
+  let kept = @stats.filter_outliers(deltas, policy)
+  pairs.filter(pair => kept.contains(pair.2 - pair.1))
+}
+
+///|
+fn decision_of(decision : @stats.Decision) -> @ir.ComparisonDecision {
+  match decision {
+    Faster => @ir.ComparisonDecision::Faster
+    Slower => @ir.ComparisonDecision::Slower
+    Equivalent => @ir.ComparisonDecision::Equivalent
+    Invalid => @ir.ComparisonDecision::Invalid
+    Unknown => @ir.ComparisonDecision::Unknown
+  }
+}
+
+///|
+fn bootstrap_error_text(error : @stats.BootstrapError) -> String {
+  match error {
+    EmptySamples => "no paired deltas"
+    MismatchedPairs(baseline, candidate) =>
+      "mismatched pairs (" +
+      baseline.to_string() +
+      " baseline, " +
+      candidate.to_string() +
+      " candidate)"
+    InvalidResamples(count) => "invalid resample count " + count.to_string()
+    InvalidConfidence(value) => "invalid confidence " + value.to_string()
+    NonFiniteSample(index) =>
+      "paired delta " + index.to_string() + " is not finite"
+  }
+}
+
+///|
+fn plural(count : Int, singular : String, many : String) -> String {
+  count.to_string() + " " + (if count == 1 { singular } else { many })
+}
+
+///|
+/// The comparison of `candidate` against `baseline` at one scale of one case.
+fn compare_groups(
+  case_id : String,
+  scale : String,
+  baseline_id : String,
+  baseline : TimingGroup?,
+  candidate : TimingGroup,
+  settings : ComparisonSettings,
+) -> @ir.ComparisonRow {
+  let seed = comparison_seed(
+    settings.run_seed,
+    case_id,
+    scale,
+    baseline_id,
+    candidate.implementation,
+  )
+  let (pairs, incomplete) = paired_blocks(baseline, candidate)
+  let used = filter_pairs(pairs, settings.outlier_policy)
+  let baseline_us = used.map(pair => pair.1)
+  let candidate_us = used.map(pair => pair.2)
+  let estimate = if used.is_empty() {
+    None
+  } else {
+    let point = @stats.compare_paired(
+      baseline_id,
+      candidate.implementation,
+      baseline_us,
+      candidate_us,
+      settings.practical_delta_pct,
+      @model.confirmatory_interval(),
+    )
+    Some(
+      @ir.PairedEstimate::new(
+        @stats.summarize(baseline_us).median,
+        @stats.summarize(candidate_us).median,
+        @stats.summarize(@stats.paired_deltas(baseline_us, candidate_us)).median,
+        point.relative_delta_pct,
+        point.speedup,
+      ),
+    )
+  }
+  let row = (
+    decision : @ir.ComparisonDecision,
+    reason : String,
+    interval : @ir.DeltaInterval?,
+  ) => {
+    @ir.ComparisonRow::new(
+      case_id,
+      scale,
+      baseline_id,
+      candidate.implementation,
+      decision,
+      reason,
+      estimate,
+      interval,
+      used.length(),
+      incomplete,
+      pairs.length() - used.length(),
+      seed,
+    )
+  }
+  let recorded_blocks = candidate.block_ids.any(block => block is Some(_)) ||
+    (baseline is Some(group) && group.block_ids.any(block => block is Some(_)))
+  if !recorded_blocks {
+    return row(
+      Unknown,
+      "block_id not recorded; observations cannot be paired",
+      None,
+    )
+  }
+  if baseline is None {
+    return row(
+      Unknown,
+      "baseline has no confirmatory observations at this scale",
+      None,
+    )
+  }
+  if used.length() < COMPARISON_MIN_BLOCKS {
+    return row(
+      Unknown,
+      plural(used.length(), "usable block", "usable blocks") +
+      "; at least " +
+      COMPARISON_MIN_BLOCKS.to_string() +
+      " are needed",
+      None,
+    )
+  }
+  let baseline_median = @stats.summarize(baseline_us).median
+  if !(baseline_median > 0.0) {
+    return row(
+      Invalid,
+      "baseline median is not positive; the relative delta is undefined",
+      None,
+    )
+  }
+  match
+    @stats.compare_paired_with_bootstrap(
+      baseline_id,
+      candidate.implementation,
+      baseline_us,
+      candidate_us,
+      settings.practical_delta_pct,
+      @model.confirmatory_interval(),
+      seed,
+      COMPARISON_RESAMPLES,
+      comparison_confidence_pct,
+    ) {
+    Ok(comparison) => {
+      let interval = @ir.DeltaInterval::new(
+        comparison.interval.low,
+        comparison.interval.high,
+        comparison.interval.low / baseline_median * 100.0,
+        comparison.interval.high / baseline_median * 100.0,
+      )
+      let decision = decision_of(comparison.decision)
+      let reason = if decision is Invalid {
+        "practical_delta_pct " +
+        settings.practical_delta_pct.to_string() +
+        " is not a finite, non-negative threshold"
+      } else {
+        ""
+      }
+      row(decision, reason, Some(interval))
+    }
+    Err(error) =>
+      row(Invalid, "bootstrap: " + bootstrap_error_text(error), None)
+  }
+}
+
+///|
+/// The comparisons of one case: at every scale, every implementation measured
+/// there against the baseline, in order of first appearance.
+fn case_comparisons(
+  timings : CaseTimings,
+  baseline : String?,
+  settings : ComparisonSettings,
+) -> Array[@ir.ComparisonRow] {
+  let baseline_id = match baseline {
+    Some(id) => id
+    None =>
+      match timings.implementations {
+        [first, ..] => first
+        [] => return []
+      }
+  }
+  let rows = []
+  let scales : Array[(String, ScaleSource)] = []
+  for group in timings.groups {
+    let key = (group.scale, group.scale_source)
+    if !scales.contains(key) {
+      scales.push(key)
+    }
+  }
+  for key in scales {
+    let groups = timings.groups.filter(group => {
+      group.scale == key.0 && group.scale_source == key.1
+    })
+    let baseline_group = match
+      groups.search_by(group => group.implementation == baseline_id) {
+      Some(index) => Some(groups[index])
+      None => None
+    }
+    let scale = match key.1 {
+      Recorded => key.0
+      DatasetId => "dataset_id " + key.0
+    }
+    for group in groups {
+      if group.implementation != baseline_id {
+        rows.push(
+          compare_groups(
+            timings.case_id,
+            scale,
+            baseline_id,
+            baseline_group,
+            group,
+            settings,
+          ),
+        )
+      }
+    }
+  }
+  rows
+}
+
+///|
+fn comparison_note(settings : ComparisonSettings, unpaired : Int) -> String {
+  let threshold = "threshold ±" +
+    format_number(settings.practical_delta_pct) +
+    " % and outlier policy " +
+    settings.outlier_policy.text() +
+    " (applied to the paired deltas)"
+  let protocol = if settings.protocol_recorded {
+    "Decision " + threshold + " from the recorded protocol"
+  } else {
+    "The record has no protocol: decision " + threshold + " are defaults"
+  }
+  let seed = if settings.seed_recorded {
+    "run seed " + settings.run_seed.to_string() + " from the record"
+  } else {
+    "the record has no seed: run seed " +
+    settings.run_seed.to_string() +
+    " is a default"
+  }
+  protocol +
+  "; " +
+  seed +
+  ". Each row pairs the confirmatory observations of one block, needs at least " +
+  COMPARISON_MIN_BLOCKS.to_string() +
+  " usable blocks, and reports a " +
+  format_number(comparison_confidence_pct) +
+  " % percentile bootstrap interval of the median paired delta with " +
+  COMPARISON_RESAMPLES.to_string() +
+  " resamples (report defaults), seeded from the run seed, case, scale, baseline and candidate; with few blocks its actual coverage can be well below the nominal level." +
+  (if unpaired == 0 {
+    ""
+  } else {
+    " " +
+    plural(
+      unpaired, "confirmatory observation has", "confirmatory observations have",
+    ) +
+    " no block_id and cannot be paired."
+  })
+}
+
+///|
+fn comparison_report(
+  timings : Array[CaseTimings],
+  baseline : String?,
+  settings : ComparisonSettings,
+) -> @ir.ComparisonReport {
+  let rows = []
+  let mut unpaired = 0
+  for case_timings in timings {
+    rows.append(case_comparisons(case_timings, baseline, settings))
+    for group in case_timings.groups {
+      unpaired += group.block_ids.filter(block => block is None).length()
+    }
+  }
+  @ir.ComparisonReport::new(
+    rows,
+    settings.practical_delta_pct,
+    settings.outlier_policy.text(),
+    comparison_confidence_pct,
+    COMPARISON_RESAMPLES,
+    COMPARISON_MIN_BLOCKS,
+    settings.run_seed,
+    settings.protocol_recorded,
+    settings.seed_recorded,
+    comparison_note(settings, unpaired),
+  )
+}
+
+///|
+fn decision_label(decision : @ir.ComparisonDecision) -> String {
+  match decision {
+    Faster => "Faster"
+    Slower => "Slower"
+    Equivalent => "Equivalent"
+    Unknown => "Unknown"
+    Invalid => "Invalid"
+  }
+}
+
+///|
+/// `value` rounded to three decimals with an explicit sign; zero has none.
+fn signed_number(value : Double) -> String {
+  if value > 0.0 {
+    "+" + format_number(value)
+  } else if value == 0.0 {
+    "0"
+  } else {
+    format_number(value)
+  }
+}
+
+///|
+/// The cells of one comparison row as plain text, in table order: case, scale,
+/// baseline, candidate, the two medians, the relative delta, the interval,
+/// the decision, the blocks used / incomplete / outliers, the seed and the
+/// reason.
+fn comparison_cells(row : @ir.ComparisonRow) -> Array[String] {
+  let (baseline_median, candidate_median, delta) = match row.estimate {
+    Some(estimate) =>
+      (
+        format_number(estimate.baseline_median_us),
+        format_number(estimate.candidate_median_us),
+        signed_number(estimate.relative_delta_pct) + " %",
+      )
+    None => ("-", "-", "-")
+  }
+  let interval = match row.interval {
+    Some(interval) =>
+      "[" +
+      signed_number(interval.low_pct) +
+      " %, " +
+      signed_number(interval.high_pct) +
+      " %]"
+    None => "-"
+  }
+  [
+    row.case_id,
+    row.scale,
+    row.baseline,
+    row.candidate,
+    baseline_median,
+    candidate_median,
+    delta,
+    interval,
+    decision_label(row.decision),
+    row.blocks_used.to_string() +
+    " / " +
+    row.blocks_incomplete.to_string() +
+    " / " +
+    row.blocks_outliers.to_string(),
+    row.seed.to_string(),
+    row.reason,
+  ]
+}
+
+///|
+fn comparison_headers(report : @ir.ComparisonReport) -> Array[String] {
+  [
+    "Case",
+    "Scale",
+    "Baseline",
+    "Candidate",
+    "Baseline µs/op",
+    "Candidate µs/op",
+    "Delta",
+    format_number(report.confidence_pct) + " % interval",
+    "Decision",
+    "Blocks used / incomplete / outliers",
+    "Seed",
+    "Reason",
+  ]
+}
+
+///|
+fn comparisons_html(report : @ir.ComparisonReport) -> String {
+  if report.rows.is_empty() {
+    return ""
+  }
+  let numeric = [
+    false, false, false, false, true, true, true, true, false, true, false,
+  ]
+  let header = comparison_headers(report).map(text => {
+    "<th scope=\"col\">" + escape_xml(text) + "</th>"
+  })
+  header.remove(header.length() - 1) |> ignore
+  let rows = report.rows
+    .map(row => {
+      let cells = comparison_cells(row)
+      let mut body = "<tr>"
+      for index = 0; index < numeric.length(); index = index + 1 {
+        if index == 8 {
+          let name = row.decision.text()
+          body += "<td><span class=\"decision decision-" +
+            name +
+            "\">" +
+            escape_xml(cells[index]) +
+            "</span>" +
+            (if row.reason.is_empty() {
+              ""
+            } else {
+              "<span class=\"reason\">" + escape_xml(row.reason) + "</span>"
+            }) +
+            "</td>"
+        } else if index == 10 {
+          body += "<td><code>" + escape_xml(cells[index]) + "</code></td>"
+        } else {
+          body += (if numeric[index] { "<td class=\"num\">" } else { "<td>" }) +
+            escape_xml(cells[index]) +
+            "</td>"
+        }
+      }
+      body + "</tr>"
+    })
+    .join("\n")
+  "<section class=\"panel\" aria-labelledby=\"comparisons-title\"><h2 id=\"comparisons-title\">Comparisons</h2><p class=\"note\">" +
+  escape_xml(report.note) +
+  "</p><div class=\"table-wrap\"><table><thead><tr>" +
+  header.join("") +
+  "</tr></thead><tbody>" +
+  rows +
+  "</tbody></table></div></section>"
+}
+
+///|
+/// The comparisons of `document` as an aligned plain-text table preceded by
+/// the settings note, or `""` when there are none. `mare-mark report` prints
+/// it next to the HTML.
+pub fn comparisons_text(document : @ir.PlotDocument) -> String {
+  let report = document.comparisons
+  if report.rows.is_empty() {
+    return ""
+  }
+  let table = [comparison_headers(report).map(text => text.to_lower())]
+  for row in report.rows {
+    table.push(comparison_cells(row))
+  }
+  let columns = table[0].length()
+  let widths = Array::makei(columns, column => {
+    table.fold(init=0, (width, cells) => width.max(cells[column].length()))
+  })
+  let lines = table.map(cells => {
+    let mut line = ""
+    for column = 0; column < columns; column = column + 1 {
+      let cell = cells[column]
+      line += if column == columns - 1 {
+        cell
+      } else {
+        cell + " ".repeat(widths[column] - cell.length() + 2)
+      }
+    }
+    line.trim_end().to_owned()
+  })
+  "Comparisons\n" + report.note + "\n" + lines.join("\n")
 }

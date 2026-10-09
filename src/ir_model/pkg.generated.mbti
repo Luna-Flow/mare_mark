@@ -22,6 +22,46 @@ pub struct CapabilityCell {
 }
 pub fn CapabilityCell::new(String, String, Int) -> Self
 
+pub(all) enum ComparisonDecision {
+  Faster
+  Slower
+  Equivalent
+  Unknown
+  Invalid
+}
+pub fn ComparisonDecision::text(Self) -> String
+
+pub struct ComparisonReport {
+  rows : Array[ComparisonRow]
+  practical_delta_pct : Double
+  outlier_policy : String
+  confidence_pct : Double
+  resamples : Int
+  min_blocks : Int
+  run_seed : UInt64
+  protocol_recorded : Bool
+  seed_recorded : Bool
+  note : String
+}
+pub fn ComparisonReport::empty() -> Self
+pub fn ComparisonReport::new(Array[ComparisonRow], Double, String, Double, Int, Int, UInt64, Bool, Bool, String) -> Self
+
+pub struct ComparisonRow {
+  case_id : String
+  scale : String
+  baseline : String
+  candidate : String
+  decision : ComparisonDecision
+  reason : String
+  estimate : PairedEstimate?
+  interval : DeltaInterval?
+  blocks_used : Int
+  blocks_incomplete : Int
+  blocks_outliers : Int
+  seed : UInt64
+}
+pub fn ComparisonRow::new(String, String, String, String, ComparisonDecision, String, PairedEstimate?, DeltaInterval?, Int, Int, Int, UInt64) -> Self
+
 pub struct CorpusSummary {
   total : Int
   passed : Int
@@ -39,6 +79,14 @@ pub struct Counterexample {
   replay_command : String
 }
 pub fn Counterexample::new(String, String, String, Array[String], String) -> Self
+
+pub struct DeltaInterval {
+  low_us : Double
+  high_us : Double
+  low_pct : Double
+  high_pct : Double
+}
+pub fn DeltaInterval::new(Double, Double, Double, Double) -> Self
 
 pub struct DifferentialReport {
   mismatches : Array[MismatchRow]
@@ -62,6 +110,15 @@ pub struct MismatchRow {
 }
 pub fn MismatchRow::new(String, String, Array[String], String, String, String, String, String, String) -> Self
 
+pub struct PairedEstimate {
+  baseline_median_us : Double
+  candidate_median_us : Double
+  median_delta_us : Double
+  relative_delta_pct : Double
+  speedup : Double
+}
+pub fn PairedEstimate::new(Double, Double, Double, Double, Double) -> Self
+
 pub struct Plot {
   kind : PlotKind
   title : String
@@ -80,8 +137,9 @@ pub struct PlotDocument {
   target : String
   plots : Array[Plot]
   differential : DifferentialReport
+  comparisons : ComparisonReport
 }
-pub fn PlotDocument::new(String, String, Array[Plot], differential? : DifferentialReport) -> Self
+pub fn PlotDocument::new(String, String, Array[Plot], differential? : DifferentialReport, comparisons? : ComparisonReport) -> Self
 
 pub(all) enum PlotKind {
   Scaling
