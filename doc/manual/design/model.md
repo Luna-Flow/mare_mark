@@ -54,16 +54,82 @@ keeps the cases apart in types, events and reports. `value_option` is the
 projection onto the first two summands; every other summand has no value, and
 a timed batch containing one is invalid.
 
+### Protocol identity: an injective encoding and a digest
+
+`protocol_identity` must change whenever any protocol field changes. It is
+built in two steps.
+
+**The encoding is injective.** `protocol_canonical_encoding` writes the
+fields in a fixed order as `mmkp_2;k_1=v_1;…;k_{15}=v_{15}`. The keys are
+constants, and no value contains `;` or `=`: integers are decimal, doubles are
+`0x` plus the 16 hexadecimal digits of their bit pattern, options are `none`
+or `some(…)`, enums are snake_case tags, and the block order is `fixed_order`
+or `balanced_blocks(<decimal>)`. Splitting the text on `;` and every part at
+its first `=` therefore recovers each $(k_i, v_i)$, and each $v_i$ determines
+its field (the bit pattern determines the double, a decimal its integer, a
+tag its enum value). So
+
+$$
+\operatorname{enc}(P) = \operatorname{enc}(P') \iff P = P'
+$$
+
+field by field, with doubles compared by bit pattern. Comparing bit patterns
+instead of values is deliberate: `0.0` and `-0.0` are equal as numbers but are
+different protocols to write down, and a `NaN` threshold, which
+`validate_protocol` rejects anyway, still has a well-defined encoding.
+Formatting doubles in decimal would make the text depend on a printing
+algorithm; the bit pattern is the same on every target.
+
+**The digest is FNV-1a.** With the code units $c_1, \dots, c_n$ of the
+encoding (all ASCII),
+
+$$
+h_0 = \texttt{cbf29ce484222325}_{16}, \qquad
+h_i = (h_{i-1} \oplus c_i) \cdot \texttt{100000001b3}_{16} \bmod 2^{64},
+$$
+
+and the identity is `mmkp_2:` followed by $h_n$ in 16 lowercase hexadecimal
+digits. Each step $f_c(h) = (h \oplus c)\,p \bmod 2^{64}$ is a bijection of
+the 64-bit words, because xor with a constant is its own inverse and the prime
+$p$ is odd, hence invertible modulo $2^{64}$. Consequently two encodings
+$u\,a\,w$ and $u\,b\,w$ that differ in a single character $a \ne b$ always get
+different digests: after $u$ both states equal some $s$, $f_a(s) \ne f_b(s)$,
+and the common suffix $w$ applies the same bijections to both. Changing one
+digit of one field, the most common edit, can therefore never collide. For
+arbitrary different protocols FNV-1a gives no guarantee; treating it as a
+random function, $N$ distinct protocols collide with probability at most
+$\binom{N}{2} 2^{-64}$, about $3 \cdot 10^{-14}$ for a thousand protocols.
+FNV-1a is not collision-resistant against an adversary, so the identity
+groups honest results and is not a security token.
+
+### Run identity: recoverable components
+
+`run_identity` joins five components with `|`: the case id, the protocol
+identity, the decimal seed, the provenance run id and the provenance
+timestamp. The free-text components pass through the escape map $\epsilon$
+that replaces `%` by `%25` and then `|` by `%7C`. Its output contains no `|`,
+and neither do the protocol identity and the decimal seed, so splitting a run
+id on `|` gives exactly five parts. $\epsilon$ is injective: replacing `%7C`
+by `|` and then `%25` by `%` inverts it, because every `%` in the output
+starts one of the two escapes, so `%7C` matches only escaped bars. Hence two
+run ids are equal exactly when all five components are equal, and runs that
+differ in seed, provenance run id or timestamp never share an id.
+
 ## Design decisions
 
 ### Versioned identifiers
 
 *Problem.* Readers of old JSONL must not silently misread new fields.
-*Choice.* Three version enums produce the identifiers `mmkp_1` (protocol
-vocabulary), `mmka_1` (event artifacts) and `mmks_2` (Plot IR). Every event
+*Choice.* Three version enums produce the identifiers `mmkp_<n>` (protocol
+identity), `mmka_1` (event artifacts) and `mmks_2` (Plot IR). Every event
 carries `artifact_version`; readers reject unknown versions. *Why.* Additive
-changes keep the version; a breaking change adds `V2` and a lifecycle entry,
-and old readers fail loudly instead of guessing.
+changes keep the version; a breaking change adds a version and a lifecycle
+entry, and old readers fail loudly instead of guessing. The protocol identity
+went through exactly that: `mmkp_1:<w>:<c>:<d>` covered only the warmup count,
+the confirmatory sample count and the threshold, so different protocols
+shared a key. `ProtocolVersion::V2` (`mmkp_2`) covers every field, and `V1` is
+`Deprecated`: it names old keys and is no longer produced. A key states its
+version, so an `mmkp_1` key can never be mistaken for an `mmkp_2` one.
 
 ### Three-part environment snapshots
 
@@ -72,17 +138,31 @@ invalidate timings (CPU, GC, clock, frequency policy), and some are just
 bookkeeping (hostname, time, revision). *Choice.* `SemanticEnvironment`,
 `PerformanceEnvironment` and `ProvenanceEnvironment`, with compatibility on
 the first two. *Why.* Two runs on different hosts with the same declared
-hardware remain comparable; a run with different flags does not. The snapshot
-records what you declare; mare_mark does not probe the machine.
+hardware remain comparable; a run with different flags does not. `model`
+itself does not probe the machine: a snapshot is a value, built by hand or by
+the separate [`env_detect`](env_detect.md) package, which fills it from the
+running process and lists what it could not observe. Keeping the probe out of
+`model` keeps the vocabulary free of IO and lets tests build exact snapshots.
 
 ### Explicit protocols
 
-*Problem.* "Ran the benchmark" hides warmup, batch sizes, order, sample counts
-and the decision threshold. *Choice.* `RunProtocol` names all of them, and
-`protocol_identity` folds the warmup count, the confirmatory sample count and
-the practical threshold into a short key. *Why.* A result is reproducible only
-if its protocol is. The key is deliberately short and does not cover every
-field; store the full protocol next to results that will be compared.
+*Problem.* "Ran the benchmark" hides the experimental design, warmup, batch
+sizes, order, sample counts, validation coverage and the decision threshold.
+*Choice.* `RunProtocol` names all of them, `protocol_canonical_encoding`
+writes every field, and `protocol_identity` digests that text into a short
+key (derived above). The runner stores the full protocol and the seed in the
+`RunSummary`, and the JSONL summary carries both. *Why.* A result is
+reproducible only if its protocol is, and a key that ignores a field lets two
+different experiments look like one. A digest keeps the key short enough for
+file names and tables while the record keeps the fields themselves.
+
+### Run ids that name one execution
+
+*Problem.* A run id built from the protocol and the case alone is the same
+for every repetition of a nightly job. *Choice.* `run_identity` adds the run
+seed and the provenance run id and timestamp, escaped so that the parts stay
+recoverable (derived above). *Why.* The id then distinguishes executions, and
+a reader can still see from the id which case and protocol a run used.
 
 ### Failure kinds instead of strings
 
@@ -110,7 +190,11 @@ them without depending on each other.
 
 - `environment_compatible` is an equivalence relation (derived above).
 - `X::identifier()` is `implementation() + "_" + version()` for every version
-  enum, and the `V1` values are `Supported`.
+  enum. `ProtocolVersion::V1` is `Deprecated`; `ProtocolVersion::V2`,
+  `ArtifactVersion::V1` and `SchemaVersion::V1` are `Supported`.
+- `protocol_canonical_encoding` is injective and `protocol_identity` changes
+  under every single-character change of the encoding (derived above).
+- `run_identity` splits into exactly five components on `|`.
 - `ExecutionOutcome::value_option(o)` is `Some` exactly for `Value` and
   `RaisedFlags`; `flags(o)` is non-empty only for `RaisedFlags` and `Trapped`.
 - `OperationResult::completed(v, c)` equals
@@ -120,19 +204,26 @@ them without depending on each other.
 
 ## Alternatives rejected
 
-- **Probing the environment.** Reading CPU model, governor and GC settings
-  needs per-platform code and permissions; declared values are explicit and
-  testable.
+- **Probing the environment in `model`.** Needs per-platform code, processes
+  and permissions; it lives in `env_detect`, and `model` takes the result as a
+  value.
+- **A cryptographic hash for the protocol identity.** SHA-256 would add a
+  dependency to a package that has none, for a key that only needs to
+  separate honest protocols; the injective encoding is the actual record.
+- **Decimal text for doubles in the encoding.** Depends on a printing
+  algorithm and hides the sign of zero.
 - **Tolerant compatibility.** Not transitive (see above).
 - **Free-form outcome strings.** Lose the distinction between failure kinds.
 - **One flat protocol string.** Unreadable and unvalidated.
 
 ## Boundaries
 
-- No validation of values; no IO; no serialization (JSON lives in `event`,
-  `report` and `tune_gemm`).
-- `protocol_identity` covers three fields only.
-- `ExperimentDesign`, `ValidationCoverage`, `OutlierPolicy` and
-  `WorkspaceScope` are recorded intent; the runner does not interpret them.
-- `ProtocolVersion`, `ArtifactVersion` and `SchemaVersion` have one version each;
-  there is no migration code.
+- No validation of values; no IO; no JSON (it lives in `event`, `report` and
+  `tune_gemm`).
+- `protocol_identity` is a 64-bit digest: it separates protocols, it cannot be
+  decoded, and it is not collision-resistant against deliberate attempts.
+- `WorkspaceScope` is recorded, not interpreted. `OutlierPolicy` and
+  `practical_delta_pct` are analysis settings: the runner records them and the
+  report applies them.
+- There is no migration code: an `mmkp_1` key cannot be converted to `mmkp_2`,
+  because it lacks the fields the new key covers.
