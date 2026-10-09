@@ -185,8 +185,7 @@ test "protocol as JSON" {
 pub fn protocol_from_json(Json) -> Result[@model.RunProtocol, String]
 ```
 
-It reverses `protocol_json` exactly, so the decoded protocol has the same
-`@model.protocol_identity` as the encoded one. Every field is required except
+It preserves finite values (including signed zero), infinities and canonical NaN, so these protocols retain their `@model.protocol_identity`. A non-canonical NaN payload is serialized as `"NaN"` and is not preserved; its identity can therefore change. Every field is required except
 `repeats_per_dataset`, which records written before it existed omit; it is
 then `1`, the value those runs used. Unknown keys are ignored. An error
 names the offending field, for example

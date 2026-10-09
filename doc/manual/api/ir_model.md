@@ -4,7 +4,7 @@
 
 `Luna-Flow/mare_mark/ir_model` defines Plot IR, the portable document that
 `report` builds from events and renders as JSON, SVG or HTML: plots of
-points on a categorical or linear x axis, a differential report of mismatches,
+points on a categorical, linear or logarithmic x axis, a differential report of mismatches,
 capabilities, counterexamples and corpus counts, and the paired comparisons of
 implementations against a baseline. See the [ir_model design](../design/ir_model.md).
 
