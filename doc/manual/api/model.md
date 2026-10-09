@@ -35,12 +35,13 @@ presets.
 
 ### `ProtocolVersion`, `ArtifactVersion`, `SchemaVersion`
 
-These enums name the versioned contracts: the run protocol vocabulary
+These enums name the versioned contracts: the run protocol identity
 (`mmkp`), the JSONL artifacts (`mmka`) and the Plot IR schema (`mmks`).
 
 ```mbti
 pub(all) enum ProtocolVersion {
   V1
+  V2
 }
 pub fn ProtocolVersion::identifier(Self) -> String
 pub fn ProtocolVersion::implementation(Self) -> String
@@ -66,12 +67,20 @@ pub fn SchemaVersion::version(Self) -> Int
 ```
 
 `implementation` is the prefix, `version` the number, and `identifier` is
-`implementation + "_" + version`. Protocol and artifact V1 are `Supported`;
-schema V1 is `Deprecated` and schema V2 is `Supported`.
+`implementation + "_" + version`.
+
+| Value | Identifier | Lifecycle | Meaning |
+| --- | --- | --- | --- |
+| `ProtocolVersion::V1` | `mmkp_1` | `Deprecated` | the former identity `mmkp_1:<warmup_iterations>:<confirmatory_samples>:<practical_delta_pct>`, which ignored every other protocol field; no longer produced |
+| `ProtocolVersion::V2` | `mmkp_2` | `Supported` | the identity `mmkp_2:<16 hex digits>` over every protocol field (see `protocol_identity`) |
+| `ArtifactVersion::V1` | `mmka_1` | `Supported` | the JSONL event record |
+| `SchemaVersion::V1` | `mmks_1` | `Deprecated` | the former Plot IR JSON |
+| `SchemaVersion::V2` | `mmks_2` | `Supported` | Plot IR JSON with explicit x/y scales |
 
 ```moonbit
 test "version identifiers" {
-  inspect(@model.ProtocolVersion::V1.identifier(), content="mmkp_1")
+  inspect(@model.ProtocolVersion::V2.identifier(), content="mmkp_2")
+  inspect(@model.ProtocolVersion::V1.lifecycle() is Deprecated, content="true")
   inspect(@model.ArtifactVersion::V1.identifier(), content="mmka_1")
   inspect(@model.SchemaVersion::V1.identifier(), content="mmks_1")
   inspect(@model.SchemaVersion::V2.identifier(), content="mmks_2")
@@ -105,8 +114,12 @@ pub struct DatasetKey[Scale] {
 pub fn[Scale] DatasetKey::new(Scale, Int) -> Self[Scale]
 ```
 
-The runner uses the position of the scale in the case's scale list as
-`dataset_id`.
+The runner numbers the datasets of a run uniquely: the dataset with index
+$j$ of the scale at position $s$ in the case's scale list gets
+`dataset_id` $= s \cdot D + j$, where $D$ is the number of datasets per scale
+that the protocol's `experiment_design` asks for (see `RunProtocol`). Under
+`FixedDatasetRepeatedMeasurements`, $D = 1$ and `dataset_id` is the position
+of the scale.
 
 ### `MeasurementKey`
 
@@ -121,7 +134,9 @@ pub struct MeasurementKey {
 pub fn MeasurementKey::new(Int, Int, Int) -> Self
 ```
 
-Two measurements are paired when their keys are equal.
+Two measurements are paired when their keys are equal. A validation made
+right before a measured batch carries the key of that batch in
+`Validation.measurement`.
 
 ### `GenerationContext`
 
@@ -175,13 +190,30 @@ pub struct RunProtocol {
   validation_coverage : ValidationCoverage
   exploratory_samples : Int
   confirmatory_samples : Int
+  repeats_per_dataset : Int
 }
-pub fn RunProtocol::new(ExperimentDesign, Int, Double?, CalibrationProtocol, Double, OrderPolicy, OutlierPolicy, ValidationCoverage, Int, Int) -> Self
+pub fn RunProtocol::new(ExperimentDesign, Int, Double?, CalibrationProtocol, Double, OrderPolicy, OutlierPolicy, ValidationCoverage, Int, Int, repeats_per_dataset? : Int) -> Self
 ```
 
-The runner acts on the warmup, calibration, order and sample-count fields; the
-others record the intended analysis. `@runner.validate_protocol` checks the
-values, and `@runner.ProtocolPreset` provides three complete protocols.
+The positional arguments follow the field order; `repeats_per_dataset`
+defaults to `1`.
+
+| Field | Used by | Meaning |
+| --- | --- | --- |
+| `experiment_design` | runner | how many datasets each scale gets and which blocks measure each |
+| `warmup_iterations`, `warmup_time_us` | runner | warmup batches per implementation and scale |
+| `calibration` | runner | how the batch size is chosen |
+| `practical_delta_pct` | report, `stats` | the smallest relative change that counts as `Faster` or `Slower`, in percent |
+| `order_policy` | runner | the order of implementations inside a block |
+| `outlier_policy` | report, `stats` | the outlier filter the report applies to the paired deltas before deciding |
+| `validation_coverage` | runner | which datasets and batches are validated |
+| `exploratory_samples`, `confirmatory_samples` | runner | blocks per scale in each phase |
+| `repeats_per_dataset` | runner | consecutive blocks per dataset under `HierarchicalDatasetsAndRepeats`; `1` otherwise |
+
+`practical_delta_pct` and `outlier_policy` do not change what the runner
+measures; they are recorded with the run so that `report.document_from_jsonl`
+decides with the same settings. `@runner.validate_protocol` checks the values,
+and `@runner.ProtocolPreset` provides three complete protocols.
 
 ### `CalibrationProtocol`
 
@@ -212,11 +244,13 @@ pub(all) enum ExperimentDesign {
   MultipleDatasetsSingleMeasurement
   HierarchicalDatasetsAndRepeats
 }
+pub fn ExperimentDesign::text(Self) -> String
 
 pub(all) enum BatchPolicy {
   PerImplementation
   SharedBatchSize
 }
+pub fn BatchPolicy::text(Self) -> String
 
 pub(all) enum OrderPolicy {
   BalancedBlocks(UInt64)
@@ -228,21 +262,47 @@ pub(all) enum OutlierPolicy {
   TukeyFence
   MADTrim
 }
+pub fn OutlierPolicy::text(Self) -> String
 
 pub(all) enum ValidationCoverage {
   EveryMeasurement
   EveryDataset
   ConfirmatoryOnly
 }
+pub fn ValidationCoverage::text(Self) -> String
 ```
 
-| Enum | Meaning |
-| --- | --- |
-| `ExperimentDesign` | the intended sampling structure: repeated measurements of one dataset, one measurement of many datasets, or both |
-| `BatchPolicy` | calibrate each implementation separately, or give all the smallest calibrated size |
-| `OrderPolicy` | rotate implementation order per block with a seed, or keep the declared order |
-| `OutlierPolicy` | the outlier view for analysis: none, Tukey fences, or 3 MAD around the median (see `@stats.filter_outliers`) |
-| `ValidationCoverage` | the intended validation frequency |
+With $E$ exploratory and $C$ confirmatory blocks per scale and
+$r$ = `repeats_per_dataset`:
+
+| Value | `text()` | Meaning |
+| --- | --- | --- |
+| `FixedDatasetRepeatedMeasurements` | `fixed_dataset_repeated_measurements` | one dataset per scale, measured by all $E + C$ blocks |
+| `MultipleDatasetsSingleMeasurement` | `multiple_datasets_single_measurement` | a fresh dataset for every block: $E + C$ datasets per scale |
+| `HierarchicalDatasetsAndRepeats` | `hierarchical_datasets_and_repeats` | a fresh dataset for every $r$ consecutive blocks: $(E + C)/r$ datasets per scale |
+| `PerImplementation` | `per_implementation` | calibrate the batch size of each implementation separately |
+| `SharedBatchSize` | `shared_batch_size` | give every implementation the smallest calibrated size |
+| `BalancedBlocks(seed)` | | rotate the implementation order per block, with an offset from `seed` and the run seed |
+| `FixedOrder` | | run the implementations in declared order in every block |
+| `ReportOnly` | `report_only` | keep every value |
+| `TukeyFence` | `tukey_fence` | keep the values in $[Q_1 - 1.5\,\mathrm{IQR},\ Q_3 + 1.5\,\mathrm{IQR}]$ |
+| `MADTrim` | `mad_trim` | keep the values within 3 MAD of their median (see `@stats.filter_outliers`) |
+| `EveryMeasurement` | `every_measurement` | validate every dataset, and again before every measured batch |
+| `EveryDataset` | `every_dataset` | validate every dataset before it is measured |
+| `ConfirmatoryOnly` | `confirmatory_only` | validate only the datasets that confirmatory blocks measure |
+
+The `text()` tags are stable: they are the values written by
+`protocol_canonical_encoding` and by the JSONL `protocol` object of
+`@event.protocol_json`. The [runner design](../design/runner.md) explains how
+each design and coverage is executed.
+
+```moonbit
+test "enum tags" {
+  inspect(@model.ExperimentDesign::HierarchicalDatasetsAndRepeats.text(), content="hierarchical_datasets_and_repeats")
+  inspect(@model.OutlierPolicy::TukeyFence.text(), content="tukey_fence")
+  inspect(@model.ValidationCoverage::ConfirmatoryOnly.text(), content="confirmatory_only")
+}
+```
 
 ### `IntervalMode`, `confirmatory_interval`, `exploratory_interval`
 
@@ -298,8 +358,13 @@ pub(all) enum WorkspaceScope {
 ```
 
 `frequency` and `timing` change what the runner times (the
-[runner design](../design/runner.md) has the exact table);
-`workspace_scope` documents how long a workspace lives and is not interpreted.
+[runner design](../design/runner.md) has the exact table). `PerRun`,
+`PerDataset` and `PerImplementation` are long-lived: the runner prepares the
+input once per dataset and implementation and reuses it. `PerRun` therefore
+requires a run with a single dataset; `@runner.BenchSpec::compile` and
+`@runner.run` reject it otherwise. `workspace_scope` documents how long a
+workspace lives; the runner records it with every observation but does not
+interpret it.
 
 ## Environment
 
@@ -412,16 +477,102 @@ test "provenance does not matter, the CPU does" {
 
 ## Identities
 
+### `protocol_canonical_encoding`
+
+`protocol_canonical_encoding` writes every field of a protocol as one
+unambiguous ASCII string.
+
+```mbti
+pub fn protocol_canonical_encoding(RunProtocol) -> String
+```
+
+The text is `mmkp_2` followed by `;<key>=<value>` for each field, in this
+fixed order: `experiment_design`, `warmup_iterations`, `warmup_time_us`,
+`calibration.target_batch_time_us`, `calibration.min_batch_iterations`,
+`calibration.max_batch_iterations`, `calibration.max_sample_time_us`,
+`calibration.batch_policy`, `practical_delta_pct`, `order_policy`,
+`outlier_policy`, `validation_coverage`, `exploratory_samples`,
+`confirmatory_samples`, `repeats_per_dataset`.
+
+| Value type | Written as |
+| --- | --- |
+| `Int` | decimal |
+| `Double` | `0x` and the 16 hexadecimal digits of its IEEE 754 bit pattern |
+| `Double?` | `none` or `some(<double>)` |
+| enum | its `text()` tag |
+| `OrderPolicy` | `fixed_order` or `balanced_blocks(<decimal seed>)` |
+
+Keys are fixed and no value contains `;` or `=`, so two protocols have the
+same encoding exactly when all their fields are equal, with doubles compared
+by bit pattern (so `0.0` and `-0.0` differ).
+
+```moonbit
+test "canonical encoding" {
+  let protocol = @runner.ProtocolPreset::QuickCheck.validated().protocol
+  let encoding = @model.protocol_canonical_encoding(protocol)
+  inspect(encoding.has_prefix("mmkp_2;experiment_design=fixed_dataset_repeated_measurements;warmup_iterations=1;warmup_time_us=none;"), content="true")
+  inspect(encoding.contains(";practical_delta_pct=0x3ff0000000000000;"), content="true")
+  inspect(encoding.has_suffix(";confirmatory_samples=3;repeats_per_dataset=1"), content="true")
+}
+```
+
 ### `protocol_identity`
 
-`protocol_identity` returns a short key for a protocol.
+`protocol_identity` returns a short key that changes whenever any field of
+the protocol changes.
 
 ```mbti
 pub fn protocol_identity(RunProtocol) -> String
 ```
 
-The key is `mmkp_1:<warmup_iterations>:<confirmatory_samples>:<practical_delta_pct>`.
-Only these three fields enter it; protocols that differ elsewhere share a key.
+The key is `mmkp_2:` followed by 16 lowercase hexadecimal digits: the 64-bit
+FNV-1a digest of `protocol_canonical_encoding(protocol)`. Equal protocols get
+equal keys; protocols that differ in any field get different keys, up to a
+64-bit digest collision. Keep the full protocol next to results anyway (the
+JSONL summary does, see `@event.protocol_json`); the key is for grouping and
+lookup, and cannot be decoded.
+
+```moonbit
+test "protocol identity" {
+  let development = @runner.ProtocolPreset::Development.validated().protocol
+  inspect(@model.protocol_identity(development), content="mmkp_2:ee0e3d65a8dfe6b6")
+  let quick = @runner.ProtocolPreset::QuickCheck.validated().protocol
+  inspect(@model.protocol_identity(quick), content="mmkp_2:a8272a0d9e84b872")
+}
+```
+
+### `run_identity`
+
+`run_identity` returns the `RunSummary.run_id` of one run.
+
+```mbti
+pub fn run_identity(String, RunProtocol, UInt64, ProvenanceEnvironment) -> String
+```
+
+The arguments are the case id, the protocol, the run seed and the provenance
+part of the environment. The id is five components joined by `|`:
+
+```text
+<case id>|<protocol_identity(protocol)>|<seed in decimal>|<provenance run_id>|<provenance timestamp>
+```
+
+In the case id, the provenance run id and the timestamp, `%` is written as
+`%25` and `|` as `%7C`, so splitting the id on `|` always yields the five
+components, and decoding `%7C` and `%25` (in that order) restores them. Two
+runs of the same case and protocol get different ids when their seeds,
+provenance run ids or timestamps differ; give every run a unique provenance
+`run_id` (`@env_detect.detect` does) and the run id is unique too.
+
+```moonbit
+test "run identity" {
+  let protocol = @runner.ProtocolPreset::QuickCheck.validated().protocol
+  let provenance = @model.ProvenanceEnvironment::new("linux", "ci-7", "2026-10-09T08:00:00Z", "a1b2c3", "nightly|17")
+  inspect(
+    @model.run_identity("sum", protocol, 42UL, provenance),
+    content="sum|mmkp_2:a8272a0d9e84b872|42|nightly%7C17|2026-10-09T08:00:00Z",
+  )
+}
+```
 
 ### `artifact_identity`
 
@@ -436,10 +587,9 @@ The key is `mmka_1:<case>:<implementation>:<dataset_id>:` followed by the
 protocol identity.
 
 ```moonbit
-test "identities" {
+test "artifact identity" {
   let protocol = @runner.ProtocolPreset::Development.validated().protocol
-  inspect(@model.protocol_identity(protocol), content="mmkp_1:3:10:1")
-  inspect(@model.artifact_identity("sum", "loop", 2, protocol), content="mmka_1:sum:loop:2:mmkp_1:3:10:1")
+  inspect(@model.artifact_identity("sum", "loop", 2, protocol), content="mmka_1:sum:loop:2:mmkp_2:ee0e3d65a8dfe6b6")
 }
 ```
 
@@ -544,12 +694,16 @@ pub struct Validation {
   implementation_id : String
   scale_text : String
   evidence : ValidationEvidence?
+  measurement : MeasurementKey?
 }
-pub fn Validation::new(ValidationStatus, String, String, String) -> Self
-pub fn Validation::detailed(ValidationStatus, String, String, String, ValidationEvidence) -> Self
+pub fn Validation::new(ValidationStatus, String, String, String, measurement? : MeasurementKey) -> Self
+pub fn Validation::detailed(ValidationStatus, String, String, String, ValidationEvidence, measurement? : MeasurementKey) -> Self
 ```
 
-`new` leaves `evidence` empty; `detailed` attaches it.
+`new` leaves `evidence` empty; `detailed` attaches it. `measurement` is
+`None` for the validation of a dataset before it is measured, and the key of
+the measured batch for a validation that `ValidationCoverage::EveryMeasurement`
+runs right before that batch.
 
 ### `ValidationEvidence`
 
@@ -634,13 +788,21 @@ pub struct Observation {
   batch_sink : BatchSinkStatus
   setup_timing : SetupTiming
   valid : Bool
+  setup_frequency : SetupFrequency?
+  workspace_scope : WorkspaceScope?
+  scale_text : String
 }
-pub fn Observation::new(String, String, String, Int, Int, Int, ObservationPhase, Double, Int, BatchSinkStatus, SetupTiming, Bool) -> Self
+pub fn Observation::new(String, String, String, Int, Int, Int, ObservationPhase, Double, Int, BatchSinkStatus, SetupTiming, Bool, setup_frequency? : SetupFrequency, workspace_scope? : WorkspaceScope, scale_text? : String) -> Self
 ```
 
 `raw_elapsed_us` is the batch time divided by `iterations`, in µs per
 operation; it is not filtered or aggregated across batches. `repetition_id`
-counts blocks within the phase, `block_id` counts them across both phases.
+counts blocks within the phase, `block_id` counts them across both phases, so
+the same `block_id` in two observations of one scale means the two batches
+ran in the same block. `setup_frequency` and `workspace_scope` copy the
+fixture's `SetupPolicy`. `scale_text` is the text of the dataset's scale, as
+produced by the case's `scale_text` function; the runner sets all three. The
+optional arguments default to `None`, `None` and `""` (no scale recorded).
 
 ### `ObservationPhase`
 
@@ -686,7 +848,9 @@ pub struct CalibrationEvent {
 pub fn CalibrationEvent::new(String, Int, Int, Double, Double, Int) -> Self
 ```
 
-`elapsed_us` is the time of the last calibration batch.
+`elapsed_us` is the time of the last calibration batch. Calibration runs once
+per scale, on its first dataset, so `dataset_id` is that dataset's id and the
+batch size applies to every dataset of the scale.
 
 ### `RunSummary`
 
@@ -704,12 +868,21 @@ pub struct RunSummary {
   failed_count : Int
   unsupported_count : Int
   expected_difference_count : Int
+  measurement_validation_count : Int
   environment : EnvironmentSnapshot?
+  protocol : RunProtocol?
+  seed : UInt64?
 }
-pub fn RunSummary::new(String, Int, Int, Int, Bool, String?, passed_count? : Int, failed_count? : Int, unsupported_count? : Int, expected_difference_count? : Int, environment? : EnvironmentSnapshot) -> Self
+pub fn RunSummary::new(String, Int, Int, Int, Bool, String?, passed_count? : Int, failed_count? : Int, unsupported_count? : Int, expected_difference_count? : Int, measurement_validation_count? : Int, environment? : EnvironmentSnapshot, protocol? : RunProtocol, seed? : UInt64) -> Self
 ```
 
-The counts default to `0` and `environment` to `None`.
+The positional arguments are `run_id`, `observation_count`,
+`validation_count`, `calibration_count`, `complete` and `artifact_location`.
+The counts default to `0`; `environment`, `protocol` and `seed` to `None`.
+`validation_count` counts every validation event, and
+`measurement_validation_count` the part of them that carry a `measurement`
+key. The runner fills `run_id` with `run_identity` and records the protocol
+and the run seed, so that a JSONL record can be audited and re-analysed.
 
 ## Decisions and deployment
 
