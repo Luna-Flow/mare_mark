@@ -219,6 +219,11 @@ fn observation_json(observation : @model.Observation) -> Json {
       fields["workspace_scope"] = Json::string(workspace_scope_name(scope))
     None => ()
   }
+  // Additive within `mmka_1`: omitted when the producer recorded no scale, so
+  // readers see the same "absent" state as in records written before it.
+  if !observation.scale_text.is_empty() {
+    fields["scale"] = Json::string(observation.scale_text)
+  }
   Json::object(fields)
 }
 

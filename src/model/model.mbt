@@ -616,6 +616,9 @@ pub struct Observation {
   valid : Bool
   setup_frequency : SetupFrequency?
   workspace_scope : WorkspaceScope?
+  /// Text of the dataset's scale, as produced by the case's `scale_text`.
+  /// Empty when the producer did not record it.
+  scale_text : String
 }
 
 ///|
@@ -662,6 +665,7 @@ pub fn Observation::new(
   valid : Bool,
   setup_frequency? : SetupFrequency,
   workspace_scope? : WorkspaceScope,
+  scale_text? : String = "",
 ) -> Observation {
   {
     case_id,
@@ -678,6 +682,7 @@ pub fn Observation::new(
     valid,
     setup_frequency,
     workspace_scope,
+    scale_text,
   }
 }
 

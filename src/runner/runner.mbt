@@ -1284,6 +1284,7 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] ru
               batch.valid,
               setup_frequency=setup_policy.frequency,
               workspace_scope=setup_policy.workspace_scope,
+              scale_text~,
             ),
           )
           observation_count += 1

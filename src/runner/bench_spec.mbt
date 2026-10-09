@@ -534,7 +534,7 @@ pub fn[Scale, Input, Expected, Output] ComparedSingleStepCase::against_equal(
     OutputSink::keep_last(),
     @experiment.OracleSpec::Reference(oracle),
     self.scales,
-    _ => "<scale>",
+    _ => "",
     1,
     (_, _) => @model.CaseDescriptor::new(self.id, [], "stateless", "default"),
     _ => "<input>",
