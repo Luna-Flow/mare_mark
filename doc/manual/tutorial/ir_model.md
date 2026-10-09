@@ -9,6 +9,8 @@ summary computed with `stats`.
 | build a report document by hand | `@ir_model.PlotDocument::new` |
 | plot one value per scale and series | `@ir_model.Plot::new` with `PlotPoint::new` |
 | choose how a plot is drawn | `@ir_model.PlotKind` |
+| space numeric x values by their value | `x_axis=Linear` in `@ir_model.Plot::new` |
+| explain a plot in its caption | `x_label=` and `note=` in `@ir_model.Plot::new` |
 | attach mismatches and counterexamples | `@ir_model.DifferentialReport::new` |
 | render the document | `@report.html`, `@report.plot_json`, `@report.plot_svg` |
 
@@ -64,6 +66,40 @@ test "interval plot from comparisons" {
 }
 ```
 
+### Put numeric scales on a linear axis
+
+By default x values are categories, spaced evenly in order of first
+appearance. Sizes, thread counts and other numbers read better on a linear
+axis, where the distance between 1024 and 4096 is three times the distance
+between 1024 and 2048:
+
+```moonbit
+test "a linear axis with a label and a note" {
+  let points = [
+    @ir_model.PlotPoint::new("4096", 40.6, "scalar"),
+    @ir_model.PlotPoint::new("1024", 10.1, "scalar"),
+    @ir_model.PlotPoint::new("2048", 20.3, "scalar"),
+  ]
+  let plot = @ir_model.Plot::new(
+    @ir_model.PlotKind::Scaling,
+    "Vector add",
+    "µs/op",
+    "median",
+    points,
+    x_axis=Linear,
+    x_label="elements",
+    note="Median of 8 confirmatory blocks per size.",
+  )
+  let svg = @report.plot_svg(plot)
+  inspect(svg.contains(">elements</text>"), content="true")
+  let page = @report.html(@ir_model.PlotDocument::new("sizes", "native", [plot]))
+  inspect(page.contains("Median of 8 confirmatory blocks per size."), content="true")
+}
+```
+
+The renderer sorts the values numerically, so the order of the points does not
+matter. If one x value is not a finite number, it falls back to categories.
+
 ### Attach correctness evidence
 
 ```moonbit
@@ -82,8 +118,12 @@ with `@report.plot_json` for other tools; see the [report API](../api/report.md)
 
 ## Common pitfalls
 
-- **Numeric x values.** They are strings and are spaced evenly in order of
-  first appearance; sort the points if order matters.
+- **Numeric x values on a categorical axis.** They are spaced evenly in order
+  of first appearance; pass `x_axis=Linear` to space them by value.
+- **Writing comparisons by hand.** `report.document_from_jsonl` computes the
+  `ComparisonReport` from a record with the paired rules of the
+  [report API](../api/report.md); build one yourself only for results that do
+  not come from a record.
 - **Empty series names.** They are drawn as `value`.
 
 ## Next steps
