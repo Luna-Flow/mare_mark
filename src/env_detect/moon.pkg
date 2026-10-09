@@ -1,0 +1,21 @@
+import {
+  "Luna-Flow/mare_mark/model",
+  "moonbitlang/core/env",
+  "moonbitlang/core/string",
+  "moonbitlang/async",
+  "moonbitlang/async/process",
+  "moonbitlang/x/fs",
+}
+
+// Native-only files (see `targets`) use some imports, so they are unused on other targets.
+
+warnings = "-unused_package"
+
+options(
+  targets: {
+    "probe_native.mbt": [ "native" ],
+    "probe_native_wbtest.mbt": [ "native" ],
+    "probe_js.mbt": [ "js" ],
+    "probe_none.mbt": [ "wasm", "wasm-gc", "llvm" ],
+  },
+)
