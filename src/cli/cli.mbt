@@ -28,6 +28,14 @@ fn help_requested(arguments : Array[String]) -> Bool {
 }
 
 ///|
+/// Whether `value` can be the separate value of an option. Anything starting
+/// with `-` is taken as the next option or as `-` (stdin/stdout), never as a
+/// value; `--baseline=<id>` passes an id that starts with `-`.
+fn is_option_value(value : String) -> Bool {
+  !value.has_prefix("-")
+}
+
+///|
 pub fn parse_args(arguments : Array[String]) -> CliRequest {
   let command = if arguments.length() < 2 {
     Help
@@ -66,14 +74,21 @@ pub fn parse_args(arguments : Array[String]) -> CliRequest {
     let value = arguments[i]
     i = i + 1
     if value == "--baseline" {
-      if i < arguments.length() {
+      if i < arguments.length() && is_option_value(arguments[i]) {
         baseline = Some(arguments[i])
         i = i + 1
       } else if error is None {
         error = Some("option '--baseline' requires an implementation id")
       }
     } else if value.has_prefix("--baseline=") {
-      baseline = Some(value.unsafe_substring(start=11, end=value.length()))
+      let id = value.unsafe_substring(start=11, end=value.length())
+      if id.is_empty() {
+        if error is None {
+          error = Some("option '--baseline' requires an implementation id")
+        }
+      } else {
+        baseline = Some(id)
+      }
     } else if value == "--dry-run" {
       dry_run = true
     } else if value == "--yes" {
@@ -83,7 +98,9 @@ pub fn parse_args(arguments : Array[String]) -> CliRequest {
     } else if value == "--open" {
       open = true
     } else if value != "-" && value.has_prefix("-") {
-      error = Some("unknown option '" + value + "'")
+      if error is None {
+        error = Some("unknown option '" + value + "'")
+      }
     } else {
       values.push(value)
     }

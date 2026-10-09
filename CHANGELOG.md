@@ -82,6 +82,11 @@ All notable changes to mare_mark are documented in this file.
 
 ### Fixed
 
+- `mare-mark report --baseline` no longer takes the next option as its
+  value: `--baseline --quiet` (or `--baseline -`) is the usage error
+  `option '--baseline' requires an implementation id`, as is an empty
+  `--baseline=`; use `--baseline=<id>` for an id that starts with `-`. When
+  several usage errors occur, the first one is reported (#28).
 - `mare-mark report` prints its elapsed time with three decimals of a
   millisecond (`elapsed: 11.127ms`), the resolution of the microsecond
   clock, instead of the raw `Double` text with floating-point noise
