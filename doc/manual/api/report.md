@@ -112,8 +112,9 @@ pub fn plot_svg(@ir_model.Plot) -> String
 ```
 
 The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`,
-inline styles, linear grid ticks or 1-2-5 ticks on logarithmic axes, at most
-about ten x labels, and a legend. Every point is drawn as a circle with a tooltip
+inline styles, linear grid ticks or, on logarithmic axes, a label at every
+power of ten (every k-th one when decades are dense) with 2× and 5× ticks when
+space allows, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip
 `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also
 connect, per series, the mean of the points at each x category. `Heatmap`
 plots draw one cell per series and x category, with an opacity that grows with

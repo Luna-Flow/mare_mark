@@ -1243,14 +1243,14 @@ msgid "`plot_svg` renders one plot as a standalone SVG element."
 msgstr ""
 
 #: manual/api/report.md:114
-msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, linear grid ticks or 1-2-5 ticks on logarithmic axes, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
+msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, linear grid ticks or, on logarithmic axes, a label at every power of ten (every k-th one when decades are dense) with 2× and 5× ticks when space allows, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
 msgstr ""
 
-#: manual/api/report.md:139
+#: manual/api/report.md:140
 msgid "`html` renders a whole document as one self-contained HTML page."
 msgstr ""
 
-#: manual/api/report.md:145
+#: manual/api/report.md:146
 msgid "The page contains a header with run id, target and schema version, then the differential report (corpus outcomes, mismatches, capability coverage matrix, minimal counterexamples), then one figure per plot. CSS is inline, plots are inline SVG, and there are no scripts and no external resources, so the file can be archived or attached as it is. The output depends only on the document."
 msgstr ""
 
@@ -2650,7 +2650,7 @@ msgstr ""
 #: manual/design/ir_model.md:30
 #: manual/design/ir_sink.md:20
 #: manual/design/model.md:57
-#: manual/design/report.md:74
+#: manual/design/report.md:76
 #: manual/design/runner.md:152
 #: manual/design/stats.md:218
 #: manual/design/tune.md:124
@@ -2698,7 +2698,7 @@ msgstr ""
 #: manual/design/ir_model.md:56
 #: manual/design/ir_sink.md:30
 #: manual/design/model.md:109
-#: manual/design/report.md:142
+#: manual/design/report.md:151
 #: manual/design/runner.md:279
 #: manual/design/stats.md:422
 #: manual/design/tune.md:159
@@ -2730,7 +2730,7 @@ msgstr ""
 #: manual/design/ir_model.md:63
 #: manual/design/ir_sink.md:36
 #: manual/design/model.md:121
-#: manual/design/report.md:156
+#: manual/design/report.md:165
 #: manual/design/runner.md:300
 #: manual/design/stats.md:449
 #: manual/design/tune.md:172
@@ -2758,7 +2758,7 @@ msgstr ""
 #: manual/design/ir_model.md:71
 #: manual/design/ir_sink.md:41
 #: manual/design/model.md:130
-#: manual/design/report.md:166
+#: manual/design/report.md:175
 #: manual/design/runner.md:315
 #: manual/design/stats.md:467
 #: manual/design/tune.md:181
@@ -3717,122 +3717,122 @@ msgid "is well defined, and for every plotted value $\\ell < v < h$, which place
 msgstr ""
 
 #: manual/design/report.md:69
-msgid "Grid lines are drawn at $Y = 102 + 63j$ for $j = 0, \\dots, 4$ with tick value $h - (h - \\ell)\\,j/4$, rounded to three decimals. With $m$ categories, labels are drawn every $\\lceil m/10\\rceil$ categories and at the last one, so at most eleven labels are shown."
-msgstr ""
-
-#: manual/design/report.md:76
-msgid "A pure projection with the effects outside"
+msgid "Grid lines are drawn at $Y = 102 + 63j$ for $j = 0, \\dots, 4$ with tick value $h - (h - \\ell)\\,j/4$, rounded to three decimals; magnitudes below $0.001$ or from $10^{15}$ up keep their shortest round-trip form, because rounding would erase or overflow them. With $m$ categories, labels are drawn every $\\lceil m/10\\rceil$ categories and at the last one, so at most eleven labels are shown."
 msgstr ""
 
 #: manual/design/report.md:78
+msgid "A pure projection with the effects outside"
+msgstr ""
+
+#: manual/design/report.md:80
 msgid "*Problem.* Reports are regenerated after renderer changes and compared in review. *Choice.* `document_from_jsonl`, `plot_json`, `plot_svg` and `html` take values and return strings; file IO, standard streams and opening a browser live in the [`cli`](cli.md). *Why.* The same JSONL gives the same bytes on every target, tests need no filesystem, and the HTML can be produced inside a larger application."
 msgstr ""
 
-#: manual/design/report.md:85
+#: manual/design/report.md:87
 msgid "Failures remove series and stay visible"
 msgstr ""
 
-#: manual/design/report.md:87
+#: manual/design/report.md:89
 msgid "*Problem.* A fast implementation that returns wrong results would look like a win. *Choice.* A failing validation removes the points of that implementation for that case and dataset, and adds a mismatch row; minimized failures add a counterexample row with the replay command. *Why.* The differential section sits above the plots, so the reader sees why a series is missing."
 msgstr ""
 
-#: manual/design/report.md:93
+#: manual/design/report.md:95
 msgid "Raw points with mean lines"
 msgstr ""
 
-#: manual/design/report.md:95
+#: manual/design/report.md:97
 msgid "*Problem.* Summaries hide distributions, raw clouds hide trends. *Choice.* Every observation is drawn with a tooltip, and for line kinds the per-category mean connects the categories. *Why.* The mean of the drawn points is the centre of mass the eye already estimates; robust statistics and decisions belong to `stats` and can be added as further plots. The line is a guide, not an estimate the report vouches for."
 msgstr ""
 
-#: manual/design/report.md:102
+#: manual/design/report.md:104
 msgid "Axis selection for scaling plots"
 msgstr ""
 
-#: manual/design/report.md:104
+#: manual/design/report.md:106
 msgid "`PlotPoint.x` remains text so a scale can be an integer, shape, layout or name. For scaling plots, finite numeric x values are ordered numerically and placed on a linear axis unless all are positive and `max / min >= 100`; then x uses `log10(x)`. Y is evaluated independently by the same rule. This span is at least two decades and gives multiplicative changes equal distances because log10(b) - log10(a) = log10(b / a). If any value on an axis is non-finite or non-positive, or if the positive finite values span less than 100×, that axis stays linear. A nonnumeric x axis stays categorical in first-appearance order. Heatmaps also keep categorical x."
 msgstr ""
 
-#: manual/design/report.md:114
-msgid "Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range; x labels closer than 56 px are omitted. The SVG formats each tick from its original positive value and records each chosen axis scale in Plot IR and JSON. The plot note and axis label identify any log transform."
+#: manual/design/report.md:116
+msgid "Log-axis ticks lie within the observed data range, and labels stay at least 56 px apart on x and 28 px apart on y. Every power of ten in range is labelled; when decades are closer than that spacing, only the powers whose exponent is divisible by the smallest k that keeps them apart are labelled, so the labels stay uniform. The `2 × 10^k` and `5 × 10^k` ticks are added only when a decade is wide enough to keep every label that far apart. A range that holds no `1, 2, 5 × 10^k` value labels its endpoints, and a single value is labelled at the centre of the axis. Grid lines are drawn only at labelled ticks, so their number stays bounded however many decades the data span. Tick labels use the same number format as linear axes. The SVG records each chosen axis scale in Plot IR and JSON, and the plot note and axis label identify any log transform."
 msgstr ""
 
-#: manual/design/report.md:119
+#: manual/design/report.md:128
 msgid "Escaping order"
 msgstr ""
 
-#: manual/design/report.md:121
+#: manual/design/report.md:130
 msgid "Text is escaped by replacing `&`, `<`, `>`, `\"` and `'` in this order. `&` must be first: replacing it after `<` would turn the produced `&lt;` into `&amp;lt;`. Since every later replacement introduces only `&` that is already part of an entity, the result decodes back to the input exactly once. The same function escapes element text and attribute values."
 msgstr ""
 
-#: manual/design/report.md:127
+#: manual/design/report.md:136
 msgid "Self-contained output"
 msgstr ""
 
-#: manual/design/report.md:129
+#: manual/design/report.md:138
 msgid "The HTML embeds its CSS and inline SVG, loads no fonts, scripts or images, and declares `color-scheme: light`. It can be attached to an issue or archived with the JSONL and still render identically in ten years."
 msgstr ""
 
-#: manual/design/report.md:133
+#: manual/design/report.md:142
 msgid "Version gate"
 msgstr ""
 
-#: manual/design/report.md:135
+#: manual/design/report.md:144
 msgid "A line whose `artifact_version` is a string other than `mmka_1` is rejected with its line number. Lines without the field are accepted, so hand-written fixtures and earlier streams stay readable; a non-string version is an error. JSON output carries `schema_version` `mmks_2` and each plot's x and y axis scales. This version change lets consumers distinguish documents whose y-axis mapping is explicit from older `mmks_1` documents."
 msgstr ""
 
-#: manual/design/report.md:144
+#: manual/design/report.md:153
 msgid "**Determinism.** Every function is pure; equal inputs give equal strings."
 msgstr ""
 
-#: manual/design/report.md:145
+#: manual/design/report.md:154
 msgid "**Exclusion.** No point comes from an observation that is invalid, discarded or covered by a failing validation (definition of $P$)."
 msgstr ""
 
-#: manual/design/report.md:147
+#: manual/design/report.md:156
 msgid "**Containment.** For finite values, every point lies strictly inside the plot area, and every heatmap opacity lies in $(0.18, 0.90)$ (derived above)."
 msgstr ""
 
-#: manual/design/report.md:149
+#: manual/design/report.md:158
 msgid "**Escaping.** All text originating from events, titles, units and series names passes through the escape function before reaching SVG or HTML."
 msgstr ""
 
-#: manual/design/report.md:151
+#: manual/design/report.md:160
 msgid "**Complexity.** Parsing is linear in the stream size, except that each point is checked against the list of failure keys, $O(\\lvert O\\rvert \\cdot \\lvert F\\rvert)$. Rendering a plot with $N$ points, $m$ categories and $S$ series is $O(N(m + S) + mSN)$ because line means are recomputed per cell."
 msgstr ""
 
-#: manual/design/report.md:158
+#: manual/design/report.md:167
 msgid "**A JavaScript charting library.** It would need scripts or a CDN and would make the output depend on a browser runtime."
 msgstr ""
 
-#: manual/design/report.md:160
+#: manual/design/report.md:169
 msgid "**Rendering only summaries.** Hides bimodality and outliers."
 msgstr ""
 
-#: manual/design/report.md:161
+#: manual/design/report.md:170
 msgid "**One axis policy for both dimensions.** Rejected because x and y can have different ranges and need independent scale choices."
 msgstr ""
 
-#: manual/design/report.md:163
+#: manual/design/report.md:172
 msgid "**Treating failed implementations as zero or infinite time.** Both are misleading values on a timing axis."
 msgstr ""
 
-#: manual/design/report.md:168
+#: manual/design/report.md:177
 msgid "The JSONL projection builds one `Scaling` plot. Other plot kinds are rendered when a caller constructs them in Plot IR, but nothing derives them from events yet."
 msgstr ""
 
-#: manual/design/report.md:171
+#: manual/design/report.md:180
 msgid "Observations of exploratory and confirmatory phases are plotted together, and the x value is the dataset index, not the scale."
 msgstr ""
 
-#: manual/design/report.md:173
+#: manual/design/report.md:182
 msgid "The target is passed in by the caller; it is not read from the stream."
 msgstr ""
 
-#: manual/design/report.md:174
+#: manual/design/report.md:183
 msgid "No statistics, decisions or environment comparison are computed here."
 msgstr ""
 
-#: manual/design/report.md:175
+#: manual/design/report.md:184
 msgid "Styling, colours and layout are not a compatibility promise; the `mmks_2` JSON structure is."
 msgstr ""
 

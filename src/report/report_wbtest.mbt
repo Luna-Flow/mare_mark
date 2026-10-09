@@ -204,7 +204,7 @@ test "numeric scales use a linear axis in numeric order" {
   // 50 is slightly before the midpoint on a 10..99 linear axis.
   assert_true(positions[1] > 430.0 && positions[1] < 440.0)
   assert_true(labelled == [true, true, true])
-  assert_true(log_ticks(1.0, 10.0) == [1.0, 2.0, 5.0, 10.0])
+  assert_true(log_axis_ticks(1.0, 10.0, 804.0, 56.0) == [1.0, 2.0, 5.0, 10.0])
   assert_true(has_log_span([1.0, 100.0]))
   assert_true(!has_log_span([1.0, 99.0]))
   let svg = plot_svg(plot)
@@ -550,4 +550,140 @@ test "plot JSON and HTML carry the axis and the caption note" {
   assert_true(
     plot_svg(plot).contains("scaling plot, median. Median &amp; more"),
   )
+}
+
+///|
+/// The text of every tick label whose `<text>` element ends with `anchor`.
+fn tick_labels(svg : String, anchor : String) -> Array[String] {
+  let labels = []
+  let parts = svg.split(anchor).collect()
+  for index = 1; index < parts.length(); index = index + 1 {
+    let part = parts[index].to_owned()
+    match part.find("</text>") {
+      Some(end) => labels.push(part.view(end_offset=end).to_owned())
+      None => ()
+    }
+  }
+  labels
+}
+
+///|
+fn x_tick_labels(svg : String) -> Array[String] {
+  tick_labels(svg, "y=\"378\" text-anchor=\"middle\">")
+}
+
+///|
+fn y_tick_labels(svg : String) -> Array[String] {
+  tick_labels(svg, "text-anchor=\"end\">")
+}
+
+///|
+fn log_plot(
+  points : Array[(String, Double)],
+  x_log : Bool,
+  y_log : Bool,
+) -> @ir.Plot {
+  @ir.Plot::new(
+    @ir.PlotKind::Scaling,
+    "log ticks",
+    "µs/op",
+    "median",
+    points.map(point => @ir.PlotPoint::new(point.0, point.1, "loop")),
+    x_label="scale",
+    x_axis=if x_log { @ir.AxisScale::Log } else { @ir.AxisScale::Linear },
+    y_axis=if y_log { @ir.AxisScale::Log } else { @ir.AxisScale::Linear },
+  )
+}
+
+///|
+test "log x axis labels every decade before adding 2x and 5x ticks" {
+  let wide = log_plot(
+    [
+      ("1", 1.0),
+      ("10", 2.0),
+      ("100", 3.0),
+      ("1000", 4.0),
+      ("10000", 5.0),
+      ("100000", 6.0),
+      ("1000000", 7.0),
+    ],
+    true,
+    false,
+  )
+  assert_true(
+    x_tick_labels(plot_svg(wide)) ==
+    ["1", "10", "100", "1000", "10000", "100000", "1000000"],
+  )
+  // Two decades leave room for the 2x and 5x ticks between them.
+  let short = log_plot([("1", 1.0), ("100", 2.0)], true, false)
+  assert_true(
+    x_tick_labels(plot_svg(short)) == ["1", "2", "5", "10", "20", "50", "100"],
+  )
+  // Too many decades for one label each: every k-th decade, uniformly.
+  let dense = log_axis_ticks(1.0e-100, 1.0e100, 804.0 / 200.0, 56.0)
+  assert_true(dense.length() > 1 && dense.length() <= 15)
+  let exponents = dense.map(value => @math.log10(value).round().to_int())
+  let stride = exponents[1] - exponents[0]
+  assert_true(stride > 1)
+  for index, exponent in exponents {
+    assert_eq(exponent % stride, 0)
+    if index > 0 {
+      assert_eq(exponent - exponents[index - 1], stride)
+    }
+    assert_eq(dense[index], decimal_value(1, exponent))
+  }
+  // No 1-2-5 value in range: the endpoints are labelled instead.
+  assert_true(log_axis_ticks(11.0, 19.0, 804.0, 56.0) == [11.0, 19.0])
+  assert_true(log_axis_ticks(11.0, 11.5, 30.0, 56.0) == [11.0])
+  assert_true(log_axis_ticks(0.0, 1.0, 804.0, 56.0).is_empty())
+}
+
+///|
+test "log y axis bounds grid lines by labelled ticks" {
+  let huge = log_plot([("a", 1.0e-300), ("b", 1.0e300)], false, true)
+  let svg = plot_svg(huge)
+  let grid_lines = svg.split("class=\"grid\"").collect().length() - 1
+  let labels = y_tick_labels(svg)
+  assert_true(grid_lines >= 2 && grid_lines <= 10)
+  assert_eq(labels.length(), grid_lines)
+  assert_true(labels.contains("1"))
+  let huge_x = log_plot([("1e-300", 1.0), ("1e300", 2.0)], true, false)
+  let x_labels = x_tick_labels(plot_svg(huge_x))
+  assert_eq(x_labels.length(), 15)
+  assert_true(x_labels.contains("1e+42") && x_labels.contains("1e-294"))
+  let decades = log_plot(
+    [("a", 1.0), ("b", 10.0), ("c", 100.0), ("d", 1000.0)],
+    false,
+    true,
+  )
+  assert_true(y_tick_labels(plot_svg(decades)) == ["1", "10", "100", "1000"])
+}
+
+///|
+test "log axes handle a single value" {
+  let single = log_plot([("1000", 3.0)], true, true)
+  assert_true(uses_log_x(single))
+  assert_true(uses_log_y(single))
+  let svg = plot_svg(single)
+  assert_true(!svg.contains("NaN"))
+  assert_true(x_tick_labels(svg) == ["1000"])
+  assert_true(svg.contains("x1=\"478\" y1=\"354\" x2=\"478\" y2=\"360\""))
+  assert_true(y_tick_labels(svg) == ["3"])
+}
+
+///|
+test "log tick labels use the shared number format" {
+  let small = log_plot([("1", 1.0e-7), ("2", 1.0e-3)], false, true)
+  // Three-decimal rounding would print these as 0.
+  assert_true(
+    y_tick_labels(plot_svg(small)) ==
+    ["1e-7", "0.000001", "0.00001", "0.0001", "0.001"],
+  )
+  let fractional = log_plot([("0.001", 1.0), ("1000", 2.0)], true, false)
+  let x_labels = x_tick_labels(plot_svg(fractional))
+  assert_true(x_labels == ["0.001", "0.01", "0.1", "1", "10", "100", "1000"])
+  assert_eq(format_number(1.0e300), 1.0e300.to_string())
+  assert_eq(format_number(0.0004), "0.0004")
+  assert_eq(format_number(2.00049), "2")
+  assert_eq(format_number(0.0), "0")
 }

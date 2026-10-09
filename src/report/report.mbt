@@ -193,26 +193,71 @@ fn y_transform(plot : @ir.Plot, value : Double) -> Double {
 }
 
 ///|
-fn log_ticks(low : Double, high : Double) -> Array[Double] {
+/// `multiplier × 10^exponent`, correctly rounded, or `0.0` when it is not
+/// representable.
+fn decimal_value(multiplier : Int, exponent : Int) -> Double {
+  let text = multiplier.to_string() + "e" + exponent.to_string()
+  let value = try @string.parse_double(text) catch {
+    _ => return 0.0
+  } noraise {
+    value => value
+  }
+  value
+}
+
+///|
+/// Labelled ticks of a base-10 axis covering the data range `[low, high]`,
+/// where one decade spans `pixels_per_decade` pixels and labels must stay at
+/// least `spacing` pixels apart.
+///
+/// Every power of ten in range is labelled. When decades are closer than
+/// `spacing`, every k-th decade is labelled instead (exponents divisible by
+/// the smallest k that keeps them apart), so the labels stay uniform. The 2×
+/// and 5× ticks are added only when a decade is wide enough to keep all of
+/// them `spacing` apart. A range that holds no 1-2-5 value labels its
+/// endpoints, and a degenerate range labels its single value.
+fn log_axis_ticks(
+  low : Double,
+  high : Double,
+  pixels_per_decade : Double,
+  spacing : Double,
+) -> Array[Double] {
   if !is_positive_finite(low) || !is_positive_finite(high) || high < low {
     return []
   }
-  let first_exponent = @math.floor(@math.log10(low)).to_int()
-  let last_exponent = @math.ceil(@math.log10(high)).to_int()
+  let low_log = @math.log10(low)
+  let high_log = @math.log10(high)
+  if high_log == low_log {
+    return [low]
+  }
+  let stride = if pixels_per_decade >= spacing {
+    1
+  } else {
+    @math.ceil(spacing / pixels_per_decade).to_int().max(1)
+  }
+  let minor = stride == 1 && pixels_per_decade * @math.log10(2.0) >= spacing
+  let multipliers = if minor { [1, 2, 5] } else { [1] }
   let ticks = []
-  for exponent = first_exponent
-      exponent <= last_exponent
+  for exponent = @math.floor(low_log).to_int()
+      exponent <= @math.ceil(high_log).to_int()
       exponent = exponent + 1 {
-    let decade = @math.pow(10.0, exponent.to_double())
-    for multiplier in [1.0, 2.0, 5.0] {
-      let value = decade * multiplier
+    if exponent % stride != 0 {
+      continue
+    }
+    for multiplier in multipliers {
+      let value = decimal_value(multiplier, exponent)
       if is_positive_finite(value) && value >= low && value <= high {
         ticks.push(value)
       }
     }
   }
-  ticks.sort()
-  ticks
+  if !ticks.is_empty() {
+    ticks
+  } else if (high_log - low_log) * pixels_per_decade >= spacing {
+    [low, high]
+  } else {
+    [low]
+  }
 }
 
 ///|
@@ -251,8 +296,19 @@ fn y_axis_bounds(plot : @ir.Plot) -> (Double, Double) {
 }
 
 ///|
+/// Rounds `value` to three decimals for display. Magnitudes below 0.001 or
+/// from 1e15 up, where that rounding would erase or overflow the value, keep
+/// their shortest round-trip form.
 fn format_number(value : Double) -> String {
-  ((value * 1000.0).round() / 1000.0).to_string()
+  let magnitude = value.abs()
+  if value.is_nan() ||
+    value.is_inf() ||
+    magnitude >= 1.0e15 ||
+    (magnitude > 0.0 && magnitude < 0.001) {
+    value.to_string()
+  } else {
+    ((value * 1000.0).round() / 1000.0).to_string()
+  }
 }
 
 ///|
@@ -305,22 +361,19 @@ fn svg_axes(
   if uses_log_y(plot) {
     let values = plot.points.map(point => point.y)
     let (minimum, maximum) = numeric_bounds(values)
-    let mut last_label_y = 1.0e9
-    for value in log_ticks(minimum, maximum) {
+    // Only labelled ticks get grid lines, so the count stays bounded by the
+    // label spacing however many decades the data spans.
+    for value in log_axis_ticks(minimum, maximum, 252.0 / (high - low), 28.0) {
       let y = y_position(@math.log10(value), low, high)
       body += "<line class=\"grid\" x1=\"76\" y1=\"" +
         y.to_string() +
         "\" x2=\"880\" y2=\"" +
         y.to_string() +
-        "\"/>"
-      if last_label_y - y >= 28.0 {
-        body += "<text class=\"tick\" x=\"66\" y=\"" +
-          (y + 4.0).to_string() +
-          "\" text-anchor=\"end\">" +
-          escape_xml(value.to_string()) +
-          "</text>"
-        last_label_y = y
-      }
+        "\"/><text class=\"tick\" x=\"66\" y=\"" +
+        (y + 4.0).to_string() +
+        "\" text-anchor=\"end\">" +
+        escape_xml(format_number(value)) +
+        "</text>"
     }
   } else {
     for tick = 0; tick <= 4; tick = tick + 1 {
@@ -344,22 +397,23 @@ fn svg_axes(
     let (minimum, maximum) = numeric_bounds(values)
     let low_log = @math.log10(minimum)
     let high_log = @math.log10(maximum)
-    let mut last_label_x = -1.0e9
-    for value in log_ticks(minimum, maximum) {
-      let x = 76.0 +
-        (@math.log10(value) - low_log) * 804.0 / (high_log - low_log)
-      if x - last_label_x >= 56.0 {
-        body += "<line class=\"axis\" x1=\"" +
-          x.to_string() +
-          "\" y1=\"354\" x2=\"" +
-          x.to_string() +
-          "\" y2=\"360\"/><text class=\"tick\" x=\"" +
-          x.to_string() +
-          "\" y=\"378\" text-anchor=\"middle\">" +
-          escape_xml(value.to_string()) +
-          "</text>"
-        last_label_x = x
+    let span = high_log - low_log
+    let pixels_per_decade = if span > 0.0 { 804.0 / span } else { 804.0 }
+    for value in log_axis_ticks(minimum, maximum, pixels_per_decade, 56.0) {
+      let x = if span > 0.0 {
+        76.0 + (@math.log10(value) - low_log) * pixels_per_decade
+      } else {
+        478.0
       }
+      body += "<line class=\"axis\" x1=\"" +
+        x.to_string() +
+        "\" y1=\"354\" x2=\"" +
+        x.to_string() +
+        "\" y2=\"360\"/><text class=\"tick\" x=\"" +
+        x.to_string() +
+        "\" y=\"378\" text-anchor=\"middle\">" +
+        escape_xml(format_number(value)) +
+        "</text>"
     }
   } else {
     for index = 0; index < x_values.length(); index = index + 1 {
