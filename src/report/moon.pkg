@@ -1,7 +1,9 @@
 import {
   "Luna-Flow/mare_mark/ir_model" @ir,
   "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/stats",
   "moonbitlang/core/json",
+  "moonbitlang/core/string",
 }
 
 import {

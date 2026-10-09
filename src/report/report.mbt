@@ -86,6 +86,52 @@ fn x_position(index : Int, count : Int) -> Double {
 }
 
 ///|
+/// The x values of `plot` in axis order, their horizontal positions, and
+/// whether each one gets a tick label. A `Linear` axis sorts the values
+/// numerically and places them by value; it falls back to `Categorical` when
+/// a value is not a finite number, and heatmaps are always categorical.
+fn x_layout(plot : @ir.Plot) -> (Array[String], Array[Double], Array[Bool]) {
+  let values = unique_x_values(plot)
+  let numbers = values.map(finite_number)
+  let linear = plot.x_axis is @ir.AxisScale::Linear &&
+    !(plot.kind is @ir.PlotKind::Heatmap) &&
+    !values.is_empty() &&
+    numbers.all(number => number is Some(_))
+  if !linear {
+    let count = values.length()
+    let stride = ((count + 9) / 10).max(1)
+    let positions = Array::makei(count, index => x_position(index, count))
+    let labelled = Array::makei(count, index => {
+      index % stride == 0 || index == count - 1
+    })
+    return (values, positions, labelled)
+  }
+  let order = Array::makei(values.length(), index => {
+    (numbers[index].unwrap_or(0.0), index)
+  })
+  order.sort()
+  let low = order[0].0
+  let high = order[order.length() - 1].0
+  let positions = order.map(entry => {
+    if high == low {
+      478.0
+    } else {
+      76.0 + (entry.0 - low) * 804.0 / (high - low)
+    }
+  })
+  let labelled = []
+  let mut last_label = -1.0e9
+  for position in positions {
+    let visible = position - last_label >= 56.0
+    if visible {
+      last_label = position
+    }
+    labelled.push(visible)
+  }
+  (order.map(entry => values[entry.1]), positions, labelled)
+}
+
+///|
 fn y_position(value : Double, low : Double, high : Double) -> Double {
   354.0 - (value - low) * 252.0 / (high - low)
 }
@@ -136,6 +182,8 @@ fn renders_line(kind : @ir.PlotKind) -> Bool {
 fn svg_axes(
   plot : @ir.Plot,
   x_values : Array[String],
+  x_positions : Array[Double],
+  x_labelled : Array[Bool],
   low : Double,
   high : Double,
 ) -> String {
@@ -155,10 +203,9 @@ fn svg_axes(
   }
   body += "<line class=\"axis\" x1=\"76\" y1=\"102\" x2=\"76\" y2=\"354\"/>"
   body += "<line class=\"axis\" x1=\"76\" y1=\"354\" x2=\"880\" y2=\"354\"/>"
-  let stride = ((x_values.length() + 9) / 10).max(1)
   for index = 0; index < x_values.length(); index = index + 1 {
-    if index % stride == 0 || index == x_values.length() - 1 {
-      let x = x_position(index, x_values.length())
+    if x_labelled[index] {
+      let x = x_positions[index]
       body += "<line class=\"axis\" x1=\"" +
         x.to_string() +
         "\" y1=\"354\" x2=\"" +
@@ -173,6 +220,11 @@ fn svg_axes(
   body += "<text class=\"axis-label\" x=\"22\" y=\"228\" text-anchor=\"middle\" transform=\"rotate(-90 22 228)\">" +
     escape_xml(plot.unit) +
     "</text>"
+  if !plot.x_label.is_empty() {
+    body += "<text class=\"axis-label\" x=\"478\" y=\"408\" text-anchor=\"middle\">" +
+      escape_xml(plot.x_label) +
+      "</text>"
+  }
   body
 }
 
@@ -203,6 +255,7 @@ fn svg_legend(series_values : Array[String]) -> String {
 fn svg_series_plot(
   plot : @ir.Plot,
   x_values : Array[String],
+  x_positions : Array[Double],
   series_values : Array[String],
   low : Double,
   high : Double,
@@ -217,7 +270,7 @@ fn svg_series_plot(
         match average_at(plot, x_values[x_index], series_values[series_index]) {
           Some(value) =>
             coordinates.push(
-              x_position(x_index, x_values.length()).to_string() +
+              x_positions[x_index].to_string() +
               "," +
               y_position(value, low, high).to_string(),
             )
@@ -237,7 +290,7 @@ fn svg_series_plot(
     let x_index = string_index(x_values, point.x)
     let point_series = if point.series == "" { "value" } else { point.series }
     let series_index = string_index(series_values, point_series).max(0)
-    let x = x_position(x_index.max(0), x_values.length())
+    let x = x_positions[x_index.max(0)]
     let y = y_position(point.y, low, high)
     body += "<circle cx=\"" +
       x.to_string() +
@@ -306,6 +359,14 @@ fn svg_heatmap(
 }
 
 ///|
+fn axis_scale_name(scale : @ir.AxisScale) -> String {
+  match scale {
+    @ir.AxisScale::Categorical => "categorical"
+    @ir.AxisScale::Linear => "linear"
+  }
+}
+
+///|
 pub fn plot_json(document : @ir.PlotDocument) -> String {
   let plot_values = document.plots.map(plot => {
     let point_values = plot.points.map(point => {
@@ -320,6 +381,9 @@ pub fn plot_json(document : @ir.PlotDocument) -> String {
       "title": Json::string(plot.title),
       "unit": Json::string(plot.unit),
       "interval_kind": Json::string(plot.interval_kind),
+      "x_axis": Json::string(axis_scale_name(plot.x_axis)),
+      "x_label": Json::string(plot.x_label),
+      "note": Json::string(plot.note),
       "points": Json::array(point_values),
     })
   })
@@ -426,10 +490,15 @@ fn add_capability(
 }
 
 ///|
+/// An observation line that passed the `valid` and `batch_sink` filters.
 priv struct ReportObservation {
   case_id : String
   implementation : String
   dataset_id : Int
+  /// The `phase` field, or `""` for records written before it existed.
+  phase : String
+  /// The `scale` field, or `None` for records written before it existed.
+  scale : String?
   elapsed_us : Double
 }
 
@@ -450,6 +519,188 @@ fn observation_failed(
     failure.implementation == observation.implementation &&
     failure.dataset_id == observation.dataset_id
   })
+}
+
+///|
+/// Where the x value of a timing group comes from.
+priv enum ScaleSource {
+  /// The observation's `scale` field.
+  Recorded
+  /// The observation has no `scale` field; `dataset_id` stands in for it.
+  DatasetId
+} derive(Eq)
+
+///|
+/// The confirmatory samples of one implementation at one scale of one case.
+/// Several datasets may share a scale; their samples are pooled here.
+priv struct TimingGroup {
+  scale : String
+  scale_source : ScaleSource
+  implementation : String
+  /// Confirmatory per-iteration times (`elapsed_us`), in input order.
+  elapsed_us : Array[Double]
+}
+
+///|
+priv struct CaseTimings {
+  case_id : String
+  /// Groups in order of first appearance of (scale, implementation).
+  groups : Array[TimingGroup]
+  /// Observations left out because their phase is not confirmatory, by phase,
+  /// in order of first appearance.
+  excluded_by_phase : Map[String, Int]
+}
+
+///|
+/// A record without `phase` predates the field and is treated as
+/// confirmatory; every other phase (`exploratory`, or one this reader does
+/// not know) is excluded from the timing statistics.
+fn is_confirmatory(phase : String) -> Bool {
+  phase == "" || phase == @model.ObservationPhase::Confirmatory.text()
+}
+
+///|
+/// Groups the confirmatory observations by (case, scale, implementation),
+/// dropping observations of failed benchmark keys. Cases, scales and
+/// implementations keep their order of first appearance in `observations`.
+/// A case whose observations are all excluded still appears, with no groups,
+/// so that its exclusions can be reported.
+fn confirmatory_timings(
+  observations : Array[ReportObservation],
+  failures : Array[FailedBenchmarkKey],
+) -> Array[CaseTimings] {
+  let cases : Array[CaseTimings] = []
+  for observation in observations {
+    if observation_failed(observation, failures) {
+      continue
+    }
+    let case_timings = match
+      cases.search_by(item => item.case_id == observation.case_id) {
+      Some(index) => cases[index]
+      None => {
+        let created = {
+          case_id: observation.case_id,
+          groups: [],
+          excluded_by_phase: {},
+        }
+        cases.push(created)
+        created
+      }
+    }
+    if !is_confirmatory(observation.phase) {
+      let excluded = case_timings.excluded_by_phase
+      let count = excluded.get_or_default(observation.phase, 0)
+      excluded[observation.phase] = count + 1
+      continue
+    }
+    let (scale, scale_source) = match observation.scale {
+      Some(text) => (text, Recorded)
+      None => (observation.dataset_id.to_string(), DatasetId)
+    }
+    match
+      case_timings.groups.search_by(group => {
+        group.scale == scale &&
+        group.scale_source == scale_source &&
+        group.implementation == observation.implementation
+      }) {
+      Some(index) =>
+        case_timings.groups[index].elapsed_us.push(observation.elapsed_us)
+      None =>
+        case_timings.groups.push({
+          scale,
+          scale_source,
+          implementation: observation.implementation,
+          elapsed_us: [observation.elapsed_us],
+        })
+    }
+  }
+  cases
+}
+
+///|
+fn finite_number(text : String) -> Double? {
+  let value = try @string.parse_double(text) catch {
+    _ => return None
+  } noraise {
+    value => value
+  }
+  if value.is_nan() || value.is_inf() {
+    None
+  } else {
+    Some(value)
+  }
+}
+
+///|
+fn excluded_note(excluded_by_phase : Map[String, Int]) -> String {
+  if excluded_by_phase.is_empty() {
+    return ""
+  }
+  let parts = []
+  for phase, count in excluded_by_phase {
+    parts.push(
+      count.to_string() +
+      " " +
+      phase +
+      (if count == 1 { " observation" } else { " observations" }),
+    )
+  }
+  " Excluded: " + parts.join(", ") + "."
+}
+
+///|
+/// The scaling plot of one case: one point per (implementation, scale), at the
+/// median per-iteration time of the group's confirmatory samples.
+fn scaling_plot(timings : CaseTimings) -> @ir.Plot {
+  let groups = timings.groups
+  let recorded = groups.any(group => group.scale_source == Recorded)
+  let fallback = groups.any(group => group.scale_source == DatasetId)
+  let x_label = if !fallback {
+    "scale"
+  } else if recorded {
+    "scale (dataset_id where scale is not recorded)"
+  } else {
+    "dataset_id (scale not recorded)"
+  }
+  let points = groups.map(group => {
+    let x = if recorded && group.scale_source == DatasetId {
+      "dataset_id " + group.scale
+    } else {
+      group.scale
+    }
+    @ir.PlotPoint::new(
+      x,
+      @stats.summarize(group.elapsed_us).median,
+      group.implementation,
+    )
+  })
+  let x_axis = if !points.is_empty() &&
+    points.all(point => finite_number(point.x) is Some(_)) {
+    @ir.AxisScale::Linear
+  } else {
+    @ir.AxisScale::Categorical
+  }
+  let note = "Each point is the median per-iteration time (µs/op) of the confirmatory observations of one implementation at one " +
+    (if recorded {
+      "scale, pooled over every dataset and repetition at that scale."
+    } else {
+      "dataset_id, pooled over its repetitions."
+    }) +
+    excluded_note(timings.excluded_by_phase)
+  @ir.Plot::new(
+    @ir.PlotKind::Scaling,
+    if timings.case_id.is_empty() {
+      "Benchmark observations"
+    } else {
+      "Benchmark observations: " + timings.case_id
+    },
+    "µs/op",
+    "median",
+    points,
+    x_axis~,
+    x_label~,
+    note~,
+  )
 }
 
 ///|
@@ -519,11 +770,25 @@ pub fn document_from_jsonl(
           Some(String(value)) => value == "kept"
           _ => true
         }
+        let phase = match object.get("phase") {
+          Some(String(value)) => value
+          None => ""
+          Some(_) =>
+            return Err("invalid phase at line " + line_number.to_string())
+        }
+        let scale = match object.get("scale") {
+          Some(String(value)) => Some(value)
+          None => None
+          Some(_) =>
+            return Err("invalid scale at line " + line_number.to_string())
+        }
         if valid && kept {
           observations.push({
             case_id: json_string(object, "case"),
             implementation,
             dataset_id: dataset_id.to_int(),
+            phase,
+            scale,
             elapsed_us,
           })
         }
@@ -591,35 +856,12 @@ pub fn document_from_jsonl(
       _ => ()
     }
   }
-  let points = observations.filter_map(observation => {
-    if observation_failed(observation, failed_benchmarks) {
-      None
-    } else {
-      Some(
-        @ir.PlotPoint::new(
-          observation.dataset_id.to_string(),
-          observation.elapsed_us,
-          observation.implementation,
-        ),
-      )
-    }
-  })
-  if points.is_empty() && mismatches.is_empty() && counterexamples.is_empty() {
+  let plots = confirmatory_timings(observations, failed_benchmarks).map(
+    scaling_plot,
+  )
+  if plots.is_empty() && mismatches.is_empty() && counterexamples.is_empty() {
     Err("JSONL contains no observation or differential events")
   } else {
-    let plots = if points.is_empty() {
-      []
-    } else {
-      [
-        @ir.Plot::new(
-          @ir.PlotKind::Scaling,
-          "Benchmark observations",
-          "µs/op",
-          "raw",
-          points,
-        ),
-      ]
-    }
     let total = passed + failed + unsupported + expected_difference
     Ok(
       @ir.PlotDocument::new(
@@ -641,21 +883,26 @@ pub fn document_from_jsonl(
 
 ///|
 pub fn plot_svg(plot : @ir.Plot) -> String {
-  let x_values = unique_x_values(plot)
+  let (x_values, x_positions, x_labelled) = x_layout(plot)
   let series_values = unique_series(plot)
   let (low, high) = y_bounds(plot)
   let mut body = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 420\" role=\"img\" aria-labelledby=\"plot-title plot-description\">"
   body += "<title id=\"plot-title\">" + escape_xml(plot.title) + "</title>"
   body += "<desc id=\"plot-description\">" +
-    escape_xml(kind_name(plot.kind) + " plot, " + plot.interval_kind) +
+    escape_xml(
+      kind_name(plot.kind) +
+      " plot, " +
+      plot.interval_kind +
+      (if plot.note.is_empty() { "" } else { ". " + plot.note }),
+    ) +
     "</desc>"
   body += "<style>.grid{stroke:#e2e8f0;stroke-width:1}.axis{stroke:#64748b;stroke-width:1.2}.tick{fill:#64748b;font:12px ui-sans-serif,system-ui,sans-serif}.axis-label{fill:#475569;font:600 12px ui-sans-serif,system-ui,sans-serif}.legend{fill:#334155;font:12px ui-sans-serif,system-ui,sans-serif}</style>"
-  body += svg_axes(plot, x_values, low, high)
+  body += svg_axes(plot, x_values, x_positions, x_labelled, low, high)
   body += svg_legend(series_values)
   body += if plot.kind is @ir.PlotKind::Heatmap {
     svg_heatmap(plot, x_values, series_values, low, high)
   } else {
-    svg_series_plot(plot, x_values, series_values, low, high)
+    svg_series_plot(plot, x_values, x_positions, series_values, low, high)
   }
   if plot.points.is_empty() {
     body += "<text class=\"axis-label\" x=\"478\" y=\"228\" text-anchor=\"middle\">No observations</text>"
@@ -746,14 +993,20 @@ pub fn html(document : @ir.PlotDocument) -> String {
       escape_xml(plot.title) +
       "</span><small>" +
       escape_xml(kind_name(plot.kind) + " · " + plot.interval_kind) +
-      "</small></figcaption>" +
+      "</small>" +
+      (if plot.note.is_empty() {
+        ""
+      } else {
+        "<p class=\"note\">" + escape_xml(plot.note) + "</p>"
+      }) +
+      "</figcaption>" +
       plot_svg(plot) +
       "</figure>"
     })
     .join("\n")
   "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>mare_mark · " +
   escape_xml(document.run_id) +
-  "</title><style>:root{color-scheme:light;background:#f1f5f9;color:#0f172a;font-family:Inter,ui-sans-serif,system-ui,sans-serif}*{box-sizing:border-box}body{margin:0}.shell{width:min(1200px,calc(100% - 32px));margin:0 auto;padding:48px 0 72px}header{margin-bottom:28px}h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.04em;margin:0 0 10px}h2{margin:0 0 14px;font-size:1.2rem}.meta{display:flex;gap:10px;flex-wrap:wrap}.tag{background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:6px 11px;font-size:.8rem;font-weight:700}.panel,figure{margin:0 0 24px;background:#fff;border:1px solid #dbe3ee;border-radius:18px;padding:18px;box-shadow:0 14px 35px rgba(15,23,42,.07)}figcaption{display:flex;justify-content:space-between;gap:16px;align-items:baseline;font-weight:750;padding:2px 8px 12px}figcaption small{color:#64748b;font-weight:600}svg{display:block;width:100%;height:auto}.denominator{margin:0;color:#334155}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:.84rem}th,td{text-align:left;vertical-align:top;padding:9px;border-bottom:1px solid #e2e8f0}th{color:#475569;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}code{font-size:.78rem;overflow-wrap:anywhere}@media(max-width:640px){.shell{width:min(100% - 16px,1200px);padding-top:24px}.panel,figure{padding:8px;border-radius:12px}figcaption{align-items:flex-start;flex-direction:column}}</style></head><body><main class=\"shell\"><header><h1>mare_mark report</h1><div class=\"meta\"><span class=\"tag\">Run " +
+  "</title><style>:root{color-scheme:light;background:#f1f5f9;color:#0f172a;font-family:Inter,ui-sans-serif,system-ui,sans-serif}*{box-sizing:border-box}body{margin:0}.shell{width:min(1200px,calc(100% - 32px));margin:0 auto;padding:48px 0 72px}header{margin-bottom:28px}h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.04em;margin:0 0 10px}h2{margin:0 0 14px;font-size:1.2rem}.meta{display:flex;gap:10px;flex-wrap:wrap}.tag{background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:6px 11px;font-size:.8rem;font-weight:700}.panel,figure{margin:0 0 24px;background:#fff;border:1px solid #dbe3ee;border-radius:18px;padding:18px;box-shadow:0 14px 35px rgba(15,23,42,.07)}figcaption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;align-items:baseline;font-weight:750;padding:2px 8px 12px}figcaption small{color:#64748b;font-weight:600}figcaption .note{flex-basis:100%;margin:0;color:#475569;font-size:.85rem;font-weight:500}svg{display:block;width:100%;height:auto}.denominator{margin:0;color:#334155}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:.84rem}th,td{text-align:left;vertical-align:top;padding:9px;border-bottom:1px solid #e2e8f0}th{color:#475569;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}code{font-size:.78rem;overflow-wrap:anywhere}@media(max-width:640px){.shell{width:min(100% - 16px,1200px);padding-top:24px}.panel,figure{padding:8px;border-radius:12px}figcaption{align-items:flex-start;flex-direction:column}}</style></head><body><main class=\"shell\"><header><h1>mare_mark report</h1><div class=\"meta\"><span class=\"tag\">Run " +
   escape_xml(document.run_id) +
   "</span><span class=\"tag\">Target " +
   escape_xml(document.target) +

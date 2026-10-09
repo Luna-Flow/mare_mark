@@ -136,3 +136,280 @@ test "every plot kind renders a non-empty SVG" {
     assert_true(plot_svg(plot).length() > 0)
   }
 }
+
+///|
+fn point_texts(plot : @ir.Plot) -> Array[String] {
+  plot.points.map(point => {
+    point.series + "@" + point.x + "=" + point.y.to_string()
+  })
+}
+
+///|
+test "exploratory observations stay out of the confirmatory plot (#7)" {
+  let source =
+    #|{"type":"observation","case":"matmul","implementation":"naive","dataset_id":7,"phase":"exploratory","elapsed_us":900.0,"valid":true}
+    #|{"type":"observation","case":"matmul","implementation":"naive","dataset_id":7,"phase":"confirmatory","elapsed_us":100.0,"valid":true}
+  guard document_from_jsonl(source) is Ok(document) else {
+    abort("expected a document")
+  }
+  assert_eq(document.plots.length(), 1)
+  let plot = document.plots[0]
+  assert_eq(plot.title, "Benchmark observations: matmul")
+  assert_eq(plot.interval_kind, "median")
+  assert_true(point_texts(plot) == ["naive@7=100"])
+  assert_eq(plot.x_label, "dataset_id (scale not recorded)")
+  assert_true(plot.note.contains("Excluded: 1 exploratory observation."))
+  // With the scale recorded, the x value is the scale, not the dataset index.
+  let scaled =
+    #|{"type":"observation","case":"matmul","implementation":"naive","dataset_id":7,"scale":"256","phase":"exploratory","elapsed_us":900.0,"valid":true}
+    #|{"type":"observation","case":"matmul","implementation":"naive","dataset_id":7,"scale":"256","phase":"confirmatory","elapsed_us":100.0,"valid":true}
+  guard document_from_jsonl(scaled) is Ok(document) else {
+    abort("expected a document")
+  }
+  let plot = document.plots[0]
+  assert_true(point_texts(plot) == ["naive@256=100"])
+  assert_eq(plot.x_label, "scale")
+  assert_true(plot.x_axis is @ir.AxisScale::Linear)
+  let svg = plot_svg(plot)
+  assert_true(!svg.contains("900"))
+  assert_true(svg.contains(">256</text>"))
+  assert_true(svg.contains(">scale</text>"))
+}
+
+///|
+test "numeric scales use a linear axis in numeric order" {
+  let source =
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":0,"scale":"1000","phase":"confirmatory","elapsed_us":30.0}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":1,"scale":"10","phase":"confirmatory","elapsed_us":1.0}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":2,"scale":"100","phase":"confirmatory","elapsed_us":4.0}
+  guard document_from_jsonl(source) is Ok(document) else {
+    abort("expected a document")
+  }
+  let plot = document.plots[0]
+  assert_true(plot.x_axis is @ir.AxisScale::Linear)
+  let (x_values, positions, labelled) = x_layout(plot)
+  assert_true(x_values == ["10", "100", "1000"])
+  assert_eq(positions[0], 76.0)
+  assert_eq(positions[2], 880.0)
+  // 10 and 100 are 73 px apart on a 10..1000 axis, so both are labelled.
+  assert_true(positions[1] > 76.0 && positions[1] < 160.0)
+  assert_true(labelled == [true, true, true])
+  let svg = plot_svg(plot)
+  assert_true(svg.contains("<polyline"))
+  assert_true(svg.contains("points=\"76,"))
+}
+
+///|
+test "non-numeric scales are categorical in order of first appearance" {
+  let source =
+    #|{"type":"observation","case":"sort","implementation":"merge","dataset_id":0,"scale":"small","phase":"confirmatory","elapsed_us":1.0}
+    #|{"type":"observation","case":"sort","implementation":"merge","dataset_id":1,"scale":"large","phase":"confirmatory","elapsed_us":9.0}
+    #|{"type":"observation","case":"sort","implementation":"quick","dataset_id":2,"scale":"medium","phase":"confirmatory","elapsed_us":4.0}
+    #|{"type":"observation","case":"sort","implementation":"quick","dataset_id":0,"scale":"small","phase":"confirmatory","elapsed_us":2.0}
+  guard document_from_jsonl(source) is Ok(document) else {
+    abort("expected a document")
+  }
+  let plot = document.plots[0]
+  assert_true(plot.x_axis is @ir.AxisScale::Categorical)
+  let (x_values, positions, _) = x_layout(plot)
+  assert_true(x_values == ["small", "large", "medium"])
+  assert_true(positions == [76.0, 478.0, 880.0])
+  assert_true(plot_svg(plot).contains(">large</text>"))
+}
+
+///|
+test "datasets sharing a scale are pooled into one median" {
+  let source =
+    #|{"type":"observation","case":"fft","implementation":"radix2","dataset_id":0,"block_id":1,"scale":"64","phase":"confirmatory","elapsed_us":1.0}
+    #|{"type":"observation","case":"fft","implementation":"radix2","dataset_id":0,"block_id":2,"scale":"64","phase":"confirmatory","elapsed_us":5.0}
+    #|{"type":"observation","case":"fft","implementation":"radix2","dataset_id":1,"block_id":1,"scale":"64","phase":"confirmatory","elapsed_us":3.0}
+    #|{"type":"observation","case":"fft","implementation":"radix2","dataset_id":1,"block_id":2,"scale":"64","phase":"confirmatory","elapsed_us":4.0}
+    #|{"type":"observation","case":"fft","implementation":"radix2","dataset_id":2,"block_id":1,"scale":"128","phase":"confirmatory","elapsed_us":7.0}
+    #|{"type":"observation","case":"fft","implementation":"radix2","dataset_id":2,"block_id":0,"scale":"128","phase":"exploratory","elapsed_us":70.0}
+  guard document_from_jsonl(source) is Ok(document) else {
+    abort("expected a document")
+  }
+  assert_true(
+    point_texts(document.plots[0]) == ["radix2@64=3.5", "radix2@128=7"],
+  )
+  assert_true(
+    document.plots[0].note.contains(
+      "pooled over every dataset and repetition at that scale.",
+    ),
+  )
+}
+
+///|
+test "confirmatory timings group by case, scale and implementation" {
+  let observation = (
+    case_id : String,
+    implementation : String,
+    dataset_id : Int,
+    phase : String,
+    scale : String?,
+    elapsed_us : Double,
+  ) => { case_id, implementation, dataset_id, phase, scale, elapsed_us, }
+  let observations = [
+    observation("a", "x", 0, "confirmatory", Some("8"), 1.0),
+    observation("a", "y", 0, "confirmatory", Some("8"), 2.0),
+    observation("b", "x", 0, "", None, 3.0),
+    observation("a", "x", 1, "confirmatory", Some("8"), 4.0),
+    observation("a", "x", 2, "exploratory", Some("8"), 5.0),
+    observation("a", "x", 3, "warmup", Some("16"), 6.0),
+    observation("a", "y", 4, "confirmatory", Some("16"), 7.0),
+    observation("a", "x", 5, "confirmatory", None, 8.0),
+    observation("a", "y", 6, "confirmatory", Some("16"), 9.0),
+  ]
+  let failures = [{ case_id: "a", implementation: "y", dataset_id: 6, }]
+  let cases = confirmatory_timings(observations, failures)
+  assert_true(cases.map(item => item.case_id) == ["a", "b"])
+  let groups = cases[0].groups
+  assert_true(
+    groups.map(group => group.implementation + "@" + group.scale) ==
+    ["x@8", "y@8", "y@16", "x@5"],
+  )
+  assert_true(groups[0].elapsed_us == [1.0, 4.0])
+  assert_true(groups[2].elapsed_us == [7.0])
+  assert_true(groups[3].scale_source == DatasetId)
+  assert_eq(cases[0].excluded_by_phase.get("exploratory"), Some(1))
+  assert_eq(cases[0].excluded_by_phase.get("warmup"), Some(1))
+  assert_true(cases[1].groups[0].scale_source == DatasetId)
+  // Mixed sources keep the fallback x values apart from recorded scales.
+  let plot = scaling_plot(cases[0])
+  assert_eq(plot.x_label, "scale (dataset_id where scale is not recorded)")
+  assert_true(plot.x_axis is @ir.AxisScale::Categorical)
+  assert_true(plot.points.any(point => point.x == "dataset_id 5"))
+  assert_true(
+    plot.note.contains(
+      "Excluded: 1 exploratory observation, 1 warmup observation.",
+    ),
+  )
+}
+
+///|
+test "records without phase or scale are confirmatory and keyed by dataset_id" {
+  let source =
+    #|{"type":"observation","case":"vector-add","implementation":"baseline","dataset_id":0,"elapsed_us":12.5}
+    #|{"type":"observation","case":"vector-add","implementation":"baseline","dataset_id":1,"elapsed_us":28.4}
+    #|{"type":"observation","case":"vector-add","implementation":"baseline","dataset_id":1,"elapsed_us":30.4}
+  guard document_from_jsonl(source) is Ok(document) else {
+    abort("expected a document")
+  }
+  let plot = document.plots[0]
+  assert_true(point_texts(plot) == ["baseline@0=12.5", "baseline@1=29.4"])
+  assert_eq(plot.x_label, "dataset_id (scale not recorded)")
+  assert_true(!plot.note.contains("Excluded"))
+  assert_true(
+    plot.note.contains("at one dataset_id, pooled over its repetitions."),
+  )
+}
+
+///|
+test "a case with only exploratory observations keeps an empty plot" {
+  let source =
+    #|{"type":"observation","case":"warm","implementation":"a","dataset_id":0,"scale":"1","phase":"exploratory","elapsed_us":1.0}
+    #|{"type":"observation","case":"warm","implementation":"a","dataset_id":0,"scale":"1","phase":"exploratory","elapsed_us":2.0}
+  guard document_from_jsonl(source) is Ok(document) else {
+    abort("expected a document")
+  }
+  let plot = document.plots[0]
+  assert_true(plot.points.is_empty())
+  assert_true(plot.x_axis is @ir.AxisScale::Categorical)
+  assert_true(plot.note.contains("Excluded: 2 exploratory observations."))
+  assert_true(plot_svg(plot).contains("No observations"))
+}
+
+///|
+test "each case gets its own scaling plot" {
+  let source =
+    #|{"type":"observation","case":"add","implementation":"a","dataset_id":0,"scale":"2","phase":"confirmatory","elapsed_us":1.0}
+    #|{"type":"observation","case":"mul","implementation":"a","dataset_id":0,"scale":"wide","phase":"confirmatory","elapsed_us":2.0}
+  guard document_from_jsonl(source) is Ok(document) else {
+    abort("expected a document")
+  }
+  assert_true(
+    document.plots.map(plot => plot.title) ==
+    ["Benchmark observations: add", "Benchmark observations: mul"],
+  )
+}
+
+///|
+test "report rejects non-string phase or scale" {
+  assert_true(
+    document_from_jsonl(
+      "{\"type\":\"observation\",\"implementation\":\"a\",\"dataset_id\":0,\"elapsed_us\":1.0,\"phase\":1}",
+    )
+    is Err("invalid phase at line 1"),
+  )
+  assert_true(
+    document_from_jsonl(
+      "{\"type\":\"observation\",\"implementation\":\"a\",\"dataset_id\":0,\"elapsed_us\":1.0,\"scale\":64}",
+    )
+    is Err("invalid scale at line 1"),
+  )
+}
+
+///|
+test "linear axis layout handles ties, equal values and non-numbers" {
+  let linear = (xs : Array[String]) => {
+    @ir.Plot::new(
+      @ir.PlotKind::Scaling,
+      "p",
+      "u",
+      "median",
+      xs.map(x => @ir.PlotPoint::new(x, 1.0, "s")),
+      x_axis=@ir.AxisScale::Linear,
+    )
+  }
+  let (values, positions, labelled) = x_layout(linear(["1000", "1", "2"]))
+  assert_true(values == ["1", "2", "1000"])
+  assert_true(labelled == [true, false, true])
+  assert_true(positions[1] < 78.0)
+  let (_, positions, _) = x_layout(linear(["5"]))
+  assert_true(positions == [478.0])
+  let (values, _, _) = x_layout(linear(["5", "five", "1"]))
+  assert_true(values == ["5", "five", "1"])
+  let (values, _, _) = x_layout(linear(["nan", "1"]))
+  assert_true(values == ["nan", "1"])
+  let heatmap = @ir.Plot::new(
+    @ir.PlotKind::Heatmap,
+    "h",
+    "u",
+    "median",
+    [@ir.PlotPoint::new("9", 1.0, "s"), @ir.PlotPoint::new("1", 2.0, "s")],
+    x_axis=@ir.AxisScale::Linear,
+  )
+  let (values, _, _) = x_layout(heatmap)
+  assert_true(values == ["9", "1"])
+}
+
+///|
+test "plot JSON and HTML carry the axis and the caption note" {
+  let plot = @ir.Plot::new(
+    @ir.PlotKind::Scaling,
+    "p",
+    "µs/op",
+    "median",
+    [@ir.PlotPoint::new("1", 1.0, "s"), @ir.PlotPoint::new("2", 2.0, "s")],
+    x_axis=@ir.AxisScale::Linear,
+    x_label="scale",
+    note="Median & more",
+  )
+  let document = @ir.PlotDocument::new("run", "native", [plot])
+  let json = plot_json(document)
+  assert_true(json.contains("\"x_axis\":\"linear\""))
+  assert_true(json.contains("\"x_label\":\"scale\""))
+  assert_true(json.contains("\"note\":\"Median & more\""))
+  assert_true(
+    plot_json(
+      @ir.PlotDocument::new("run", "native", [
+        @ir.Plot::new(@ir.PlotKind::Scaling, "p", "u", "raw", []),
+      ]),
+    ).contains("\"x_axis\":\"categorical\""),
+  )
+  let page = html(document)
+  assert_true(page.contains("<p class=\"note\">Median &amp; more</p>"))
+  assert_true(
+    plot_svg(plot).contains("scaling plot, median. Median &amp; more"),
+  )
+}

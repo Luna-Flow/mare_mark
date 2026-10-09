@@ -10,6 +10,11 @@ import {
 // Errors
 
 // Types and methods
+pub(all) enum AxisScale {
+  Categorical
+  Linear
+}
+
 pub struct CapabilityCell {
   implementation : String
   outcome_kind : String
@@ -63,8 +68,11 @@ pub struct Plot {
   unit : String
   interval_kind : String
   points : Array[PlotPoint]
+  x_axis : AxisScale
+  x_label : String
+  note : String
 }
-pub fn Plot::new(PlotKind, String, String, String, Array[PlotPoint]) -> Self
+pub fn Plot::new(PlotKind, String, String, String, Array[PlotPoint], x_axis? : AxisScale, x_label? : String, note? : String) -> Self
 
 pub struct PlotDocument {
   schema_version : @model.SchemaVersion

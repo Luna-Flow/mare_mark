@@ -133,6 +133,33 @@ All notable changes to mare_mark are documented in this file.
     optional `measurement~`.
   - `outlier_policy` and `practical_delta_pct` remain analysis-time settings
     and do not change what the runner measures.
+- `report.document_from_jsonl` plots only confirmatory observations.
+  Observations of any other phase (`exploratory`, or a phase the reader does
+  not know) are left out of the timing plot and counted in its caption; a
+  record without `phase` predates the field and counts as confirmatory. Before,
+  exploratory and confirmatory times were plotted as one series (#7).
+- The scaling plot's x value is the dataset's scale instead of `dataset_id`.
+  There is one plot per case and one point per (implementation, scale): the
+  median per-iteration time of the confirmatory observations at that scale,
+  pooled over every dataset and repetition that shares it (`interval_kind` is
+  now `median` instead of `raw`). Scales that all parse as finite numbers are
+  placed on a linear axis in numeric order; other scales are categorical in
+  order of first appearance. Records without `scale` fall back to
+  `dataset_id`, and the axis label says so (#7).
+- JSONL observations carry `scale`, the scale text the validation events
+  already had. The field is additive within `mmka_1` and omitted when no scale
+  text was recorded. `model.Observation` has a `scale_text` field and
+  `Observation::new` an optional `scale_text?` argument, so existing calls
+  still compile (#7).
+- `ir_model.Plot` has `x_axis` (`AxisScale::Categorical` or `Linear`),
+  `x_label` and `note`, set through optional `Plot::new` arguments.
+  `report.plot_json` writes them, `plot_svg` draws the x-axis label and
+  `html` shows the note in the figure caption (#7).
+- The `single_step(...).against_equal(...)` builder records an empty scale
+  text instead of the placeholder `"<scale>"`, so its validation events carry
+  `"scale":""` and its observations no `scale`; the report then plots such
+  runs by `dataset_id` instead of pooling every dataset under one `<scale>`
+  category. Use `BenchSpec::advanced` to record real scale text (#7).
 
 ## 0.3.0 - 2026-07-15
 

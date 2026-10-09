@@ -18,12 +18,24 @@ pub struct PlotPoint {
 }
 
 ///|
+/// How the x values of a plot are placed along the horizontal axis.
+pub(all) enum AxisScale {
+  /// Evenly spaced, in order of first appearance; ticks show the x text.
+  Categorical
+  /// Positioned by numeric value. Every x value must parse as a finite number.
+  Linear
+}
+
+///|
 pub struct Plot {
   kind : PlotKind
   title : String
   unit : String
   interval_kind : String
   points : Array[PlotPoint]
+  x_axis : AxisScale
+  x_label : String
+  note : String
 }
 
 ///|
@@ -155,8 +167,11 @@ pub fn Plot::new(
   unit : String,
   interval_kind : String,
   points : Array[PlotPoint],
+  x_axis? : AxisScale = Categorical,
+  x_label? : String = "",
+  note? : String = "",
 ) -> Plot {
-  { kind, title, unit, interval_kind, points, }
+  { kind, title, unit, interval_kind, points, x_axis, x_label, note, }
 }
 
 ///|
