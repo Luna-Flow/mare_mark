@@ -204,7 +204,16 @@ async test "compare two implementations measured by the runner" {
 ```
 
 `QuickCheck` runs three confirmatory blocks, so there are three pairs. The
-decision itself depends on your machine.
+decision itself depends on your machine. Under a design with several datasets
+per scale, select the observations by `scale_text` rather than `dataset_id`,
+so that the blocks of all datasets of the scale are paired.
+
+For a JSONL record you do not have to write this:
+`@report.document_from_jsonl` pairs the confirmatory blocks of every
+implementation with a baseline, applies the recorded outlier policy to the
+paired deltas, and calls `compare_paired_with_bootstrap` with the recorded
+threshold and a seed per comparison; see the
+[report tutorial](report.md#compare-implementations-against-a-baseline).
 
 ### Clean a plot without touching the data
 

@@ -17,7 +17,7 @@ raw observations kept in the event stream.
 - Every result must be recomputable from the raw observations and identical on
   every target.
 - The functions take flat arrays; pairing and phase selection happen before
-  they are called.
+  they are called (in `report.document_from_jsonl` for a JSONL record).
 
 ## Mathematical background
 
@@ -375,9 +375,11 @@ the seed and $B$ with the experiment configuration.
 
 *Problem.* Reports want plots without one 50 ms page-fault spike; decisions
 must not depend on which points someone chose to hide. *Choice.*
-`filter_outliers` returns a filtered copy under an explicit `OutlierPolicy`, and
-nothing in the runner or the event stream applies it. *Why.* The raw data stay
-auditable, and the policy is a named value that can be recorded. The two
+`filter_outliers` returns a filtered copy under an explicit `OutlierPolicy`.
+The runner and the event stream never apply it; the run records its policy in
+the protocol, and the report applies that policy to the paired deltas of a
+comparison, never to the stored observations (see below). *Why.* The raw data
+stay auditable, and the policy is a named value that can be recorded. The two
 non-trivial policies have known false-flag rates on clean normal data:
 
 $$
@@ -395,6 +397,26 @@ $0.70\,\%$). It is also degenerate when more than half of the values coincide:
 the MAD is then $0$ and only values equal to the median survive. Both filters
 compute their fences from the values that are not `NaN` and never keep a
 `NaN`.
+
+### How the report uses `compare_paired_with_bootstrap`
+
+`report.document_from_jsonl` is the one caller inside mare_mark, and it fixes
+everything this package leaves to the caller. For each case, scale and
+candidate it pairs the confirmatory, valid, kept observations of the candidate
+and the baseline by `block_id`, so index $i$ of both arrays is one block (the
+contract of `compare_paired`); it applies the recorded `OutlierPolicy` with
+`filter_outliers` to the paired deltas $d_i$ and keeps the pairs whose delta
+survives, which is exact because the fences depend on the deltas only; it
+requires at least three pairs; and it calls `compare_paired_with_bootstrap`
+with the recorded `practical_delta_pct`, $B = 10000$ resamples, $\gamma = 95$
+and a seed derived per row from the recorded run seed. The decision is
+therefore the threshold rule above on $\operatorname{med}(d)$, and the
+interval is the percentile bootstrap of $\operatorname{med}(d)$, which the
+report also divides by $\operatorname{med}(b)$ to show it in percent. With
+$B = 10000$ the Monte Carlo error of each endpoint is about
+$\sqrt{0.025 \cdot 0.975 / 10000} \approx 0.16$ percentage points of tail mass.
+The [report design](report.md#paired-blocks) derives the pairing, the
+exactness of the outlier step and the minimum of three blocks.
 
 ### `NaN` propagates
 
@@ -455,7 +477,8 @@ test.
   and neither removes the discreteness derived above. Not implemented.
 - **Hierarchical bootstrap.** Resampling datasets, then repetitions, matches
   `HierarchicalDatasetsAndRepeats` better, but the comparison functions take
-  flat arrays. Callers can still resample per dataset themselves.
+  flat arrays, and the report pools the blocks of all datasets of a scale into
+  one flat sample. Callers can still resample per dataset themselves.
 - **Hodges–Lehmann estimator.** The median of pairwise Walsh averages is more
   efficient under symmetry, but costs $O(n^2)$ and is harder to explain in a
   report.
@@ -469,13 +492,15 @@ test.
 - The decision uses the point estimate and the threshold only; the interval is
   reported, not used to decide. There is no equivalence test.
 - Comparisons take flat arrays. Pairing, phase separation (exploratory or
-  confirmatory) and environment compatibility are the caller's job.
+  confirmatory) and environment compatibility are the caller's job; for JSONL
+  records `report.document_from_jsonl` does the pairing and the phase
+  separation, not the environment check.
 - The bootstrap interval is in the unit of the deltas; the decision is in
   percent. Divide by $\operatorname{med}(b)$ to compare them.
 - The bootstrap assumes exchangeable deltas. Rotation order makes neighbouring
   blocks dependent; the interval does not model that.
-- `filter_outliers` is never applied automatically, and `OutlierPolicy` in a
-  `RunProtocol` is a recorded intent, not an action.
+- This package never applies `filter_outliers` by itself. The `OutlierPolicy`
+  of a `RunProtocol` is applied by the report, to paired deltas only.
 - Non-finite values are rejected with an error only by the bootstrap
   functions; `summarize` and `compare_paired` propagate `NaN` as derived
   above.
