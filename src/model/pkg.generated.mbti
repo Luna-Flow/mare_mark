@@ -10,7 +10,11 @@ pub fn environment_compatible(EnvironmentSnapshot, EnvironmentSnapshot) -> Bool
 
 pub fn exploratory_interval() -> IntervalMode
 
+pub fn protocol_canonical_encoding(RunProtocol) -> String
+
 pub fn protocol_identity(RunProtocol) -> String
+
+pub fn run_identity(String, RunProtocol, UInt64, ProvenanceEnvironment) -> String
 
 // Errors
 
@@ -27,6 +31,7 @@ pub(all) enum BatchPolicy {
   PerImplementation
   SharedBatchSize
 }
+pub fn BatchPolicy::text(Self) -> String
 
 pub(all) enum BatchSinkStatus {
   Kept
@@ -124,6 +129,7 @@ pub(all) enum ExperimentDesign {
   MultipleDatasetsSingleMeasurement
   HierarchicalDatasetsAndRepeats
 }
+pub fn ExperimentDesign::text(Self) -> String
 
 pub struct GenerationContext[Scale] {
   seed : UInt64
@@ -189,6 +195,7 @@ pub(all) enum OutlierPolicy {
   TukeyFence
   MADTrim
 }
+pub fn OutlierPolicy::text(Self) -> String
 
 pub struct ParetoPoint[Key, Choice] {
   key : Key
@@ -211,6 +218,7 @@ pub fn PerformanceEnvironment::new(String, String, String, Int, String, device? 
 
 pub(all) enum ProtocolVersion {
   V1
+  V2
 }
 pub fn ProtocolVersion::identifier(Self) -> String
 pub fn ProtocolVersion::implementation(Self) -> String
@@ -267,8 +275,10 @@ pub struct RunSummary {
   unsupported_count : Int
   expected_difference_count : Int
   environment : EnvironmentSnapshot?
+  protocol : RunProtocol?
+  seed : UInt64?
 }
-pub fn RunSummary::new(String, Int, Int, Int, Bool, String?, passed_count? : Int, failed_count? : Int, unsupported_count? : Int, expected_difference_count? : Int, environment? : EnvironmentSnapshot) -> Self
+pub fn RunSummary::new(String, Int, Int, Int, Bool, String?, passed_count? : Int, failed_count? : Int, unsupported_count? : Int, expected_difference_count? : Int, environment? : EnvironmentSnapshot, protocol? : RunProtocol, seed? : UInt64) -> Self
 
 pub struct ScaleBoundary[Scale] {
   below : Scale
@@ -328,6 +338,7 @@ pub(all) enum ValidationCoverage {
   EveryDataset
   ConfirmatoryOnly
 }
+pub fn ValidationCoverage::text(Self) -> String
 
 pub(all) struct ValidationEvidence {
   case_id : String
