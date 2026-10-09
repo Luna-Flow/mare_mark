@@ -3,7 +3,8 @@
 This tutorial builds benchmark cases of increasing realism: a single
 comparison, a JSONL event stream, a mutable input with an explicit lifecycle, a
 stateful operation sequence, a wrong implementation caught and minimized
-before it is timed, and a protocol of your own. Every example is a complete
+before it is timed, several random datasets per scale, and a protocol of your
+own. Every example is a complete
 `async test`; the outputs shown are the parts that do not depend on the speed
 of your machine.
 
@@ -15,6 +16,8 @@ of your machine.
 | give a mutable input a lifecycle | a `@fixture.Fixture` with `prepare` and `reset` |
 | measure a stateful operation sequence | `Implementation::in_process` with a `Context` |
 | choose how carefully to measure | `@runner.ProtocolPreset` or `@runner.validate_protocol` |
+| measure several datasets per scale | `ExperimentDesign::HierarchicalDatasetsAndRepeats` or `MultipleDatasetsSingleMeasurement` |
+| choose what is validated | `ValidationCoverage` in the protocol |
 | isolate a payload that may crash | `Implementation::worker` (native) |
 
 ## Quick start
@@ -26,25 +29,30 @@ moon add Luna-Flow/mare_mark@0.3.0
 ```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/env_detect",
   "Luna-Flow/mare_mark/event",
   "Luna-Flow/mare_mark/runner",
   "moonbitlang/async",
   "Luna-Flow/mare_mark/fixture",
   "Luna-Flow/mare_mark/experiment",
+  "Luna-Flow/mare_mark/generator",
 }
 ```
 
-A run needs an environment snapshot. Describe the machine once:
+A run needs an environment snapshot. Let `env_detect` describe the machine,
+and state what it cannot know: how the code was built and how many operations
+the benchmark runs at once.
 
 ```moonbit
-fn laptop() -> @model.EnvironmentSnapshot {
-  @model.EnvironmentSnapshot::new(
-    @model.SemanticEnvironment::new(@model.ExecutionTarget::Native, "moonc 0.10", "release", "f64"),
-    @model.PerformanceEnvironment::new("native", "apple-m2", "default", 1, "monotonic"),
-    @model.ProvenanceEnvironment::new("macos", "laptop", "2026-10-08T09:00:00Z", "HEAD", "tutorial"),
-  )
+async fn this_machine() -> @model.EnvironmentSnapshot {
+  @env_detect.detect(compiler_flags="release", dtype_abi="i64", concurrency=1).snapshot
 }
 ```
+
+The snapshot also gets a fresh provenance run id, so every run of this
+tutorial has its own `RunSummary.run_id`. To describe a machine by hand
+instead, build the snapshot with the `@model` constructors (see the
+[model tutorial](model.md)).
 
 Then compare two ways of summing `0, 1, …, n-1`:
 
@@ -68,7 +76,7 @@ async test "quick start" {
     .unwrap()
   let memory = @event.InMemorySink::new()
   let context = @runner.RunContext::new(
-    laptop(), memory.as_sink(), 42UL, @runner.ProtocolPreset::QuickCheck.validated(),
+    this_machine(), memory.as_sink(), 42UL, @runner.ProtocolPreset::QuickCheck.validated(),
   )
   let summary = @runner.run(plan, context)
   inspect(summary.passed_count, content="4")
@@ -105,9 +113,10 @@ async test "write JSONL and keep events in memory" {
   let sink = @event.tee(memory.as_sink(), jsonl.as_sink())
   let summary = @runner.run(
     plan,
-    @runner.RunContext::new(laptop(), sink, 7UL, @runner.ProtocolPreset::QuickCheck.validated()),
+    @runner.RunContext::new(this_machine(), sink, 7UL, @runner.ProtocolPreset::QuickCheck.validated()),
   )
-  inspect(summary.artifact_location.unwrap(), content="jsonl://memory/mmkp_1:1:3:1:identity")
+  let location = summary.artifact_location.unwrap()
+  inspect(location.has_prefix("jsonl://memory/identity|mmkp_2:a8272a0d9e84b872|7|"), content="true")
   let lines = jsonl.to_jsonl().split("\n").to_array()
   inspect(lines.length(), content="7")
   inspect(lines[0].contains("\"type\":\"validation\""), content="true")
@@ -116,7 +125,9 @@ async test "write JSONL and keep events in memory" {
 ```
 
 One validation, one calibration, four observations and the summary make seven
-lines. Write `jsonl.to_jsonl()` to a file with your own IO, or stream lines as
+lines. The location ends with the run id: the case, the protocol identity,
+the seed, and the provenance run id and timestamp of the detected
+environment. Write `jsonl.to_jsonl()` to a file with your own IO, or stream lines as
 they happen with `@event.streaming_jsonl`.
 
 ### Give a mutable input an explicit lifecycle
@@ -168,7 +179,7 @@ async test "an in-place sort on a fresh copy per batch" {
   let memory = @event.InMemorySink::new()
   let summary = @runner.run(
     spec.compile().unwrap(),
-    @runner.RunContext::new(laptop(), memory.as_sink(), 1UL, @runner.ProtocolPreset::QuickCheck.validated()),
+    @runner.RunContext::new(this_machine(), memory.as_sink(), 1UL, @runner.ProtocolPreset::QuickCheck.validated()),
   )
   inspect(summary.passed_count, content="2")
   inspect(memory.observations.all(o => o.valid), content="true")
@@ -232,7 +243,7 @@ async test "a running total validated over five steps" {
   let memory = @event.InMemorySink::new()
   let summary = @runner.run(
     spec.compile().unwrap(),
-    @runner.RunContext::new(laptop(), memory.as_sink(), 3UL, @runner.ProtocolPreset::QuickCheck.validated()),
+    @runner.RunContext::new(this_machine(), memory.as_sink(), 3UL, @runner.ProtocolPreset::QuickCheck.validated()),
   )
   inspect(summary.validation_count, content="5")
   inspect(summary.passed_count, content="5")
@@ -283,7 +294,7 @@ async test "a failing implementation is minimized" {
   let memory = @event.InMemorySink::new()
   let summary = @runner.run(
     spec.compile().unwrap(),
-    @runner.RunContext::new(laptop(), memory.as_sink(), 9UL, @runner.ProtocolPreset::QuickCheck.validated()),
+    @runner.RunContext::new(this_machine(), memory.as_sink(), 9UL, @runner.ProtocolPreset::QuickCheck.validated()),
   )
   inspect(summary.failed_count, content="1")
   let failure = memory.failures[0]
@@ -296,6 +307,113 @@ The failure event carries the seed, the original and minimal fingerprints, the
 shrink path and the replay command `identity-worker off-by-one 40`. The
 implementation is still timed; the report hides its series and shows the
 mismatch instead.
+
+### Measure several random datasets per scale
+
+One fixed dataset per scale measures one input very precisely; a result may
+still depend on that particular input. With random inputs, measure several
+datasets per scale. `HierarchicalDatasetsAndRepeats` gives every
+`repeats_per_dataset` consecutive blocks a fresh dataset, so the run sees
+several inputs and still repeats each one. The generator must use the
+dataset: `GenerationContext.seed` is the run seed for every dataset, and
+`dataset_key.dataset_id` tells them apart.
+
+```moonbit
+fn random_values(seed : UInt64, length : Int) -> Array[Int] {
+  let mut state = seed
+  Array::makei(length, _ => {
+    state = state * 6364136223846793005UL + 1442695040888963407UL
+    (state >> 33).to_int() % 1000
+  })
+}
+
+async test "four datasets per scale, two blocks each" {
+  let fixture : @fixture.Fixture[Int, Array[Int], Array[Int]] = @fixture.Fixture::immutable(
+    "random-values",
+    "1",
+    context => {
+      let seed = @generator.derive_seed(context.seed, context.case_id, context.dataset_key.dataset_id)
+      random_values(seed, context.dataset_key.scale)
+    },
+    xs => xs.length().to_string() + ":" + xs.fold(init=0, (hash, x) => hash * 31 + x).to_string(),
+  )
+  let looped = @runner.Implementation::stateless("loop", "1", (xs : Array[Int]) => {
+    let mut total = 0
+    for x in xs {
+      total += x
+    }
+    @model.OperationResult::completed(total, ())
+  })
+  let folded = @runner.Implementation::stateless("fold", "1", (xs : Array[Int]) => {
+    @model.OperationResult::completed(xs.fold(init=0, (total, x) => total + x), ())
+  })
+  let spec = @runner.BenchSpec::advanced(
+    "sum",
+    fixture,
+    [looped, folded],
+    @runner.OutputSink::keep_last(),
+    @experiment.OracleSpec::Reference(
+      @experiment.ReferenceOracle::equal("sum", xs => xs.fold(init=0, (total, x) => total + x), (expected, actual) => expected == actual),
+    ),
+    [100, 1000],
+    n => n.to_string(),
+    1,
+    (xs, _) => @model.CaseDescriptor::new("sum", [xs.length().to_string()], "", ""),
+    xs => xs.length().to_string(),
+    total => total.to_string(),
+    _ => "",
+    (xs, implementation) => @model.ReplaySpec::new("sum-worker", [implementation, xs.length().to_string()]),
+  )
+  let protocol = @runner.validate_protocol(
+    @model.RunProtocol::new(
+      @model.ExperimentDesign::HierarchicalDatasetsAndRepeats,
+      1,
+      None,
+      @model.CalibrationProtocol::new(1000.0, 1, 1000, 100000.0, @model.BatchPolicy::PerImplementation),
+      1.0,
+      @model.OrderPolicy::BalancedBlocks(1UL),
+      @model.OutlierPolicy::ReportOnly,
+      @model.ValidationCoverage::ConfirmatoryOnly,
+      2,
+      6,
+      repeats_per_dataset=2,
+    ),
+  ).unwrap()
+  let memory = @event.InMemorySink::new()
+  let summary = @runner.run(
+    spec.compile(protocol~).unwrap(),
+    @runner.RunContext::new(this_machine(), memory.as_sink(), 7UL, protocol),
+  )
+  inspect(summary.observation_count, content="32")
+  inspect(summary.validation_count, content="12")
+  let datasets = memory.observations
+    .filter(o => o.implementation_id == "loop" && o.scale_text == "1000")
+    .map(o => (o.block_id, o.dataset_id))
+  debug_inspect(datasets, content="[(0, 4), (1, 4), (2, 5), (3, 5), (4, 6), (5, 6), (6, 7), (7, 7)]")
+  inspect(memory.validations.all(v => v.measurement is None), content="true")
+}
+```
+
+Each scale has $2 + 6 = 8$ blocks and $8 / 2 = 4$ datasets, so two scales and
+two implementations give 32 observations. Block $b$ of a scale measures the
+dataset with index $\lfloor b/2 \rfloor$; the ids continue across scales
+(scale `1000` has datasets 4 to 7). The first dataset of each scale is
+measured only by the two exploratory blocks, and it is where warmup and
+calibration run. `ConfirmatoryOnly` validates the three datasets that
+confirmatory blocks measure: 3 datasets, 2 scales, 2 implementations, one step
+each, 12 validations. `validate_protocol` insists that 2 divides both sample
+counts, so no dataset spans both phases.
+
+The other choices of the protocol work the same way:
+
+| To | Set |
+| --- | --- |
+| measure one dataset per block | `MultipleDatasetsSingleMeasurement` (and `repeats_per_dataset` 1) |
+| validate every dataset, including exploratory ones | `ValidationCoverage::EveryDataset` |
+| also validate right before every measured batch | `ValidationCoverage::EveryMeasurement` (validations carry the batch's `MeasurementKey`) |
+
+Validation never runs inside the timed region, whatever the coverage; more
+coverage costs wall-clock time, not accuracy.
 
 ### Write your own protocol
 
@@ -320,11 +438,13 @@ test "a custom protocol" {
   let validated = @runner.validate_protocol(protocol).unwrap()
   let preset = @runner.ProtocolPreset::Custom(validated)
   inspect(preset.validated().protocol.confirmatory_samples, content="30")
-  inspect(@model.protocol_identity(protocol), content="mmkp_1:5:30:2")
+  inspect(@model.protocol_identity(protocol), content="mmkp_2:099f165751bb177e")
 }
 ```
 
-With two implementations, $2 + 30 = 32$ blocks form 16 complete cycles.
+With two implementations, $2 + 30 = 32$ blocks form 16 complete cycles. The
+identity is a digest of every field; changing any of them, even the order
+seed, gives another one.
 
 ## Going further
 
@@ -360,8 +480,16 @@ see the [generator tutorial](generator.md).
   datasets with validation failures before comparing.
 - **Mixing phases.** Exploratory blocks are for orientation; decide on
   confirmatory ones.
-- **Assuming `run_id` is unique.** It identifies protocol and case; put a
-  unique id in `ProvenanceEnvironment.run_id`.
+- **Reusing a provenance run id.** `RunSummary.run_id` is built from the case,
+  the protocol identity, the seed and the provenance run id and timestamp;
+  a hand-written snapshot reused for every run gives every run of a case the
+  same id. `@env_detect.detect` makes a fresh provenance run id each time.
+- **The same input in every dataset.** Under `MultipleDatasetsSingleMeasurement`
+  and `HierarchicalDatasetsAndRepeats` the fixture is called once per dataset
+  with the same run seed; derive the input from `dataset_key.dataset_id`,
+  otherwise every dataset is identical.
+- **`PerRun` setup with several datasets.** A run-wide prepared value can come
+  from only one dataset, so `compile` and `run` reject it; use `PerDataset`.
 - **Calling `run` outside an async context.** It is an `async fn`.
 - **A zero threshold with noisy data.** `validate_protocol` accepts `0.0`, and
   `stats.compare_paired` then calls every non-zero difference `Faster` or
