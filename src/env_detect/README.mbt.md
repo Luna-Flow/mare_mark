@@ -3,6 +3,8 @@
 Fills a `model.EnvironmentSnapshot` from what the running process can learn,
 so a run needs no hand-written environment.
 
+See `doc/manual/{api,tutorial,design}/env_detect.md`.
+
 `detect()` is asynchronous and never fails. It reports the compilation target,
 memory management and runtime, and probes the OS, hostname, CPU model and
 logical core count (`uname`, `getconf`, `/proc/cpuinfo` or `sysctl` on native;
