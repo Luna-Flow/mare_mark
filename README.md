@@ -50,7 +50,8 @@ async test "loop versus closed form" {
     .compile()
     .unwrap()
   let record = @event.JsonlSink::new()
-  let environment = @env_detect.detect(compiler_flags="release").snapshot
+  let environment = @env_detect.detect(compiler_flags="release", concurrency=1)
+    .snapshot
   let summary = @runner.run(
     plan,
     @runner.RunContext::new(environment, record.as_sink(), 42UL, @runner.ProtocolPreset::QuickCheck.validated()),
@@ -62,9 +63,10 @@ async test "loop versus closed form" {
 ```
 
 `@env_detect.detect` fills the environment snapshot from the running process
-(target, OS, hostname, CPU, cores, time, git revision, a fresh run id); every
-field can be overridden by a labelled argument, and what it cannot detect is
-`"unknown"` and listed in `undetected`. Both implementations are validated on
+(target, OS, hostname, CPU and cores, time, git revision, a fresh run id);
+every field can be overridden by a labelled argument, and what it cannot
+detect is `"unknown"` and listed in `undetected`. The example measures
+sequentially, so it passes `concurrency=1`. Both implementations are validated on
 both scales before timing; the JSONL record holds every observation, and
 `@stats.compare_paired` turns the paired confirmatory blocks into a decision.
 The command-line tool renders records and replays failures:

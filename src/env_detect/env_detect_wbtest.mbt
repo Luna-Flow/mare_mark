@@ -62,3 +62,15 @@ test "target_gc names the memory management of the target" {
   let gc = target_gc()
   assert_true(["rc", "wasm-gc", "js-engine"].contains(gc), msg=gc)
 }
+
+///|
+test "describe_cpu appends the logical core count" {
+  assert_eq(
+    describe_cpu(Some("Apple M4"), Some(10)),
+    Some("Apple M4 (10 logical cores)"),
+  )
+  assert_eq(describe_cpu(None, Some(10)), Some("unknown (10 logical cores)"))
+  assert_eq(describe_cpu(Some("cpu"), Some(1)), Some("cpu (1 logical core)"))
+  assert_eq(describe_cpu(Some("Apple M4"), None), Some("Apple M4"))
+  assert_eq(describe_cpu(None, None), None)
+}

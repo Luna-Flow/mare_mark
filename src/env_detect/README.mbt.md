@@ -7,7 +7,10 @@ so a run needs no hand-written environment.
 memory management and runtime, and probes the OS, hostname, CPU model and
 logical core count (`uname`, `getconf`, `/proc/cpuinfo` or `sysctl` on native;
 Node's `os` module on JavaScript; `OS`, `HOSTNAME` / `COMPUTERNAME`,
-`PROCESSOR_IDENTIFIER` and `NUMBER_OF_PROCESSORS` elsewhere). The timestamp is
+`PROCESSOR_IDENTIFIER` and `NUMBER_OF_PROCESSORS` elsewhere). The core count is
+appended to the CPU text, as in `"Apple M4 (10 logical cores)"`; it is not the
+`concurrency` field, which is the benchmark's own parallelism and is never
+detected. The timestamp is
 the current UTC time (`YYYY-MM-DDTHH:MM:SSZ`), the revision comes from
 `GITHUB_SHA`, `CI_COMMIT_SHA` or `GIT_COMMIT`, else `git rev-parse HEAD` on
 native, and the toolchain from `MARE_MARK_TOOLCHAIN`. The run id is
@@ -15,12 +18,12 @@ native, and the toolchain from `MARE_MARK_TOOLCHAIN`. The run id is
 entropy source).
 
 Nothing is invented: a field that cannot be detected holds `UNKNOWN`
-(`UNKNOWN_CONCURRENCY` for the core count, `DEFAULT_CLOCK`, `DEFAULT_DEVICE`
-or `DEFAULT_FREQUENCY_POLICY` for the fields that are never detected) and its
+(`UNKNOWN_CONCURRENCY`, `DEFAULT_CLOCK`, `DEFAULT_DEVICE` or
+`DEFAULT_FREQUENCY_POLICY` for the fields that are never detected) and its
 name is listed in `undetected`. Every field can be overridden by a labelled
 argument; the `model` constructors remain for fully hand-written snapshots.
 
-```moonbit nocheck
+```mbt check
 ///|
 async test "detect with overrides" {
   let detected = @env_detect.detect(
