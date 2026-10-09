@@ -49,6 +49,36 @@ All notable changes to mare_mark are documented in this file.
   a labelled argument (#19).
 - The README example uses `env_detect.detect` instead of a hand-written
   environment.
+- `report.document_from_jsonl` compares every implementation with a baseline
+  at every scale of every case (#18). Observations are paired by
+  `(case, scale, block_id)` over the confirmatory, valid, kept observations
+  the plot uses; blocks without exactly one observation of both
+  implementations are dropped and counted. The recorded `outlier_policy` is
+  applied to the paired deltas (never to each implementation's raw times),
+  and `stats.compare_paired_with_bootstrap` decides with the recorded
+  `practical_delta_pct`, a 95 % percentile bootstrap with 10000 resamples and
+  a per-row seed derived from the run seed, case, scale, baseline and
+  candidate. Records without a protocol or seed use `report_only`, 1 % and
+  seed 0, and the report says so. Fewer than 3 usable blocks, a missing
+  baseline, unrecorded `block_id`s and bootstrap errors give `Unknown` /
+  `Invalid` rows with a reason. New optional `baseline?` argument (default:
+  the first implementation of each case); an unknown id is an error. A
+  malformed `protocol` or `seed` in the summary is now an error.
+- `ir_model`: `ComparisonDecision`, `PairedEstimate`, `DeltaInterval`,
+  `ComparisonRow` and `ComparisonReport`; `PlotDocument.comparisons`, set by
+  the new optional `PlotDocument::new(..., comparisons~)`. `report.plot_json`
+  writes them under `comparisons`.
+- `report.html` renders a "Comparisons" section before the plots: medians,
+  relative delta, bootstrap interval, a labelled decision tag, blocks used /
+  incomplete / outliers, the row seed and a note stating the threshold,
+  outlier policy, confidence and resamples with their source.
+  `report.comparisons_text` gives the same table as aligned plain text.
+- `mare-mark report` prints the comparison table (to stderr when the HTML goes
+  to stdout, `--quiet` suppresses it) and accepts `--baseline <id>`.
+  `cli.render_jsonl_report` takes an optional `baseline?`.
+- `testdata/report/compare.jsonl`: a hierarchical-design record with a
+  protocol, several confirmatory blocks per scale, an incomplete block and a
+  paired-delta outlier; the CI smoke test renders it with `--baseline`.
 
 ### Fixed
 

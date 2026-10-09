@@ -69,10 +69,14 @@ detect is `"unknown"` and listed in `undetected`. The example measures
 sequentially, so it passes `concurrency=1`. Both implementations are validated on
 both scales before timing; the JSONL record holds every observation, and
 `@stats.compare_paired` turns the paired confirmatory blocks into a decision.
-The command-line tool renders records and replays failures:
+The command-line tool renders records and replays failures. `report` pairs
+the confirmatory observations of each implementation with a baseline block by
+block, applies the recorded outlier policy and threshold, and shows the
+seeded-bootstrap decision of every comparison in a "Comparisons" table, in the
+HTML and on the terminal:
 
 ```sh
-moon run src/cli --target native -- report testdata/report/sample.jsonl report.html
+moon run src/cli --target native -- report --baseline scalar testdata/report/compare.jsonl report.html
 moon run src/cli --target native -- replay testdata/replay/sample.jsonl --dry-run
 ```
 
