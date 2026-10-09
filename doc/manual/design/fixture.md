@@ -50,7 +50,7 @@ operations the runner reports $\hat T / n$, where
 | --- | --- | --- |
 | `PerIteration` | $c + a$ | $c$ |
 | `PerSample`, `PerBatch` | $c + a/n$ | $c$ |
-| long-lived | $c$ (the one preparation lands in the first warmup batch, or the first calibration batch without warmup; neither is reported as an observation) | $c$ |
+| long-lived | $c$ (on the first dataset of a scale the one preparation lands in the first warmup batch, or the first calibration batch without warmup; on later datasets it runs before the first block, outside timing; none of these is reported as an observation) | $c$ |
 
 Including setup per batch measures an amortized cost that depends on the batch
 size chosen by calibration; include it only per iteration, or when the batch
@@ -82,9 +82,10 @@ hiding inside one implementation's payload.
 
 ### Policy as data
 
-`SetupPolicy` is recorded with every observation (`setup_timing`) and in the
-event stream. A reader can tell a cold-start measurement from a warm one
-without reading code.
+`SetupPolicy` is recorded with every observation (`setup_timing`,
+`setup_frequency` and `workspace_scope`) and in the event stream. A reader can
+tell a cold-start measurement from a warm one, and a per-batch copy from a
+cached workspace, without reading code.
 
 ## Correctness and invariants
 
@@ -108,6 +109,10 @@ without reading code.
   contract.
 - `WorkspaceScope` is descriptive; the runner keys its cache per
   implementation and dataset.
-- `PerRun` and `PerDataset` are prepared per implementation, like
-  `PerImplementation`.
+- `PerRun`, `PerDataset` and `PerImplementation` share that cache: a prepared
+  value is derived from one dataset's input and receives the implementation
+  id, so it is rebuilt for every dataset and implementation. `PerRun` is
+  accepted only for runs with a single dataset; the
+  [runner design](runner.md#long-lived-setup-belongs-to-one-dataset) explains
+  why.
 - The fixture does not measure memory.
