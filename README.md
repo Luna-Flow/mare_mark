@@ -23,6 +23,7 @@ Requires MoonBit with `moonc` 0.10 or later.
 ```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/env_detect",
   "Luna-Flow/mare_mark/event",
   "Luna-Flow/mare_mark/runner",
   "Luna-Flow/mare_mark/report",
@@ -49,11 +50,7 @@ async test "loop versus closed form" {
     .compile()
     .unwrap()
   let record = @event.JsonlSink::new()
-  let environment = @model.EnvironmentSnapshot::new(
-    @model.SemanticEnvironment::new(@model.ExecutionTarget::Native, "moonc 0.10", "release", "i32"),
-    @model.PerformanceEnvironment::new("native", "my-cpu", "default", 1, "monotonic"),
-    @model.ProvenanceEnvironment::new("my-os", "my-host", "2026-10-08T12:00:00Z", "HEAD", "readme"),
-  )
+  let environment = @env_detect.detect(compiler_flags="release").snapshot
   let summary = @runner.run(
     plan,
     @runner.RunContext::new(environment, record.as_sink(), 42UL, @runner.ProtocolPreset::QuickCheck.validated()),
@@ -64,10 +61,13 @@ async test "loop versus closed form" {
 }
 ```
 
-Both implementations are validated on both scales before timing; the JSONL
-record holds every observation, and `@stats.compare_paired` turns the paired
-confirmatory blocks into a decision. The command-line tool renders records and
-replays failures:
+`@env_detect.detect` fills the environment snapshot from the running process
+(target, OS, hostname, CPU, cores, time, git revision, a fresh run id); every
+field can be overridden by a labelled argument, and what it cannot detect is
+`"unknown"` and listed in `undetected`. Both implementations are validated on
+both scales before timing; the JSONL record holds every observation, and
+`@stats.compare_paired` turns the paired confirmatory blocks into a decision.
+The command-line tool renders records and replays failures:
 
 ```sh
 moon run src/cli --target native -- report testdata/report/sample.jsonl report.html
@@ -79,6 +79,7 @@ moon run src/cli --target native -- replay testdata/replay/sample.jsonl --dry-ru
 | Package | Role |
 | --- | --- |
 | [`model`](doc/manual/api/model.md) | shared vocabulary: versions, protocols, environments, outcomes, events, decisions |
+| [`env_detect`](src/env_detect/README.mbt.md) | environment snapshots detected from the running process |
 | [`generator`](doc/manual/api/generator.md) | seed derivation and input fingerprints |
 | [`fixture`](doc/manual/api/fixture.md) | input lifecycle and setup timing |
 | [`experiment`](doc/manual/api/experiment.md) | oracles, shrinking, crossover analysis |
@@ -94,6 +95,8 @@ moon run src/cli --target native -- replay testdata/replay/sample.jsonl --dry-ru
 
 All packages build on every target. `runner.run` is asynchronous and runs on
 native, JS and wasm; subprocess workers and `replay` need native.
+`env_detect.detect` probes the host fully on native, partly on Node.js, and
+falls back to environment variables elsewhere.
 
 ## Documentation
 
