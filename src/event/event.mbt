@@ -85,6 +85,30 @@ fn setup_timing_name(timing : @model.SetupTiming) -> String {
 }
 
 ///|
+fn setup_frequency_name(frequency : @model.SetupFrequency) -> String {
+  match frequency {
+    PerRun => "per_run"
+    PerDataset => "per_dataset"
+    PerImplementation => "per_implementation"
+    PerSample => "per_sample"
+    PerBatch => "per_batch"
+    PerIteration => "per_iteration"
+  }
+}
+
+///|
+fn workspace_scope_name(scope : @model.WorkspaceScope) -> String {
+  match scope {
+    RunWorkspace => "run_workspace"
+    DatasetWorkspace => "dataset_workspace"
+    ImplementationWorkspace => "implementation_workspace"
+    SampleWorkspace => "sample_workspace"
+    BatchWorkspace => "batch_workspace"
+    OperationWorkspace => "operation_workspace"
+  }
+}
+
+///|
 fn validation_json(validation : @model.Validation) -> Json {
   let base : Map[String, Json] = {
     "artifact_version": Json::string(@model.ArtifactVersion::V1.identifier()),
@@ -96,6 +120,19 @@ fn validation_json(validation : @model.Validation) -> Json {
   }
   match status_reason(validation.status) {
     Some(reason) => base["reason"] = Json::string(reason)
+    None => ()
+  }
+  match validation.measurement {
+    Some(measurement) => {
+      base["validation_scope"] = Json::string("measurement")
+      base["repetition_id"] = Json::number(
+        measurement.repetition_id.to_double(),
+      )
+      base["block_id"] = Json::number(measurement.block_id.to_double())
+      if validation.evidence is None {
+        base["dataset_id"] = Json::number(measurement.dataset_id.to_double())
+      }
+    }
     None => ()
   }
   match validation.evidence {
@@ -156,7 +193,7 @@ fn failure_json(failure : @model.ValidationFailure) -> Json {
 
 ///|
 fn observation_json(observation : @model.Observation) -> Json {
-  Json::object({
+  let fields : Map[String, Json] = {
     "artifact_version": Json::string(@model.ArtifactVersion::V1.identifier()),
     "type": Json::string("observation"),
     "case": Json::string(observation.case_id),
@@ -171,7 +208,18 @@ fn observation_json(observation : @model.Observation) -> Json {
     "batch_sink": Json::string(observation.batch_sink.text()),
     "setup_timing": Json::string(setup_timing_name(observation.setup_timing)),
     "valid": Json::boolean(observation.valid),
-  })
+  }
+  match observation.setup_frequency {
+    Some(frequency) =>
+      fields["setup_frequency"] = Json::string(setup_frequency_name(frequency))
+    None => ()
+  }
+  match observation.workspace_scope {
+    Some(scope) =>
+      fields["workspace_scope"] = Json::string(workspace_scope_name(scope))
+    None => ()
+  }
+  Json::object(fields)
 }
 
 ///|
@@ -233,6 +281,9 @@ fn summary_json(summary : @model.RunSummary) -> Json {
     "unsupported_count": Json::number(summary.unsupported_count.to_double()),
     "expected_difference_count": Json::number(
       summary.expected_difference_count.to_double(),
+    ),
+    "measurement_validation_count": Json::number(
+      summary.measurement_validation_count.to_double(),
     ),
   }
   match summary.environment {

@@ -166,8 +166,10 @@ pub struct Observation {
   batch_sink : BatchSinkStatus
   setup_timing : SetupTiming
   valid : Bool
+  setup_frequency : SetupFrequency?
+  workspace_scope : WorkspaceScope?
 }
-pub fn Observation::new(String, String, String, Int, Int, Int, ObservationPhase, Double, Int, BatchSinkStatus, SetupTiming, Bool) -> Self
+pub fn Observation::new(String, String, String, Int, Int, Int, ObservationPhase, Double, Int, BatchSinkStatus, SetupTiming, Bool, setup_frequency? : SetupFrequency, workspace_scope? : WorkspaceScope) -> Self
 
 pub(all) enum ObservationPhase {
   Exploratory
@@ -260,8 +262,9 @@ pub struct RunProtocol {
   validation_coverage : ValidationCoverage
   exploratory_samples : Int
   confirmatory_samples : Int
+  repeats_per_dataset : Int
 }
-pub fn RunProtocol::new(ExperimentDesign, Int, Double?, CalibrationProtocol, Double, OrderPolicy, OutlierPolicy, ValidationCoverage, Int, Int) -> Self
+pub fn RunProtocol::new(ExperimentDesign, Int, Double?, CalibrationProtocol, Double, OrderPolicy, OutlierPolicy, ValidationCoverage, Int, Int, repeats_per_dataset? : Int) -> Self
 
 pub struct RunSummary {
   run_id : String
@@ -274,11 +277,12 @@ pub struct RunSummary {
   failed_count : Int
   unsupported_count : Int
   expected_difference_count : Int
+  measurement_validation_count : Int
   environment : EnvironmentSnapshot?
   protocol : RunProtocol?
   seed : UInt64?
 }
-pub fn RunSummary::new(String, Int, Int, Int, Bool, String?, passed_count? : Int, failed_count? : Int, unsupported_count? : Int, expected_difference_count? : Int, environment? : EnvironmentSnapshot, protocol? : RunProtocol, seed? : UInt64) -> Self
+pub fn RunSummary::new(String, Int, Int, Int, Bool, String?, passed_count? : Int, failed_count? : Int, unsupported_count? : Int, expected_difference_count? : Int, measurement_validation_count? : Int, environment? : EnvironmentSnapshot, protocol? : RunProtocol, seed? : UInt64) -> Self
 
 pub struct ScaleBoundary[Scale] {
   below : Scale
@@ -329,9 +333,10 @@ pub struct Validation {
   implementation_id : String
   scale_text : String
   evidence : ValidationEvidence?
+  measurement : MeasurementKey?
 }
-pub fn Validation::detailed(ValidationStatus, String, String, String, ValidationEvidence) -> Self
-pub fn Validation::new(ValidationStatus, String, String, String) -> Self
+pub fn Validation::detailed(ValidationStatus, String, String, String, ValidationEvidence, measurement? : MeasurementKey) -> Self
+pub fn Validation::new(ValidationStatus, String, String, String, measurement? : MeasurementKey) -> Self
 
 pub(all) enum ValidationCoverage {
   EveryMeasurement

@@ -206,3 +206,96 @@ test "JSONL keeps setup timing and validation reasons" {
   assert_true(lines[1].contains("\"reason\":\"off by one ulp\""))
   assert_true(!lines[2].contains("\"reason\""))
 }
+
+///|
+test "JSONL records setup scopes and measurement validations" {
+  let jsonl = JsonlSink::new()
+  let sink = jsonl.as_sink()
+  (sink.emit_observation)(
+    @model.Observation::new(
+      "matmul",
+      "naive",
+      "1",
+      3,
+      1,
+      4,
+      @model.ObservationPhase::Confirmatory,
+      12.5,
+      1,
+      @model.BatchSinkStatus::Kept,
+      @model.SetupTiming::ExcludedFromMeasurement,
+      true,
+      setup_frequency=@model.SetupFrequency::PerDataset,
+      workspace_scope=@model.WorkspaceScope::DatasetWorkspace,
+    ),
+  )
+  (sink.emit_validation)(
+    @model.Validation::new(
+      @model.ValidationStatus::Valid,
+      "ref",
+      "naive",
+      "n=4",
+      measurement=@model.MeasurementKey::new(3, 1, 4),
+    ),
+  )
+  ignore(
+    (sink.finish)(
+      @model.RunSummary::new(
+        "scopes",
+        1,
+        1,
+        0,
+        true,
+        None,
+        measurement_validation_count=1,
+      ),
+    ),
+  )
+  let lines = jsonl
+    .to_jsonl()
+    .split("\n")
+    .map(line => line.to_owned())
+    .collect()
+  assert_eq(lines.length(), 3)
+  assert_true(lines[0].contains("\"setup_frequency\":\"per_dataset\""))
+  assert_true(lines[0].contains("\"workspace_scope\":\"dataset_workspace\""))
+  assert_true(lines[1].contains("\"validation_scope\":\"measurement\""))
+  assert_true(lines[1].contains("\"dataset_id\":3"))
+  assert_true(lines[1].contains("\"repetition_id\":1"))
+  assert_true(lines[1].contains("\"block_id\":4"))
+  assert_true(lines[2].contains("\"measurement_validation_count\":1"))
+}
+
+///|
+test "setup scope names cover every variant" {
+  let frequencies = [
+    @model.SetupFrequency::PerRun,
+    @model.SetupFrequency::PerDataset,
+    @model.SetupFrequency::PerImplementation,
+    @model.SetupFrequency::PerSample,
+    @model.SetupFrequency::PerBatch,
+    @model.SetupFrequency::PerIteration,
+  ]
+  assert_true(
+    frequencies.map(setup_frequency_name) ==
+    [
+      "per_run", "per_dataset", "per_implementation", "per_sample", "per_batch",
+      "per_iteration",
+    ],
+  )
+  let scopes = [
+    @model.WorkspaceScope::RunWorkspace,
+    @model.WorkspaceScope::DatasetWorkspace,
+    @model.WorkspaceScope::ImplementationWorkspace,
+    @model.WorkspaceScope::SampleWorkspace,
+    @model.WorkspaceScope::BatchWorkspace,
+    @model.WorkspaceScope::OperationWorkspace,
+  ]
+  assert_true(
+    scopes.map(workspace_scope_name) ==
+    [
+      "run_workspace", "dataset_workspace", "implementation_workspace", "sample_workspace",
+      "batch_workspace", "operation_workspace",
+    ],
+  )
+}
