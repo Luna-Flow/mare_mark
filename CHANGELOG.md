@@ -105,7 +105,11 @@ All notable changes to mare_mark are documented in this file.
     (`InvalidInteger("repeats_per_dataset", _)`), sample counts it does not
     divide under the hierarchical design (`IndivisibleSamples`), and any value
     other than `1` under the other designs (`UnusedRepeatsPerDataset`). The
-    `RegressionGate` preset uses `5`.
+    `RegressionGate` preset uses `5`. `repeats_per_dataset` is part of
+    `protocol_canonical_encoding`, and so of `protocol_identity` (every
+    `mmkp_2` identity changes, since the encoding gains
+    `;repeats_per_dataset=<r>`), and of the `protocol` object recorded in JSONL
+    summaries; `protocol_from_json` reads a record without the key as `1`.
   - `ConfirmatoryOnly` validates only the datasets measured by confirmatory
     blocks; `EveryDataset` validates every measured dataset; `EveryMeasurement`
     also validates, outside the timed region, before every exploratory and

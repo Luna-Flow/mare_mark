@@ -905,6 +905,12 @@ test "protocol JSON round-trips every preset" {
       @model.protocol_canonical_encoding(protocol),
     )
   }
+  let gate = ProtocolPreset::RegressionGate.validated().protocol
+  let decoded_gate = @event.protocol_from_json(
+    @json.parse(@event.protocol_json(gate).stringify()),
+  ).unwrap()
+  assert_eq(decoded_gate.repeats_per_dataset, 5)
+  assert_true(validate_protocol(decoded_gate) is Ok(_))
   let identities = [
     ProtocolPreset::QuickCheck,
     ProtocolPreset::Development,
