@@ -49,6 +49,9 @@ jobs:
         run: |
           moon run src/cli --target native -- report testdata/report/sample.jsonl /tmp/mare-mark-report.html
           test -s /tmp/mare-mark-report.html
+          moon run src/cli --target native -- report --baseline scalar testdata/report/compare.jsonl /tmp/mare-mark-compare.html > /tmp/mare-mark-compare.txt
+          grep -q 'decision-faster' /tmp/mare-mark-compare.html
+          grep -q 'Faster' /tmp/mare-mark-compare.txt
           moon run src/cli --target native -- replay --dry-run testdata/replay/sample.jsonl
 
       - name: enforce coverage budget

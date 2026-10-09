@@ -25,7 +25,12 @@ fn main {
     Report =>
       match (request.input, request.output) {
         (Some(input_path), Some(output_path)) =>
-          match render_jsonl_report(input_path, output_path) {
+          match
+            render_jsonl_report(
+              input_path,
+              output_path,
+              baseline?=request.baseline,
+            ) {
             Ok(path) => println("report written: " + path)
             Err(message) => {
               println("mare-mark: error: " + message)
