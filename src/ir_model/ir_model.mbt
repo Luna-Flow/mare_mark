@@ -24,6 +24,8 @@ pub(all) enum AxisScale {
   Categorical
   /// Positioned by numeric value. Every x value must parse as a finite number.
   Linear
+  /// Positioned by the logarithm of positive finite numeric values.
+  Log
 }
 
 ///|
@@ -34,6 +36,7 @@ pub struct Plot {
   interval_kind : String
   points : Array[PlotPoint]
   x_axis : AxisScale
+  y_axis : AxisScale
   x_label : String
   note : String
 }
@@ -168,10 +171,11 @@ pub fn Plot::new(
   interval_kind : String,
   points : Array[PlotPoint],
   x_axis? : AxisScale = Categorical,
+  y_axis? : AxisScale = Linear,
   x_label? : String = "",
   note? : String = "",
 ) -> Plot {
-  { kind, title, unit, interval_kind, points, x_axis, x_label, note, }
+  { kind, title, unit, interval_kind, points, x_axis, y_axis, x_label, note, }
 }
 
 ///|
@@ -193,7 +197,7 @@ pub fn PlotDocument::new(
   comparisons? : ComparisonReport = ComparisonReport::empty(),
 ) -> PlotDocument {
   {
-    schema_version: @model.SchemaVersion::V1,
+    schema_version: @model.SchemaVersion::V2,
     run_id,
     target,
     plots,

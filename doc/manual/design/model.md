@@ -60,7 +60,7 @@ a timed batch containing one is invalid.
 
 *Problem.* Readers of old JSONL must not silently misread new fields.
 *Choice.* Three version enums produce the identifiers `mmkp_1` (protocol
-vocabulary), `mmka_1` (event artifacts) and `mmks_1` (Plot IR). Every event
+vocabulary), `mmka_1` (event artifacts) and `mmks_2` (Plot IR). Every event
 carries `artifact_version`; readers reject unknown versions. *Why.* Additive
 changes keep the version; a breaking change adds `V2` and a lifecycle entry,
 and old readers fail loudly instead of guessing.

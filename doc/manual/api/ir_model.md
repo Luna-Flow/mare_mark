@@ -38,8 +38,9 @@ pub struct PlotDocument {
 pub fn PlotDocument::new(String, String, Array[Plot], differential? : DifferentialReport) -> Self
 ```
 
-`new(run_id, target, plots)` sets `schema_version` to `SchemaVersion::V1`
-(`mmks_1`); `differential` defaults to `DifferentialReport::empty()`.
+`new(run_id, target, plots)` sets `schema_version` to `SchemaVersion::V2`
+(`mmks_2`); `differential` defaults to `DifferentialReport::empty()`. V1 is
+deprecated because it cannot identify the y-axis scale.
 
 ## Plots
 
@@ -54,12 +55,20 @@ pub struct Plot {
   unit : String
   interval_kind : String
   points : Array[PlotPoint]
+  x_axis : AxisScale
+  y_axis : AxisScale
+  x_label : String
+  note : String
 }
-pub fn Plot::new(PlotKind, String, String, String, Array[PlotPoint]) -> Self
+pub fn Plot::new(PlotKind, String, String, String, Array[PlotPoint], x_axis? : AxisScale, y_axis? : AxisScale, x_label? : String, note? : String) -> Self
 ```
 
 `unit` labels the y axis; `interval_kind` describes what the values are
 (`"raw"`, `"median"`, a confidence level).
+
+`AxisScale` is `Categorical`, `Linear` or `Log`; x defaults to
+`Categorical`, y to `Linear`. A log axis places positive values by
+`log10(value)`, so callers should select it only for positive finite values.
 
 ### `PlotPoint`
 
@@ -106,7 +115,7 @@ test "a plot document" {
     [@ir_model.PlotPoint::new("1024", -9.5, "candidate")],
   )
   let document = @ir_model.PlotDocument::new("run-7", "native", [plot])
-  inspect(document.schema_version.identifier(), content="mmks_1")
+  inspect(document.schema_version.identifier(), content="mmks_2")
   inspect(document.differential.corpus.total, content="0")
 }
 ```

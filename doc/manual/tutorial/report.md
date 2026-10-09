@@ -2,7 +2,7 @@
 
 This tutorial publishes benchmark results: you render a JSONL event stream as a
 self-contained HTML page, see how failed validations appear, export the
-machine-readable `mmks_1` JSON, and draw plots of your own. The examples are
+machine-readable `mmks_2` JSON, and draw plots of your own. The examples are
 complete tests; file writing is left to your program or to the
 [`mare-mark` command](cli.md).
 
@@ -10,7 +10,7 @@ complete tests; file writing is left to your program or to the
 | --- | --- |
 | render a JSONL stream as HTML | `@report.document_from_jsonl` and `@report.html` |
 | report a run without a file | an in-memory JSONL sink, then the two functions above |
-| export machine-readable results | `@report.plot_json` (`mmks_1`) |
+| export machine-readable results | `@report.plot_json` (`mmks_2`) |
 | draw one plot as SVG | `@report.plot_svg` |
 | publish numbers that did not come from a run | a `PlotDocument` built with `ir_model` |
 
@@ -106,7 +106,7 @@ test "failures hide series and show mismatches" {
 
 ### Export JSON for other tools
 
-`plot_json` writes the same document as `mmks_1` JSON, which a notebook or a
+`plot_json` writes the same document as `mmks_2` JSON, which a notebook or a
 dashboard can read without parsing HTML:
 
 ```moonbit

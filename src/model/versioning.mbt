@@ -78,26 +78,29 @@ pub fn ArtifactVersion::identifier(self : ArtifactVersion) -> String {
 ///|
 pub(all) enum SchemaVersion {
   V1
+  V2
 }
 
 ///|
 pub fn SchemaVersion::version(self : SchemaVersion) -> Int {
   match self {
     V1 => 1
+    V2 => 2
   }
 }
 
 ///|
 pub fn SchemaVersion::implementation(self : SchemaVersion) -> String {
   match self {
-    V1 => "mmks"
+    V1 | V2 => "mmks"
   }
 }
 
 ///|
 pub fn SchemaVersion::lifecycle(self : SchemaVersion) -> VersionLifecycle {
   match self {
-    V1 => Supported
+    V1 => Deprecated
+    V2 => Supported
   }
 }
 
