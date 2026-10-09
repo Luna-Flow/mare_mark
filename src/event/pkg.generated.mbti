@@ -6,6 +6,10 @@ import {
 }
 
 // Values
+pub fn protocol_from_json(Json) -> Result[@model.RunProtocol, String]
+
+pub fn protocol_json(@model.RunProtocol) -> Json
+
 pub fn streaming_jsonl((String) -> Unit, String) -> ObservationSink
 
 pub fn tee(ObservationSink, ObservationSink) -> ObservationSink

@@ -764,3 +764,153 @@ test "protocol validation rejects non-finite durations and thresholds" {
     validate_protocol(infinite_threshold) is Err([InvalidPracticalDelta(_)]),
   )
 }
+
+///|
+fn identity_spec() -> BenchSpec[Int, Int, Int, Int, Int, Unit, Int?, Int?] {
+  BenchSpec::advanced(
+    "identity-case",
+    @fixture.Fixture::immutable(
+      "identity",
+      "1",
+      context => context.dataset_key.scale,
+      value => value.to_string(),
+    ),
+    [
+      Implementation::stateless("candidate", "1", value => {
+        @model.OperationResult::completed(value, ())
+      }),
+    ],
+    OutputSink::keep_last(),
+    @experiment.OracleSpec::Reference(
+      @experiment.ReferenceOracle::equal("identity", value => value, (
+        expected,
+        actual,
+      ) => expected == actual),
+    ),
+    [2],
+    value => value.to_string(),
+    1,
+    (value, _) => {
+      @model.CaseDescriptor::new("identity", [value.to_string()], "", "")
+    },
+    value => value.to_string(),
+    value => value.to_string(),
+    _ => "",
+    (value, implementation_id) => {
+      @model.ReplaySpec::new("worker", [implementation_id, value.to_string()])
+    },
+  )
+}
+
+///|
+async fn identity_run(
+  seed : UInt64,
+  provenance_run_id : String,
+  timestamp : String,
+  sink? : @event.ObservationSink = @event.InMemorySink::new().as_sink(),
+) -> @model.RunSummary {
+  let environment = @model.EnvironmentSnapshot::new(
+    @model.SemanticEnvironment::new(
+      @model.ExecutionTarget::Native,
+      "test",
+      "",
+      "int",
+    ),
+    @model.PerformanceEnvironment::new("test", "test", "none", 1, "mono"),
+    @model.ProvenanceEnvironment::new(
+      "test", "test", timestamp, "rev", provenance_run_id,
+    ),
+  )
+  run(
+    identity_spec().compile().unwrap(),
+    RunContext::new(environment, sink, seed, minimal_protocol()),
+  )
+}
+
+///|
+async test "run ids distinguish seeds, provenance run ids and timestamps" {
+  let base = identity_run(1UL, "run-a", "2026-10-09T00:00:00Z")
+  let protocol = minimal_protocol().protocol
+  assert_eq(
+    base.run_id,
+    @model.run_identity(
+      "identity-case",
+      protocol,
+      1UL,
+      @model.ProvenanceEnvironment::new(
+        "test", "test", "2026-10-09T00:00:00Z", "rev", "run-a",
+      ),
+    ),
+  )
+  assert_true(base.seed is Some(1UL))
+  guard base.protocol is Some(recorded) else {
+    @test.fail("summary must carry the protocol")
+  }
+  assert_eq(
+    @model.protocol_identity(recorded),
+    @model.protocol_identity(protocol),
+  )
+  let same = identity_run(1UL, "run-a", "2026-10-09T00:00:00Z")
+  assert_eq(same.run_id, base.run_id)
+  let other_seed = identity_run(2UL, "run-a", "2026-10-09T00:00:00Z")
+  let other_run = identity_run(1UL, "run-b", "2026-10-09T00:00:00Z")
+  let other_time = identity_run(1UL, "run-a", "2026-10-09T00:00:01Z")
+  assert_true(other_seed.run_id != base.run_id)
+  assert_true(other_run.run_id != base.run_id)
+  assert_true(other_time.run_id != base.run_id)
+}
+
+///|
+async test "summary JSONL records the protocol used by the run" {
+  let jsonl = @event.JsonlSink::new()
+  let summary = identity_run(9UL, "run-jsonl", "now", sink=jsonl.as_sink())
+  let lines = jsonl.to_jsonl().split("\n").collect()
+  let last = @json.parse(lines[lines.length() - 1].to_owned())
+  guard last is Object(fields) else { @test.fail("summary must be an object") }
+  assert_true(fields.get("type") is Some(String("summary")))
+  assert_true(fields.get("run_id") is Some(String(id)) && id == summary.run_id)
+  assert_true(fields.get("seed") is Some(String("9")))
+  let protocol = minimal_protocol().protocol
+  assert_true(
+    fields.get("protocol_identity") is Some(String(identity)) &&
+    identity == @model.protocol_identity(protocol),
+  )
+  guard fields.get("protocol") is Some(recorded) else {
+    @test.fail("summary must record the protocol")
+  }
+  assert_eq(
+    @model.protocol_canonical_encoding(
+      @event.protocol_from_json(recorded).unwrap(),
+    ),
+    @model.protocol_canonical_encoding(protocol),
+  )
+}
+
+///|
+test "protocol JSON round-trips every preset" {
+  // `minimal_protocol` covers `FixedOrder`, no warm-up time and
+  // `SharedBatchSize`, which no preset uses.
+  for
+    preset in [
+      ProtocolPreset::QuickCheck,
+      ProtocolPreset::Development,
+      ProtocolPreset::RegressionGate,
+      ProtocolPreset::Custom(minimal_protocol()),
+    ] {
+    let protocol = preset.validated().protocol
+    let text = @event.protocol_json(protocol).stringify()
+    let decoded = @event.protocol_from_json(@json.parse(text)).unwrap()
+    assert_eq(
+      @model.protocol_canonical_encoding(decoded),
+      @model.protocol_canonical_encoding(protocol),
+    )
+  }
+  let identities = [
+    ProtocolPreset::QuickCheck,
+    ProtocolPreset::Development,
+    ProtocolPreset::RegressionGate,
+  ].map(preset => @model.protocol_identity(preset.validated().protocol))
+  assert_true(identities[0] != identities[1])
+  assert_true(identities[0] != identities[2])
+  assert_true(identities[1] != identities[2])
+}
