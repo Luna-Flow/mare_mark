@@ -640,70 +640,74 @@ msgid "`PlotDocument` is one report."
 msgstr "`PlotDocument` は 1 つのレポートです。"
 
 #: manual/api/ir_model.md:41
-msgid "`new(run_id, target, plots)` sets `schema_version` to `SchemaVersion::V1` (`mmks_1`); `differential` defaults to `DifferentialReport::empty()`."
-msgstr "`new(run_id, target, plots)` は `schema_version` を `SchemaVersion::V1`（`mmks_1`）に設定します。`differential` の既定値は `DifferentialReport::empty()` です。"
+msgid "`new(run_id, target, plots)` sets `schema_version` to `SchemaVersion::V2` (`mmks_2`); `differential` defaults to `DifferentialReport::empty()`. V1 is deprecated because it cannot identify the y-axis scale."
+msgstr "`new(run_id, target, plots)` は `schema_version` を `SchemaVersion::V2`（`mmks_2`）に設定します。`differential` の既定値は `DifferentialReport::empty()` です。y 軸のスケールを識別できないため、V1 は非推奨です。"
 
-#: manual/api/ir_model.md:44
+#: manual/api/ir_model.md:45
 msgid "Plots"
 msgstr "プロット"
 
-#: manual/api/ir_model.md:48
+#: manual/api/ir_model.md:49
 msgid "`Plot` is one chart."
 msgstr "`Plot` は 1 つのグラフです。"
 
-#: manual/api/ir_model.md:61
+#: manual/api/ir_model.md:66
 msgid "`unit` labels the y axis; `interval_kind` describes what the values are (`\"raw\"`, `\"median\"`, a confidence level)."
 msgstr "`unit` は y 軸のラベルです。`interval_kind` は値が何であるか（`\"raw\"`、`\"median\"`、信頼水準）を表します。"
 
-#: manual/api/ir_model.md:66
+#: manual/api/ir_model.md:69
+msgid "`AxisScale` is `Categorical`, `Linear` or `Log`; x defaults to `Categorical`, y to `Linear`. A log axis places positive values by `log10(value)`, so callers should select it only for positive finite values."
+msgstr "`AxisScale` は `Categorical`、`Linear`、`Log` のいずれかです。x 軸の既定値は `Categorical`、y 軸は `Linear` です。対数軸は正の値を `log10(value)` で配置するため、正の有限値に限って選択してください。"
+
+#: manual/api/ir_model.md:75
 msgid "`PlotPoint` is one value at a categorical x position in a named series."
 msgstr "`PlotPoint` は、名前付き系列中のカテゴリカルな x 位置にある 1 つの値です。"
 
-#: manual/api/ir_model.md:77
+#: manual/api/ir_model.md:86
 msgid "An empty `series` is drawn as `\"value\"`."
 msgstr "空の `series` は `\"value\"` として描画されます。"
 
-#: manual/api/ir_model.md:81
+#: manual/api/ir_model.md:90
 msgid "`PlotKind` selects how a plot is drawn and labelled."
 msgstr "`PlotKind` はプロットの描画方法とラベル付けを選択します。"
 
-#: manual/api/ir_model.md:96
+#: manual/api/ir_model.md:105
 msgid "`Scaling`, `Interval` and `ChangePoint` are drawn as points with lines through per-category means; `Heatmap` as cells; the others as points."
 msgstr "`Scaling`、`Interval`、`ChangePoint` は、点と、カテゴリごとの平均を結ぶ線として描画されます。`Heatmap` はセルとして、その他は点として描画されます。"
 
-#: manual/api/ir_model.md:114
+#: manual/api/ir_model.md:123
 msgid "Differential report"
 msgstr "差分レポート"
 
-#: manual/api/ir_model.md:118
+#: manual/api/ir_model.md:127
 msgid "`DifferentialReport` gathers the correctness evidence of a run."
 msgstr "`DifferentialReport` は実行の正しさに関する証拠をまとめます。"
 
-#: manual/api/ir_model.md:131
+#: manual/api/ir_model.md:140
 msgid "`empty()` has no rows and all corpus counts `0`."
 msgstr "`empty()` は行を持たず、コーパス件数はすべて `0` です。"
 
-#: manual/api/ir_model.md:135
+#: manual/api/ir_model.md:144
 msgid "`MismatchRow` is one failed validation."
 msgstr "`MismatchRow` は 1 つの失敗した検証です。"
 
-#: manual/api/ir_model.md:152
+#: manual/api/ir_model.md:161
 msgid "`report` fills `flags_diff` as the expected flags, `\" → \"`, and the actual flags, each joined with `\", \"`."
 msgstr "`report` は `flags_diff` を、期待されるフラグ、`\" → \"`、実際のフラグの順に並べたもので埋めます。各フラグは `\", \"` で連結されます。"
 
-#: manual/api/ir_model.md:157
+#: manual/api/ir_model.md:166
 msgid "`CapabilityCell` counts the outcomes of one kind for one implementation."
 msgstr "`CapabilityCell` は 1 つの実装について、ある種類の結果の件数を数えます。"
 
-#: manual/api/ir_model.md:168
+#: manual/api/ir_model.md:177
 msgid "`outcome_kind` is an `ExecutionOutcome::kind` string."
 msgstr "`outcome_kind` は `ExecutionOutcome::kind` の文字列です。"
 
-#: manual/api/ir_model.md:172
+#: manual/api/ir_model.md:181
 msgid "`Counterexample` is a minimized failing input."
 msgstr "`Counterexample` は最小化された失敗入力です。"
 
-#: manual/api/ir_model.md:187
+#: manual/api/ir_model.md:196
 msgid "`CorpusSummary` counts validation outcomes."
 msgstr "`CorpusSummary` は検証結果の件数を数えます。"
 
@@ -767,353 +771,353 @@ msgstr "バージョン"
 msgid "These enums name the versioned contracts: the run protocol vocabulary (`mmkp`), the JSONL artifacts (`mmka`) and the Plot IR schema (`mmks`)."
 msgstr "これらの enum はバージョン付きの契約を命名します。実行プロトコルの語彙（`mmkp`）、JSONL アーティファクト（`mmka`）、Plot IR スキーマ（`mmks`）です。"
 
-#: manual/api/model.md:67
-msgid "`implementation` is the prefix, `version` the number, and `identifier` is `implementation + \"_\" + version`. All three `V1` values are `Supported`."
-msgstr "`implementation` は接頭辞、`version` は番号で、`identifier` は `implementation + \"_\" + version` です。3 つの `V1` 値はすべて `Supported` です。"
+#: manual/api/model.md:68
+msgid "`implementation` is the prefix, `version` the number, and `identifier` is `implementation + \"_\" + version`. Protocol and artifact V1 are `Supported`; schema V1 is `Deprecated` and schema V2 is `Supported`."
+msgstr "`implementation` は接頭辞、`version` は番号、`identifier` は `implementation + \"_\" + version` です。protocol と artifact の V1 は引き続きサポートされます。schema の V1 は非推奨で、V2 がサポート対象です。"
 
-#: manual/api/model.md:81
+#: manual/api/model.md:85
 msgid "`VersionLifecycle` says whether a version is still accepted."
 msgstr "`VersionLifecycle` はバージョンがまだ受け付けられるかどうかを示します。"
 
-#: manual/api/model.md:90
+#: manual/api/model.md:94
 msgid "Datasets and keys"
 msgstr "データセットとキー"
 
-#: manual/api/model.md:94
+#: manual/api/model.md:98
 msgid "`DatasetKey` identifies one dataset of a case: its scale and its index."
 msgstr "`DatasetKey` はケースの 1 つのデータセットを、そのスケールとインデックスで識別します。"
 
-#: manual/api/model.md:104
+#: manual/api/model.md:108
 msgid "The runner uses the position of the scale in the case's scale list as `dataset_id`."
 msgstr "ランナーは、ケースのスケールリストにおけるそのスケールの位置を `dataset_id` として使います。"
 
-#: manual/api/model.md:109
+#: manual/api/model.md:113
 msgid "`MeasurementKey` identifies one measured batch: dataset, repetition and block."
 msgstr "`MeasurementKey` は計測された 1 つのバッチを、データセット、反復、ブロックで識別します。"
 
-#: manual/api/model.md:120
+#: manual/api/model.md:124
 msgid "Two measurements are paired when their keys are equal."
 msgstr "キーが等しい 2 つの計測は対応のある計測です。"
 
-#: manual/api/model.md:124
+#: manual/api/model.md:128
 msgid "`GenerationContext` is everything an input generator may depend on."
 msgstr "`GenerationContext` は入力ジェネレータが依存してよいもののすべてです。"
 
-#: manual/api/model.md:138
+#: manual/api/model.md:142
 msgid "A generator that reads only these fields is reproducible. The runner fills `seed` with the run seed, `suite_id` with `\"default\"`, and the generator id and version with the fixture's id and version."
 msgstr "これらのフィールドだけを読むジェネレータは再現可能です。ランナーは `seed` に実行シードを、`suite_id` に `\"default\"` を、ジェネレータ ID とバージョンにフィクスチャの ID とバージョンを設定します。"
 
-#: manual/api/model.md:144
+#: manual/api/model.md:148
 msgid "`CaseDescriptor` describes one operation for validation evidence."
 msgstr "`CaseDescriptor` は検証の証拠のために 1 つの操作を記述します。"
 
-#: manual/api/model.md:156
+#: manual/api/model.md:160
 msgid "Run protocol"
 msgstr "実行プロトコル"
 
-#: manual/api/model.md:160
+#: manual/api/model.md:164
 msgid "`RunProtocol` is the complete measurement protocol of a run."
 msgstr "`RunProtocol` は実行の完全な計測プロトコルです。"
 
-#: manual/api/model.md:178
+#: manual/api/model.md:182
 msgid "The runner acts on the warmup, calibration, order and sample-count fields; the others record the intended analysis. `@runner.validate_protocol` checks the values, and `@runner.ProtocolPreset` provides three complete protocols."
 msgstr "ランナーはウォームアップ、キャリブレーション、順序、サンプル数のフィールドに基づいて動作します。その他のフィールドは意図した分析を記録するものです。`@runner.validate_protocol` が値を検査し、`@runner.ProtocolPreset` が 3 つの完全なプロトコルを提供します。"
 
-#: manual/api/model.md:184
+#: manual/api/model.md:188
 msgid "`CalibrationProtocol` controls how many iterations a timed batch contains."
 msgstr "`CalibrationProtocol` は、計時されるバッチに含まれる反復回数を制御します。"
 
-#: manual/api/model.md:197
+#: manual/api/model.md:201
 msgid "Calibration grows the batch from `min_batch_iterations` until it lasts `target_batch_time_us`, reaches `max_batch_iterations` or exceeds `max_sample_time_us`."
 msgstr "キャリブレーションは、バッチを `min_batch_iterations` から大きくしていき、`target_batch_time_us` に達するか、`max_batch_iterations` に達するか、`max_sample_time_us` を超えるまで続けます。"
 
-#: manual/api/model.md:203
+#: manual/api/model.md:207
 msgid "These enums name the choices a `RunProtocol` records."
 msgstr "これらの enum は、`RunProtocol` が記録する選択肢に名前を付けます。"
 
-#: manual/api/model.md:235
+#: manual/api/model.md:239
 msgid "Enum"
 msgstr "enum"
 
-#: manual/api/model.md:235
-#: manual/api/model.md:466
+#: manual/api/model.md:239
+#: manual/api/model.md:470
 #: manual/api/runner.md:40
 #: manual/api/stats.md:118
 #: manual/api/stats.md:163
 msgid "Meaning"
 msgstr "意味"
 
-#: manual/api/model.md:237
+#: manual/api/model.md:241
 msgid "the intended sampling structure: repeated measurements of one dataset, one measurement of many datasets, or both"
 msgstr "意図したサンプリング構造: 1 つのデータセットの繰り返し計測、多数のデータセットの 1 回ずつの計測、またはその両方"
 
-#: manual/api/model.md:238
+#: manual/api/model.md:242
 msgid "calibrate each implementation separately, or give all the smallest calibrated size"
 msgstr "各実装を個別にキャリブレーションするか、すべての実装にキャリブレーションされた最小のサイズを与えるか"
 
-#: manual/api/model.md:239
+#: manual/api/model.md:243
 msgid "rotate implementation order per block with a seed, or keep the declared order"
 msgstr "ブロックごとにシードを使って実装の順序をローテーションするか、宣言された順序を保つか"
 
-#: manual/api/model.md:240
+#: manual/api/model.md:244
 msgid "the outlier view for analysis: none, Tukey fences, or 3 MAD around the median (see `@stats.filter_outliers`)"
 msgstr "分析用の外れ値の扱い: なし、Tukey のフェンス、または中央値の周り 3 MAD（`@stats.filter_outliers` を参照）"
 
-#: manual/api/model.md:241
+#: manual/api/model.md:245
 msgid "the intended validation frequency"
 msgstr "意図した検証の頻度"
 
-#: manual/api/model.md:245
+#: manual/api/model.md:249
 msgid "`IntervalMode` labels an interval with the phase whose data produced it."
 msgstr "`IntervalMode` は区間に、そのデータを生成したフェーズのラベルを付けます。"
 
-#: manual/api/model.md:256
+#: manual/api/model.md:260
 msgid "The enum is readonly outside the package; obtain values from the two functions."
 msgstr "この enum はパッケージ外からは読み取り専用です。値は 2 つの関数から取得してください。"
 
-#: manual/api/model.md:261
+#: manual/api/model.md:265
 msgid "`SetupPolicy` tells the runner how often a fixture prepares its input and whether that work is timed."
 msgstr "`SetupPolicy` は、フィクスチャが入力を準備する頻度と、その作業を計時するかどうかをランナーに伝えます。"
 
-#: manual/api/model.md:296
+#: manual/api/model.md:300
 msgid "`frequency` and `timing` change what the runner times (the [runner design](../design/runner.md) has the exact table); `workspace_scope` documents how long a workspace lives and is not interpreted."
 msgstr "`frequency` と `timing` はランナーが計時する対象を変えます（正確な表は [runner の設計](../design/runner.md)にあります）。`workspace_scope` はワークスペースの存続期間を記述するだけで、解釈はされません。"
 
-#: manual/api/model.md:300
+#: manual/api/model.md:304
 msgid "Environment"
 msgstr "環境"
 
-#: manual/api/model.md:304
+#: manual/api/model.md:308
 msgid "`EnvironmentSnapshot` records where a run happened, in three parts."
 msgstr "`EnvironmentSnapshot` は実行が行われた場所を 3 つの部分で記録します。"
 
-#: manual/api/model.md:317
+#: manual/api/model.md:321
 msgid "`SemanticEnvironment` holds what can change results, not only timings."
 msgstr "`SemanticEnvironment` は、計時だけでなく結果そのものを変えうるものを保持します。"
 
-#: manual/api/model.md:331
+#: manual/api/model.md:335
 msgid "`PerformanceEnvironment` holds what changes timings."
 msgstr "`PerformanceEnvironment` は計時を変えるものを保持します。"
 
-#: manual/api/model.md:346
+#: manual/api/model.md:350
 msgid "`device` defaults to `\"host\"` and `frequency_policy` to `\"uncontrolled\"`."
 msgstr "`device` の既定値は `\"host\"`、`frequency_policy` の既定値は `\"uncontrolled\"` です。"
 
-#: manual/api/model.md:350
+#: manual/api/model.md:354
 msgid "`ProvenanceEnvironment` holds where and when a run happened."
 msgstr "`ProvenanceEnvironment` は実行がどこでいつ行われたかを保持します。"
 
-#: manual/api/model.md:365
+#: manual/api/model.md:369
 msgid "`ExecutionTarget` names the MoonBit backend."
 msgstr "`ExecutionTarget` は MoonBit のバックエンドを表します。"
 
-#: manual/api/model.md:379
+#: manual/api/model.md:383
 msgid "`text` gives `\"native\"`, `\"js\"`, `\"wasm\"`, `\"wasm-gc\"`, `\"llvm\"` or the custom string."
 msgstr "`text` は `\"native\"`、`\"js\"`、`\"wasm\"`、`\"wasm-gc\"`、`\"llvm\"`、またはカスタム文字列を返します。"
 
-#: manual/api/model.md:384
+#: manual/api/model.md:388
 msgid "`environment_compatible` reports whether timings from two environments may be compared."
 msgstr "`environment_compatible` は、2 つの環境の計時結果を比較してよいかどうかを報告します。"
 
-#: manual/api/model.md:391
+#: manual/api/model.md:395
 msgid "It is true when every semantic and performance field is equal; provenance is ignored."
 msgstr "semantic と performance のすべてのフィールドが等しいとき真になります。provenance は無視されます。"
 
-#: manual/api/model.md:409
+#: manual/api/model.md:413
 msgid "Identities"
 msgstr "識別子"
 
-#: manual/api/model.md:413
+#: manual/api/model.md:417
 msgid "`protocol_identity` returns a short key for a protocol."
 msgstr "`protocol_identity` はプロトコルの短いキーを返します。"
 
-#: manual/api/model.md:419
+#: manual/api/model.md:423
 msgid "The key is `mmkp_1:<warmup_iterations>:<confirmatory_samples>:<practical_delta_pct>`. Only these three fields enter it; protocols that differ elsewhere share a key."
 msgstr "キーは `mmkp_1:<warmup_iterations>:<confirmatory_samples>:<practical_delta_pct>` です。キーに含まれるのはこの 3 つのフィールドだけなので、他の点で異なるプロトコルは同じキーを共有します。"
 
-#: manual/api/model.md:424
+#: manual/api/model.md:428
 msgid "`artifact_identity` returns a key for the artifacts of one case, implementation and dataset under a protocol."
 msgstr "`artifact_identity` は、あるプロトコルの下での 1 つのケース、実装、データセットのアーティファクトのキーを返します。"
 
-#: manual/api/model.md:431
+#: manual/api/model.md:435
 msgid "The key is `mmka_1:<case>:<implementation>:<dataset_id>:` followed by the protocol identity."
 msgstr "キーは `mmka_1:<case>:<implementation>:<dataset_id>:` の後にプロトコルの識別子が続いたものです。"
 
-#: manual/api/model.md:442
+#: manual/api/model.md:446
 msgid "Outcomes"
 msgstr "結果"
 
-#: manual/api/model.md:446
+#: manual/api/model.md:450
 msgid "`ExecutionOutcome` is what one operation produced."
 msgstr "`ExecutionOutcome` は 1 つの操作が生成したものです。"
 
-#: manual/api/model.md:466
-#: manual/api/model.md:789
+#: manual/api/model.md:470
+#: manual/api/model.md:793
 #: manual/api/stats.md:118
 #: manual/api/stats.md:286
 #: manual/api/tune.md:115
 msgid "Constructor"
 msgstr "コンストラクタ"
 
-#: manual/api/model.md:468
+#: manual/api/model.md:472
 msgid "a result"
 msgstr "結果の値"
 
-#: manual/api/model.md:469
+#: manual/api/model.md:473
 msgid "a result with status flags (for example IEEE exceptions)"
 msgstr "ステータスフラグ（例えば IEEE 例外）付きの結果"
 
-#: manual/api/model.md:470
+#: manual/api/model.md:474
 msgid "the operation trapped"
 msgstr "操作がトラップした"
 
-#: manual/api/model.md:471
+#: manual/api/model.md:475
 msgid "the implementation does not support this input"
 msgstr "実装がこの入力をサポートしていない"
 
-#: manual/api/model.md:472
+#: manual/api/model.md:476
 msgid "a documented, accepted deviation"
 msgstr "文書化され、受け入れられた差異"
 
-#: manual/api/model.md:473
+#: manual/api/model.md:477
 msgid "the result could not be decoded"
 msgstr "結果をデコードできなかった"
 
-#: manual/api/model.md:474
+#: manual/api/model.md:478
 msgid "a worker process failed"
 msgstr "ワーカープロセスが失敗した"
 
-#: manual/api/model.md:475
+#: manual/api/model.md:479
 msgid "a worker exceeded its timeout"
 msgstr "ワーカーがタイムアウトを超えた"
 
-#: manual/api/model.md:477
+#: manual/api/model.md:481
 msgid "`value_option` returns the value of `Value` and `RaisedFlags`, otherwise `None`; `flags` returns the flags of `RaisedFlags` and `Trapped`, otherwise `[]`."
 msgstr "`value_option` は `Value` と `RaisedFlags` の値を返し、それ以外では `None` を返します。`flags` は `RaisedFlags` と `Trapped` のフラグを返し、それ以外では `[]` を返します。"
 
-#: manual/api/model.md:493
+#: manual/api/model.md:497
 msgid "`OperationResult` is an outcome together with the context for the next operation and captured process output."
 msgstr "`OperationResult` は、結果と、次の操作のためのコンテキスト、およびキャプチャしたプロセス出力の組です。"
 
-#: manual/api/model.md:508
+#: manual/api/model.md:512
 msgid "`completed(v, c)` is `new(Value(v), Some(c))`. `next_context = None` ends a sequence. `stdout` and `stderr` default to `\"\"`."
 msgstr "`completed(v, c)` は `new(Value(v), Some(c))` です。`next_context = None` で系列が終わります。`stdout` と `stderr` の既定値は `\"\"` です。"
 
-#: manual/api/model.md:511
+#: manual/api/model.md:515
 #: manual/api/tune_gemm.md:329
 #: manual/index.md:127
 msgid "Validation"
 msgstr "検証"
 
-#: manual/api/model.md:515
+#: manual/api/model.md:519
 msgid "`ValidationStatus` is the verdict of an oracle on one step."
 msgstr "`ValidationStatus` は 1 つのステップに対するオラクルの判定です。"
 
-#: manual/api/model.md:528
+#: manual/api/model.md:532
 msgid "The runner counts `Valid` as passed, `Invalid` and `InfrastructureFailure` as failed, `Unsupported` and `Skipped` as unsupported, and `ExpectedDifference` separately."
 msgstr "ランナーは `Valid` を合格、`Invalid` と `InfrastructureFailure` を失敗、`Unsupported` と `Skipped` を未サポートとして数え、`ExpectedDifference` は別に数えます。"
 
-#: manual/api/model.md:534
+#: manual/api/model.md:538
 msgid "`Validation` is one validation event."
 msgstr "`Validation` は 1 つの検証イベントです。"
 
-#: manual/api/model.md:548
+#: manual/api/model.md:552
 msgid "`new` leaves `evidence` empty; `detailed` attaches it."
 msgstr "`new` は `evidence` を空のままにし、`detailed` はそれを付加します。"
 
-#: manual/api/model.md:552
+#: manual/api/model.md:556
 msgid "`ValidationEvidence` is everything needed to understand and replay one validated step."
 msgstr "`ValidationEvidence` は、検証された 1 つのステップを理解しリプレイするために必要なすべてです。"
 
-#: manual/api/model.md:579
+#: manual/api/model.md:583
 msgid "It is `pub(all)`: build it with a struct literal."
 msgstr "これは `pub(all)` なので、構造体リテラルで構築してください。"
 
-#: manual/api/model.md:583
+#: manual/api/model.md:587
 msgid "`ValidationFailure` is a failed validation with its minimized input."
 msgstr "`ValidationFailure` は、最小化された入力を伴う失敗した検証です。"
 
-#: manual/api/model.md:600
+#: manual/api/model.md:604
 msgid "`ReplaySpec` is a command that reproduces a failure."
 msgstr "`ReplaySpec` は失敗を再現するコマンドです。"
 
-#: manual/api/model.md:611
+#: manual/api/model.md:615
 msgid "`timeout_ms` defaults to `5000`. `mare-mark replay` executes it."
 msgstr "`timeout_ms` の既定値は `5000` です。`mare-mark replay` がこれを実行します。"
 
-#: manual/api/model.md:613
+#: manual/api/model.md:617
 msgid "Run events"
 msgstr "実行イベント"
 
-#: manual/api/model.md:617
+#: manual/api/model.md:621
 msgid "`Observation` is one timed batch."
 msgstr "`Observation` は計時された 1 つのバッチです。"
 
-#: manual/api/model.md:637
+#: manual/api/model.md:641
 msgid "`raw_elapsed_us` is the batch time divided by `iterations`, in µs per operation; it is not filtered or aggregated across batches. `repetition_id` counts blocks within the phase, `block_id` counts them across both phases."
 msgstr "`raw_elapsed_us` はバッチの時間を `iterations` で割ったもので、単位は 1 操作あたりの µs です。フィルタリングやバッチをまたいだ集約はされていません。`repetition_id` はフェーズ内のブロックを数え、`block_id` は両方のフェーズを通してブロックを数えます。"
 
-#: manual/api/model.md:651
+#: manual/api/model.md:655
 msgid "`text` gives `\"exploratory\"` or `\"confirmatory\"`."
 msgstr "`text` は `\"exploratory\"` または `\"confirmatory\"` を返します。"
 
-#: manual/api/model.md:655
+#: manual/api/model.md:659
 msgid "`BatchSinkStatus` records whether a batch is kept for analysis."
 msgstr "`BatchSinkStatus` はバッチが分析用に保持されるかどうかを記録します。"
 
-#: manual/api/model.md:665
+#: manual/api/model.md:669
 msgid "`text` gives `\"kept\"` or `\"discarded:<reason>\"`. The runner emits `Kept`; reports skip discarded batches."
 msgstr "`text` は `\"kept\"` または `\"discarded:<reason>\"` を返します。ランナーは `Kept` を出力し、レポートは破棄されたバッチを読み飛ばします。"
 
-#: manual/api/model.md:670
+#: manual/api/model.md:674
 msgid "`CalibrationEvent` records the batch size chosen for one implementation and dataset."
 msgstr "`CalibrationEvent` は 1 つの実装とデータセットに対して選ばれたバッチサイズを記録します。"
 
-#: manual/api/model.md:685
+#: manual/api/model.md:689
 msgid "`elapsed_us` is the time of the last calibration batch."
 msgstr "`elapsed_us` は最後のキャリブレーションバッチの時間です。"
 
-#: manual/api/model.md:689
+#: manual/api/model.md:693
 msgid "`RunSummary` closes a run."
 msgstr "`RunSummary` は実行を締めくくります。"
 
-#: manual/api/model.md:708
+#: manual/api/model.md:712
 msgid "The counts default to `0` and `environment` to `None`."
 msgstr "件数の既定値は `0`、`environment` の既定値は `None` です。"
 
-#: manual/api/model.md:710
+#: manual/api/model.md:714
 msgid "Decisions and deployment"
 msgstr "判断とデプロイ"
 
-#: manual/api/model.md:714
+#: manual/api/model.md:718
 msgid "`ScaleBoundary` is the place where the preferred implementation changes."
 msgstr "`ScaleBoundary` は優位な実装が切り替わる位置です。"
 
-#: manual/api/model.md:726
+#: manual/api/model.md:730
 msgid "`CrossoverResult` is the outcome of a crossover search over scales."
 msgstr "`CrossoverResult` はスケールにわたるクロスオーバー探索の結果です。"
 
-#: manual/api/model.md:741
+#: manual/api/model.md:745
 msgid "The strings are a policy or reason, and the arrays are evidence (the labels or ids the result is based on). The enum is readonly outside the package; build it with the four functions. `@experiment.crossover_from_labels` produces it."
 msgstr "文字列はポリシーまたは理由で、配列は証拠（結果の根拠となるラベルや ID）です。この enum はパッケージ外からは読み取り専用なので、4 つの関数で構築してください。`@experiment.crossover_from_labels` がこれを生成します。"
 
-#: manual/api/model.md:747
+#: manual/api/model.md:751
 msgid "`Region` assigns a choice to a range of keys."
 msgstr "`Region` はキーの範囲に選択を割り当てます。"
 
-#: manual/api/model.md:759
+#: manual/api/model.md:763
 msgid "`None` bounds are open."
 msgstr "`None` の境界は開いています。"
 
-#: manual/api/model.md:763
+#: manual/api/model.md:767
 msgid "`ParetoPoint` is a choice with two costs."
 msgstr "`ParetoPoint` は 2 つのコストを持つ選択です。"
 
-#: manual/api/model.md:777
+#: manual/api/model.md:781
 msgid "`DeploymentPolicy` is how a tuning or crossover result is used in production."
 msgstr "`DeploymentPolicy` は、チューニングやクロスオーバーの結果を本番環境でどう使うかを表します。"
 
-#: manual/api/model.md:789
+#: manual/api/model.md:793
 #: manual/tutorial/cli.md:8
 #: manual/tutorial/event.md:7
 #: manual/tutorial/experiment.md:8
@@ -1130,23 +1134,23 @@ msgstr "`DeploymentPolicy` は、チューニングやクロスオーバーの�
 msgid "Use"
 msgstr "用途"
 
-#: manual/api/model.md:791
+#: manual/api/model.md:795
 msgid "one choice everywhere"
 msgstr "どこでも 1 つの選択"
 
-#: manual/api/model.md:792
+#: manual/api/model.md:796
 msgid "a choice per key range, for example below and above a crossover"
 msgstr "キーの範囲ごとの選択。例えばクロスオーバーの下と上"
 
-#: manual/api/model.md:793
+#: manual/api/model.md:797
 msgid "a choice per measured key"
 msgstr "計測されたキーごとの選択"
 
-#: manual/api/model.md:794
+#: manual/api/model.md:798
 msgid "the non-dominated trade-offs, left to the caller"
 msgstr "支配されないトレードオフ。選択は呼び出し側に任せます"
 
-#: manual/api/model.md:795
+#: manual/api/model.md:799
 msgid "a safe default when the evidence is insufficient"
 msgstr "証拠が不十分な場合の安全な既定値"
 
@@ -1155,8 +1159,8 @@ msgid "report API"
 msgstr "report API"
 
 #: manual/api/report.md:5
-msgid "`Luna-Flow/mare_mark/report` turns a JSONL event stream into a Plot IR document and renders that document as `mmks_1` JSON, standalone SVG or a self-contained HTML page. All four functions are pure: they take strings and values and return strings. Reading and writing files is the job of the [`cli`](cli.md). The projection rules are explained in the [report design](../design/report.md)."
-msgstr "`Luna-Flow/mare_mark/report` は JSONL イベントストリームを Plot IR ドキュメントに変換し、そのドキュメントを `mmks_1` JSON、単独の SVG、または自己完結型の HTML ページとして描画します。4 つの関数はすべて純粋で、文字列と値を受け取り文字列を返します。ファイルの読み書きは [`cli`](cli.md) の役割です。射影の規則は [report の設計](../design/report.md)で説明しています。"
+msgid "`Luna-Flow/mare_mark/report` turns a JSONL event stream into a Plot IR document and renders that document as `mmks_2` JSON, standalone SVG or a self-contained HTML page. All four functions are pure: they take strings and values and return strings. Reading and writing files is the job of the [`cli`](cli.md). The projection rules are explained in the [report design](../design/report.md)."
+msgstr "`Luna-Flow/mare_mark/report` は JSONL イベントストリームを Plot IR ドキュメントに変換し、`mmks_2` JSON、単独の SVG、または自己完結型 HTML として描画します。4 つの関数はすべて純粋関数で、文字列と値を受け取り文字列を返します。ファイルの読み書きは `cli` コマンドが担当します。投影規則は [report の設計](../design/report.md) を参照してください。"
 
 #: manual/api/report.md:12
 msgid "Source: [`src/report/report.mbt`](../../../src/report/report.mbt)."
@@ -1229,20 +1233,20 @@ msgid "Rendering"
 msgstr "描画"
 
 #: manual/api/report.md:81
-msgid "`plot_json` serializes a document as `mmks_1` JSON."
-msgstr "`plot_json` はドキュメントを `mmks_1` JSON としてシリアライズします。"
+msgid "`plot_json` serializes a document as `mmks_2` JSON."
+msgstr "`plot_json` はドキュメントを `mmks_2` JSON としてシリアライズします。"
 
 #: manual/api/report.md:87
-msgid "The object has the keys `schema_version`, `run_id`, `target`, `plots` (each with `kind`, `title`, `unit`, `interval_kind` and `points` of `x`, `y`, `series`) and `differential` (`mismatches`, `capabilities`, `counterexamples`, `corpus`). Plot kinds are written in snake case (`scaling`, `raw_distribution`, `block_order`, `interval`, `outlier`, `change_point`, `heatmap`, `pareto`). The output is compact, and strings are escaped by the JSON encoder."
-msgstr "オブジェクトはキー `schema_version`、`run_id`、`target`、`plots`（それぞれ `kind`、`title`、`unit`、`interval_kind` と、`x`、`y`、`series` からなる `points` を持つ）、および `differential`（`mismatches`、`capabilities`、`counterexamples`、`corpus`）を持ちます。プロットの種類はスネークケース（`scaling`、`raw_distribution`、`block_order`、`interval`、`outlier`、`change_point`、`heatmap`、`pareto`）で書かれます。出力はコンパクトで、文字列は JSON エンコーダによってエスケープされます。"
+msgid "The object has the keys `schema_version`, `run_id`, `target`, `plots` (each with `kind`, `title`, `unit`, `interval_kind`, `x_axis`, `y_axis`, `x_label`, `note` and `points` of `x`, `y`, `series`) and `differential` (`mismatches`, `capabilities`, `counterexamples`, `corpus`). Plot kinds are written in snake case (`scaling`, `raw_distribution`, `block_order`, `interval`, `outlier`, `change_point`, `heatmap`, `pareto`). The output is compact, and strings are escaped by the JSON encoder."
+msgstr "オブジェクトには `schema_version`、`run_id`、`target`、`plots`、`differential` のキーがあります。各 plot は `kind`、`title`、`unit`、`interval_kind`、`x_axis`、`y_axis`、`x_label`、`note` と、`x`、`y`、`series` から成る `points` を持ちます。`differential` には `mismatches`、`capabilities`、`counterexamples`、`corpus` が含まれます。plot の種類はスネークケースで記録されます。出力はコンパクトで、文字列は JSON エンコーダーがエスケープします。"
 
 #: manual/api/report.md:108
 msgid "`plot_svg` renders one plot as a standalone SVG element."
 msgstr "`plot_svg` は 1 つのプロットを単独の SVG 要素として描画します。"
 
 #: manual/api/report.md:114
-msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, five horizontal grid lines with tick values, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
-msgstr "SVG は 960 × 420 の view box、アクセシブルな `<title>` と `<desc>`、インラインスタイル、目盛り値付きの 5 本の水平グリッド線、最大でおよそ 10 個の x ラベル、および凡例を持ちます。各点はツールチップ `series — x: y unit` 付きの円として描かれます。`Scaling`、`Interval`、`ChangePoint` のプロットでは、さらに系列ごとに各 x カテゴリにおける点の平均を線で結びます。`Heatmap` のプロットは系列と x カテゴリごとに 1 つのセルを描き、その不透明度は平均値とともに大きくなります。空のプロットには \"No observations\" と表示されます。すべてのテキストは XML エスケープされます。"
+msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, linear grid ticks or 1-2-5 ticks on logarithmic axes, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
+msgstr "SVG は 960 × 420 の viewBox、アクセシブルな `<title>` と `<desc>`、インラインスタイル、線形軸の目盛りまたは対数軸の 1-2-5 目盛り、およそ 10 個までの x ラベル、凡例を備えます。各点は `series — x: y unit` のツールチップを持つ円で描画されます。`Scaling`、`Interval`、`ChangePoint` の各 plot は、系列ごとに x カテゴリーの点の平均を線で結びます。`Heatmap` は系列と x カテゴリーごとにセルを描き、平均値に応じて不透明度を変えます。空の plot には「No observations」と表示します。すべてのテキストは XML エスケープされます。"
 
 #: manual/api/report.md:139
 msgid "`html` renders a whole document as one self-contained HTML page."
@@ -2555,8 +2559,8 @@ msgid "Units and names"
 msgstr "単位と名前"
 
 #: manual/conventions.md:30
-msgid "Times are microseconds unless a page says otherwise, written `µs`. Relative deltas are percentages. Schema identifiers (`mmkp_1`, `mmka_1`, `mmks_1`, `mmkts_1`) are written exactly as they appear in artifacts."
-msgstr "時間は、ページで特に断らない限りマイクロ秒で、`µs` と書きます。相対差はパーセントです。スキーマ識別子（`mmkp_1`、`mmka_1`、`mmks_1`、`mmkts_1`）はアーティファクトに現れるとおり正確に書きます。"
+msgid "Times are microseconds unless a page says otherwise, written `µs`. Relative deltas are percentages. Schema identifiers (`mmkp_1`, `mmka_1`, `mmks_1`, `mmks_2`, `mmkts_1`) are written exactly as they appear in artifacts."
+msgstr "時間は特に記載がない限りマイクロ秒（`µs`）、相対差はパーセントです。スキーマ識別子（`mmkp_1`、`mmka_1`、`mmks_1`、`mmks_2`、`mmkts_1`）は成果物と同じ表記を使います。"
 
 #: manual/conventions.md:34
 msgid "Translation"
@@ -2698,7 +2702,7 @@ msgstr "`report` は入力全体を読み込み、ターゲットラベル `nati
 #: manual/design/ir_model.md:56
 #: manual/design/ir_sink.md:30
 #: manual/design/model.md:109
-#: manual/design/report.md:131
+#: manual/design/report.md:142
 #: manual/design/runner.md:279
 #: manual/design/stats.md:422
 #: manual/design/tune.md:159
@@ -2727,10 +2731,10 @@ msgstr "イベントの解析に失敗した場合、`report` は何も書き出
 #: manual/design/experiment.md:145
 #: manual/design/fixture.md:98
 #: manual/design/generator.md:143
-#: manual/design/ir_model.md:62
+#: manual/design/ir_model.md:63
 #: manual/design/ir_sink.md:36
 #: manual/design/model.md:121
-#: manual/design/report.md:145
+#: manual/design/report.md:156
 #: manual/design/runner.md:300
 #: manual/design/stats.md:449
 #: manual/design/tune.md:172
@@ -2755,10 +2759,10 @@ msgstr "**CLI のロジックを `report` に埋め込む。** 純粋なパッ�
 #: manual/design/experiment.md:154
 #: manual/design/fixture.md:105
 #: manual/design/generator.md:151
-#: manual/design/ir_model.md:68
+#: manual/design/ir_model.md:71
 #: manual/design/ir_sink.md:41
 #: manual/design/model.md:130
-#: manual/design/report.md:154
+#: manual/design/report.md:166
 #: manual/design/runner.md:315
 #: manual/design/stats.md:467
 #: manual/design/tune.md:181
@@ -3435,38 +3439,38 @@ msgid "A version in every document"
 msgstr "すべてのドキュメントにバージョン"
 
 #: manual/design/ir_model.md:53
-msgid "`schema_version` is set by `PlotDocument::new` to `mmks_1` and written into the JSON form, so consumers can reject documents they do not understand."
-msgstr "`schema_version` は `PlotDocument::new` によって `mmks_1` に設定され、JSON 形式に書き込まれるため、利用者は理解できないドキュメントを拒否できます。"
+msgid "`schema_version` is set by `PlotDocument::new` to `mmks_2` and written into the JSON form, so consumers can reject documents they do not understand."
+msgstr "`schema_version` は `PlotDocument::new` が `mmks_2` に設定し、利用側が未対応の文書を拒否できるよう JSON に書き出します。"
 
 #: manual/design/ir_model.md:58
-msgid "`PlotDocument::new` always sets `schema_version` to `V1`."
-msgstr "`PlotDocument::new` は常に `schema_version` を `V1` に設定します。"
+msgid "`PlotDocument::new` always sets `schema_version` to `V2`; V1 is deprecated because it has no y-axis scale field."
+msgstr "`PlotDocument::new` は常に `schema_version` を `V2` に設定します。y 軸のスケール欄がないため、V1 は非推奨です。"
 
-#: manual/design/ir_model.md:59
+#: manual/design/ir_model.md:60
 msgid "`DifferentialReport::empty()` has no rows and zero counts."
 msgstr "`DifferentialReport::empty()` は行を持たず、件数はゼロです。"
 
-#: manual/design/ir_model.md:60
+#: manual/design/ir_model.md:61
 msgid "Records are plain data: no validation, no derived fields."
 msgstr "レコードは単なるデータです。検証も派生フィールドもありません。"
 
-#: manual/design/ir_model.md:64
-msgid "**Numeric axes with units.** Postponed; see above."
-msgstr "**単位付きの数値軸。** 先送りしました。上記を参照してください。"
-
 #: manual/design/ir_model.md:65
+msgid "**Renderer-inferred axes.** Rejected because a consumer must be able to reproduce the writer's coordinate mapping from the IR alone. Each plot carries both axis scales."
+msgstr "**描画側でスケールを推定する案。** 利用側が IR だけで writer と同じ座標変換を再現できる必要があるため採用しません。各 plot は両軸のスケールを保持します。"
+
+#: manual/design/ir_model.md:68
 msgid "**A plotting library's specification format.** Would tie the IR to one renderer."
 msgstr "**プロットライブラリの仕様形式。** IR を 1 つのレンダラに縛ることになります。"
 
-#: manual/design/ir_model.md:70
+#: manual/design/ir_model.md:73
 msgid "No rendering (that is `report`), no parsing, no statistics."
 msgstr "描画（それは `report` の役割）、解析、統計は行いません。"
 
-#: manual/design/ir_model.md:71
+#: manual/design/ir_model.md:74
 msgid "The corpus total is not checked against the other counts."
 msgstr "コーパスの合計は他の件数と照合されません。"
 
-#: manual/design/ir_model.md:72
+#: manual/design/ir_model.md:75
 msgid "`PlotKind::Pareto` is a categorical scatter; there is no two-axis frontier in the IR."
 msgstr "`PlotKind::Pareto` はカテゴリカルな散布図です。IR には 2 軸のフロントはありません。"
 
@@ -3571,8 +3575,8 @@ msgid "Versioned identifiers"
 msgstr "バージョン付きの識別子"
 
 #: manual/design/model.md:61
-msgid "*Problem.* Readers of old JSONL must not silently misread new fields. *Choice.* Three version enums produce the identifiers `mmkp_1` (protocol vocabulary), `mmka_1` (event artifacts) and `mmks_1` (Plot IR). Every event carries `artifact_version`; readers reject unknown versions. *Why.* Additive changes keep the version; a breaking change adds `V2` and a lifecycle entry, and old readers fail loudly instead of guessing."
-msgstr "*問題。* 古い JSONL のリーダーが新しいフィールドを黙って誤読してはなりません。*選択。* 3 つのバージョン enum が識別子 `mmkp_1`（プロトコルの語彙）、`mmka_1`（イベントのアーティファクト）、`mmks_1`（Plot IR）を生成します。すべてのイベントは `artifact_version` を持ち、リーダーは未知のバージョンを拒否します。*理由。* 追加的な変更ではバージョンを保ちます。互換性を壊す変更では `V2` とライフサイクルの項目を追加し、古いリーダーは推測する代わりに明示的に失敗します。"
+msgid "*Problem.* Readers of old JSONL must not silently misread new fields. *Choice.* Three version enums produce the identifiers `mmkp_1` (protocol vocabulary), `mmka_1` (event artifacts) and `mmks_2` (Plot IR). Every event carries `artifact_version`; readers reject unknown versions. *Why.* Additive changes keep the version; a breaking change adds `V2` and a lifecycle entry, and old readers fail loudly instead of guessing."
+msgstr "3 つのバージョン enum は `mmkp_1`（protocol の語彙）、`mmka_1`（event artifact）、`mmks_2`（Plot IR）の識別子を生成します。すべてのイベントに `artifact_version` があり、reader は未知のバージョンを拒否します。追加的な変更ではバージョンを維持し、互換性を壊す変更では `V2` とライフサイクル項目を追加します。旧 reader は推測せず、明確に失敗します。"
 
 #: manual/design/model.md:68
 msgid "Three-part environment snapshots"
@@ -3747,92 +3751,96 @@ msgid "*Problem.* Summaries hide distributions, raw clouds hide trends. *Choice.
 msgstr "*問題。* 要約は分布を隠し、生の点群は傾向を隠します。*選択。* すべての観測をツールチップ付きで描き、線を使う種類ではカテゴリごとの平均でカテゴリを結びます。*理由。* 描かれた点の平均は、目がすでに見積もっている重心です。頑健な統計量と判断は `stats` の役割であり、追加のプロットとして加えられます。線は目安であって、レポートが保証する推定値ではありません。"
 
 #: manual/design/report.md:102
-msgid "Categorical x axes"
-msgstr "カテゴリカルな x 軸"
+msgid "Axis selection for scaling plots"
+msgstr "## Scaling plot の軸選択"
 
 #: manual/design/report.md:104
-msgid "*Problem.* Scales are integers, shapes, layouts or names. *Choice.* `PlotPoint.x` is a string and the axis places categories evenly in order of first appearance. *Why.* A numeric axis would need a type for every scale. The cost is that spacing does not reflect magnitude, and a Pareto view is a categorical scatter, not a two-dimensional frontier."
-msgstr "*問題。* スケールは整数、形状、レイアウト、名前のいずれでもありえます。*選択。* `PlotPoint.x` は文字列で、軸は最初に現れた順にカテゴリを等間隔に配置します。*理由。* 数値軸にするとスケールごとに型が必要になります。その代償として、間隔は大きさを反映せず、パレートのビューは 2 次元のフロントではなくカテゴリカルな散布図になります。"
+msgid "`PlotPoint.x` remains text so a scale can be an integer, shape, layout or name. For scaling plots, finite numeric x values are ordered numerically and placed on a linear axis unless all are positive and `max / min >= 100`; then x uses `log10(x)`. Y is evaluated independently by the same rule. This span is at least two decades and gives multiplicative changes equal distances because log10(b) - log10(a) = log10(b / a). If any value on an axis is non-finite or non-positive, or if the positive finite values span less than 100×, that axis stays linear. A nonnumeric x axis stays categorical in first-appearance order. Heatmaps also keep categorical x."
+msgstr "`PlotPoint.x` は、尺度が整数、形状、レイアウト、名前のいずれでも表せるよう引き続き文字列にします。Scaling plot では有限な数値 x を数値順に並べ、すべてが正で `max / min >= 100` の場合に限って x 軸に `log10(x)` を使います。y 軸も同じ規則で独立に判定します。これは 2 桁以上の範囲で、同じ倍率の変化を同じ距離に配置するためです。log10(b) - log10(a) = log10(b / a) という関係によります。いずれかの値が正の有限値でない場合、または正の有限値の範囲が 100 倍未満なら、その軸は線形のままです。数値でない x 軸は初出順のカテゴリ軸にし、Heatmap の x 軸もカテゴリ軸のままにします。"
 
-#: manual/design/report.md:110
+#: manual/design/report.md:114
+msgid "Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range; x labels closer than 56 px are omitted. The SVG formats each tick from its original positive value and records each chosen axis scale in Plot IR and JSON. The plot note and axis label identify any log transform."
+msgstr "対数軸の目盛り候補は観測範囲内の `1, 2, 5 × 10^k` です。x ラベル間隔が 56 px 未満の場合、近いラベルを省略します。SVG は元の正の値をラベルに使い、Plot IR と JSON は選択した軸スケールを記録します。plot の注記と軸ラベルには対数変換が明示されます。"
+
+#: manual/design/report.md:119
 msgid "Escaping order"
 msgstr "エスケープの順序"
 
-#: manual/design/report.md:112
+#: manual/design/report.md:121
 msgid "Text is escaped by replacing `&`, `<`, `>`, `\"` and `'` in this order. `&` must be first: replacing it after `<` would turn the produced `&lt;` into `&amp;lt;`. Since every later replacement introduces only `&` that is already part of an entity, the result decodes back to the input exactly once. The same function escapes element text and attribute values."
 msgstr "テキストは `&`、`<`、`>`、`\"`、`'` をこの順に置換してエスケープされます。`&` は最初でなければなりません。`<` の後に置換すると、生成された `&lt;` が `&amp;lt;` になってしまいます。後続の置換が持ち込む `&` はすべてすでにエンティティの一部なので、結果を一度デコードするとちょうど入力に戻ります。同じ関数が要素のテキストと属性値をエスケープします。"
 
-#: manual/design/report.md:118
+#: manual/design/report.md:127
 msgid "Self-contained output"
 msgstr "自己完結型の出力"
 
-#: manual/design/report.md:120
+#: manual/design/report.md:129
 msgid "The HTML embeds its CSS and inline SVG, loads no fonts, scripts or images, and declares `color-scheme: light`. It can be attached to an issue or archived with the JSONL and still render identically in ten years."
 msgstr "HTML は CSS とインライン SVG を埋め込み、フォント、スクリプト、画像を読み込まず、`color-scheme: light` を宣言します。issue に添付したり JSONL と一緒にアーカイブしたりしても、10 年後も同じように描画されます。"
 
-#: manual/design/report.md:124
+#: manual/design/report.md:133
 msgid "Version gate"
 msgstr "バージョンによる関門"
 
-#: manual/design/report.md:126
-msgid "A line whose `artifact_version` is a string other than `mmka_1` is rejected with its line number. Lines without the field are accepted, so hand-written fixtures and earlier streams stay readable; a non-string version is an error. JSON output carries `schema_version` `mmks_1`."
-msgstr "`artifact_version` が `mmka_1` 以外の文字列である行は、その行番号とともに拒否されます。このフィールドを持たない行は受け入れられるため、手書きのフィクスチャや以前のストリームも読めます。文字列でないバージョンはエラーです。JSON 出力は `schema_version` `mmks_1` を持ちます。"
+#: manual/design/report.md:135
+msgid "A line whose `artifact_version` is a string other than `mmka_1` is rejected with its line number. Lines without the field are accepted, so hand-written fixtures and earlier streams stay readable; a non-string version is an error. JSON output carries `schema_version` `mmks_2` and each plot's x and y axis scales. This version change lets consumers distinguish documents whose y-axis mapping is explicit from older `mmks_1` documents."
+msgstr "JSON 出力は `schema_version` `mmks_2` を持ち、各 plot に x 軸と y 軸のスケールを記録します。このバージョン変更により、y 軸の対応が明示された文書と旧形式の `mmks_1` 文書を区別できます。"
 
-#: manual/design/report.md:133
+#: manual/design/report.md:144
 msgid "**Determinism.** Every function is pure; equal inputs give equal strings."
 msgstr "**決定性。** すべての関数は純粋で、等しい入力からは等しい文字列が得られます。"
 
-#: manual/design/report.md:134
+#: manual/design/report.md:145
 msgid "**Exclusion.** No point comes from an observation that is invalid, discarded or covered by a failing validation (definition of $P$)."
 msgstr "**除外。** 無効な観測、破棄された観測、失敗した検証の対象となる観測からは、どの点も生じません（$P$ の定義）。"
 
-#: manual/design/report.md:136
+#: manual/design/report.md:147
 msgid "**Containment.** For finite values, every point lies strictly inside the plot area, and every heatmap opacity lies in $(0.18, 0.90)$ (derived above)."
 msgstr "**包含。** 有限の値については、すべての点はプロット領域の厳密に内側にあり、ヒートマップの不透明度はすべて $(0.18, 0.90)$ に収まります（上で導いたとおり）。"
 
-#: manual/design/report.md:138
+#: manual/design/report.md:149
 msgid "**Escaping.** All text originating from events, titles, units and series names passes through the escape function before reaching SVG or HTML."
 msgstr "**エスケープ。** イベント、タイトル、単位、系列名に由来するすべてのテキストは、SVG や HTML に達する前にエスケープ関数を通ります。"
 
-#: manual/design/report.md:140
+#: manual/design/report.md:151
 msgid "**Complexity.** Parsing is linear in the stream size, except that each point is checked against the list of failure keys, $O(\\lvert O\\rvert \\cdot \\lvert F\\rvert)$. Rendering a plot with $N$ points, $m$ categories and $S$ series is $O(N(m + S) + mSN)$ because line means are recomputed per cell."
 msgstr "**計算量。** 解析はストリームのサイズに対して線形ですが、各点を失敗キーのリストと照合するため $O(\\lvert O\\rvert \\cdot \\lvert F\\rvert)$ かかります。$N$ 個の点、$m$ 個のカテゴリ、$S$ 個の系列を持つプロットの描画は、線の平均がセルごとに再計算されるため $O(N(m + S) + mSN)$ です。"
 
-#: manual/design/report.md:147
+#: manual/design/report.md:158
 msgid "**A JavaScript charting library.** It would need scripts or a CDN and would make the output depend on a browser runtime."
 msgstr "**JavaScript のグラフライブラリ。** スクリプトや CDN が必要になり、出力がブラウザのランタイムに依存することになります。"
 
-#: manual/design/report.md:149
+#: manual/design/report.md:160
 msgid "**Rendering only summaries.** Hides bimodality and outliers."
 msgstr "**要約だけを描画する。** 二峰性や外れ値が隠れます。"
 
-#: manual/design/report.md:150
-msgid "**A numeric x axis.** Needs a scale type per case; postponed."
-msgstr "**数値の x 軸。** ケースごとにスケールの型が必要です。先送りしました。"
+#: manual/design/report.md:161
+msgid "**One axis policy for both dimensions.** Rejected because x and y can have different ranges and need independent scale choices."
+msgstr "**両軸に同じスケール規則を使う案。** x と y の範囲は異なることがあるため、それぞれ独立して選択する必要があり、採用しません。"
 
-#: manual/design/report.md:151
+#: manual/design/report.md:163
 msgid "**Treating failed implementations as zero or infinite time.** Both are misleading values on a timing axis."
 msgstr "**失敗した実装を時間ゼロまたは無限大として扱う。** どちらも計時の軸上では誤解を招く値です。"
 
-#: manual/design/report.md:156
+#: manual/design/report.md:168
 msgid "The JSONL projection builds one `Scaling` plot. Other plot kinds are rendered when a caller constructs them in Plot IR, but nothing derives them from events yet."
 msgstr "JSONL からの射影は 1 つの `Scaling` プロットを構築します。他の種類のプロットは、呼び出し側が Plot IR で構築すれば描画されますが、イベントからそれらを導出するものはまだありません。"
 
-#: manual/design/report.md:159
+#: manual/design/report.md:171
 msgid "Observations of exploratory and confirmatory phases are plotted together, and the x value is the dataset index, not the scale."
 msgstr "探索フェーズと確認フェーズの観測は一緒にプロットされ、x の値はスケールではなくデータセットのインデックスです。"
 
-#: manual/design/report.md:161
+#: manual/design/report.md:173
 msgid "The target is passed in by the caller; it is not read from the stream."
 msgstr "ターゲットは呼び出し側から渡され、ストリームからは読まれません。"
 
-#: manual/design/report.md:162
+#: manual/design/report.md:174
 msgid "No statistics, decisions or environment comparison are computed here."
 msgstr "ここでは統計量、判断、環境の比較は計算されません。"
 
-#: manual/design/report.md:163
-msgid "Styling, colours and layout are not a compatibility promise; the `mmks_1` JSON structure is."
-msgstr "スタイル、色、レイアウトは互換性の約束の対象ではありません。約束されるのは `mmks_1` JSON の構造です。"
+#: manual/design/report.md:175
+msgid "Styling, colours and layout are not a compatibility promise; the `mmks_2` JSON structure is."
+msgstr "スタイル、色、レイアウトは互換性の保証対象ではありません。`mmks_2` JSON の構造が保証対象です。"
 
 #: manual/design/runner.md:1
 msgid "runner design"
@@ -5365,8 +5373,8 @@ msgid "Versioned contracts"
 msgstr "バージョン付きの契約"
 
 #: manual/index.md:104
-msgid "mare_mark is pre-1.0. The versioned contracts are the protocol vocabulary `mmkp_1`, the JSONL artifacts `mmka_1`, the Plot IR schema `mmks_1` and the GEMM tuning configuration `mmkts_1`; readers reject other versions. Timing thresholds, candidate enumeration, HTML styling and private layouts are not compatibility promises. Each design page ends with the package's boundaries."
-msgstr "mare_mark は 1.0 より前の段階です。バージョン付きの契約は、プロトコルの語彙 `mmkp_1`、JSONL アーティファクト `mmka_1`、Plot IR スキーマ `mmks_1`、GEMM チューニング設定 `mmkts_1` です。リーダーはそれ以外のバージョンを拒否します。計時の閾値、候補の列挙、HTML のスタイル、非公開のレイアウトは互換性の約束の対象ではありません。各設計ページはパッケージの境界で締めくくります。"
+msgid "mare_mark is pre-1.0. The versioned contracts are the protocol vocabulary `mmkp_1`, the JSONL artifacts `mmka_1`, the Plot IR schema `mmks_2` and the GEMM tuning configuration `mmkts_1`; readers reject other versions. Timing thresholds, candidate enumeration, HTML styling and private layouts are not compatibility promises. Each design page ends with the package's boundaries."
+msgstr "mare_mark は 1.0 未満です。バージョン付きの契約は、protocol 語彙 `mmkp_1`、JSONL artifact `mmka_1`、Plot IR schema `mmks_2`、GEMM 調整設定 `mmkts_1` です。reader は他のバージョンを拒否します。計時のしきい値、候補列挙、HTML のスタイル、非公開レイアウトは互換性の保証対象ではありません。各設計ページにはパッケージの境界を記載します。"
 
 #: manual/index.md:110
 msgid "Where to read next"
@@ -6245,8 +6253,8 @@ msgid "report tutorial"
 msgstr "report のチュートリアル"
 
 #: manual/tutorial/report.md:3
-msgid "This tutorial publishes benchmark results: you render a JSONL event stream as a self-contained HTML page, see how failed validations appear, export the machine-readable `mmks_1` JSON, and draw plots of your own. The examples are complete tests; file writing is left to your program or to the [`mare-mark` command](cli.md)."
-msgstr "このチュートリアルでは、ベンチマークの結果を公開します。JSONL イベントストリームを自己完結型の HTML ページとして描画し、失敗した検証がどう表示されるかを確認し、機械可読な `mmks_1` JSON をエクスポートし、独自のプロットを描きます。例は完全なテストです。ファイルの書き出しはプログラムまたは [`mare-mark` コマンド](cli.md)に任せます。"
+msgid "This tutorial publishes benchmark results: you render a JSONL event stream as a self-contained HTML page, see how failed validations appear, export the machine-readable `mmks_2` JSON, and draw plots of your own. The examples are complete tests; file writing is left to your program or to the [`mare-mark` command](cli.md)."
+msgstr "このチュートリアルではベンチマーク結果を公開します。JSONL イベントストリームを自己完結型 HTML に描画し、検証失敗の表示を確認し、機械可読な `mmks_2` JSON を出力して、自分の plot を描きます。例は完全なテストです。ファイル書き込みはプログラムまたは [`mare-mark` コマンド](cli.md) に任せます。"
 
 #: manual/tutorial/report.md:11
 msgid "render a JSONL stream as HTML"
@@ -6309,8 +6317,8 @@ msgid "Export JSON for other tools"
 msgstr "他のツールのために JSON をエクスポートする"
 
 #: manual/tutorial/report.md:109
-msgid "`plot_json` writes the same document as `mmks_1` JSON, which a notebook or a dashboard can read without parsing HTML:"
-msgstr "`plot_json` は同じドキュメントを `mmks_1` JSON として書き出します。ノートブックやダッシュボードは HTML を解析せずにこれを読めます:"
+msgid "`plot_json` writes the same document as `mmks_2` JSON, which a notebook or a dashboard can read without parsing HTML:"
+msgstr "`plot_json` は同じドキュメントを `mmks_2` JSON として出力するため、ノートブックやダッシュボードは HTML を解析せずに読み込めます。"
 
 #: manual/tutorial/report.md:122
 msgid "Draw a plot of your own"
@@ -7043,6 +7051,21 @@ msgstr "`tune` と `tune_gemm`: 中央値によるスコア付け、順序に依
 #: manual/verification.md:93
 msgid "`cli`: argument parsing, help texts, replay extraction. The native `main` is exercised by the smoke tests only."
 msgstr "`cli`: 引数の解析、ヘルプテキスト、リプレイ情報の抽出。native の `main` はスモークテストでのみ実行されます。"
+
+#~ msgid "`PlotDocument::new` always sets `schema_version` to `V1`."
+#~ msgstr "`PlotDocument::new` は常に `schema_version` を `V1` に設定します。"
+
+#~ msgid "**Numeric axes with units.** Postponed; see above."
+#~ msgstr "**単位付きの数値軸。** 先送りしました。上記を参照してください。"
+
+#~ msgid "Categorical x axes"
+#~ msgstr "カテゴリカルな x 軸"
+
+#~ msgid "*Problem.* Scales are integers, shapes, layouts or names. *Choice.* `PlotPoint.x` is a string and the axis places categories evenly in order of first appearance. *Why.* A numeric axis would need a type for every scale. The cost is that spacing does not reflect magnitude, and a Pareto view is a categorical scatter, not a two-dimensional frontier."
+#~ msgstr "*問題。* スケールは整数、形状、レイアウト、名前のいずれでもありえます。*選択。* `PlotPoint.x` は文字列で、軸は最初に現れた順にカテゴリを等間隔に配置します。*理由。* 数値軸にするとスケールごとに型が必要になります。その代償として、間隔は大きさを反映せず、パレートのビューは 2 次元のフロントではなくカテゴリカルな散布図になります。"
+
+#~ msgid "**A numeric x axis.** Needs a scale type per case; postponed."
+#~ msgstr "**数値の x 軸。** ケースごとにスケールの型が必要です。先送りしました。"
 
 #~ msgid "`status` is one of `valid`, `invalid`, `skipped`, `expected_difference`, `unsupported`, `infrastructure_failure`; the reason strings of the status are not written. `phase` is `exploratory` or `confirmatory`; `batch_sink` is `kept` or `discarded:<reason>`. The observation's `setup_timing` is not written."
 #~ msgstr "`status` は `valid`、`invalid`、`skipped`、`expected_difference`、`unsupported`、`infrastructure_failure` のいずれかで、ステータスの理由文字列は書き出されません。`phase` は `exploratory` または `confirmatory` で、`batch_sink` は `kept` または `discarded:<reason>` です。観測の `setup_timing` は書き出されません。"

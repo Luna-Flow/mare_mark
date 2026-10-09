@@ -50,18 +50,21 @@ same run at hand.
 
 ### A version in every document
 
-`schema_version` is set by `PlotDocument::new` to `mmks_1` and written into the
+`schema_version` is set by `PlotDocument::new` to `mmks_2` and written into the
 JSON form, so consumers can reject documents they do not understand.
 
 ## Correctness and invariants
 
-- `PlotDocument::new` always sets `schema_version` to `V1`.
+- `PlotDocument::new` always sets `schema_version` to `V2`; V1 is deprecated
+  because it has no y-axis scale field.
 - `DifferentialReport::empty()` has no rows and zero counts.
 - Records are plain data: no validation, no derived fields.
 
 ## Alternatives rejected
 
-- **Numeric axes with units.** Postponed; see above.
+- **Renderer-inferred axes.** Rejected because a consumer must be able to
+  reproduce the writer's coordinate mapping from the IR alone. Each plot
+  carries both axis scales.
 - **A plotting library's specification format.** Would tie the IR to one
   renderer.
 

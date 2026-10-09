@@ -3,7 +3,7 @@
 ## Purpose
 
 `Luna-Flow/mare_mark/report` turns a JSONL event stream into a Plot IR
-document and renders that document as `mmks_1` JSON, standalone SVG or a
+document and renders that document as `mmks_2` JSON, standalone SVG or a
 self-contained HTML page. All four functions are pure: they take strings and
 values and return strings. Reading and writing files is the job of the
 [`cli`](cli.md). The projection rules are explained in the
@@ -78,15 +78,15 @@ test "parse a small event stream" {
 
 ### `plot_json`
 
-`plot_json` serializes a document as `mmks_1` JSON.
+`plot_json` serializes a document as `mmks_2` JSON.
 
 ```mbti
 pub fn plot_json(@ir_model.PlotDocument) -> String
 ```
 
 The object has the keys `schema_version`, `run_id`, `target`, `plots` (each
-with `kind`, `title`, `unit`, `interval_kind` and `points` of `x`, `y`,
-`series`) and `differential` (`mismatches`, `capabilities`,
+with `kind`, `title`, `unit`, `interval_kind`, `x_axis`, `y_axis`, `x_label`,
+`note` and `points` of `x`, `y`, `series`) and `differential` (`mismatches`, `capabilities`,
 `counterexamples`, `corpus`). Plot kinds are written in snake case
 (`scaling`, `raw_distribution`, `block_order`, `interval`, `outlier`,
 `change_point`, `heatmap`, `pareto`). The output is compact, and strings are
@@ -98,7 +98,7 @@ test "plot JSON" {
   let plot = @ir_model.Plot::new(@ir_model.PlotKind::Scaling, "t", "µs/op", "raw", [point])
   let document = @ir_model.PlotDocument::new("r", "native", [plot])
   let json = @report.plot_json(document)
-  inspect(json.has_prefix("{\"schema_version\":\"mmks_1\",\"run_id\":\"r\""), content="true")
+  inspect(json.has_prefix("{\"schema_version\":\"mmks_2\",\"run_id\":\"r\""), content="true")
   inspect(json.contains("\"points\":[{\"x\":\"0\",\"y\":1,\"series\":\"a\"}]"), content="true")
 }
 ```
@@ -112,8 +112,8 @@ pub fn plot_svg(@ir_model.Plot) -> String
 ```
 
 The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`,
-inline styles, five horizontal grid lines with tick values, at most about ten
-x labels, and a legend. Every point is drawn as a circle with a tooltip
+inline styles, linear grid ticks or 1-2-5 ticks on logarithmic axes, at most
+about ten x labels, and a legend. Every point is drawn as a circle with a tooltip
 `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also
 connect, per series, the mean of the points at each x category. `Heatmap`
 plots draw one cell per series and x category, with an opacity that grows with

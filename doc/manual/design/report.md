@@ -99,13 +99,22 @@ centre of mass the eye already estimates; robust statistics and decisions
 belong to `stats` and can be added as further plots. The line is a guide, not
 an estimate the report vouches for.
 
-### Categorical x axes
+### Axis selection for scaling plots
 
-*Problem.* Scales are integers, shapes, layouts or names. *Choice.*
-`PlotPoint.x` is a string and the axis places categories evenly in order of
-first appearance. *Why.* A numeric axis would need a type for every scale. The
-cost is that spacing does not reflect magnitude, and a Pareto view is a
-categorical scatter, not a two-dimensional frontier.
+`PlotPoint.x` remains text so a scale can be an integer, shape, layout or name.
+For scaling plots, finite numeric x values are ordered numerically and placed
+on a linear axis unless all are positive and `max / min >= 100`; then x uses
+`log10(x)`. Y is evaluated independently by the same rule. This span is at
+least two decades and gives multiplicative changes equal distances because
+log10(b) - log10(a) = log10(b / a). If any
+value on an axis is non-finite or non-positive, or if the positive finite
+values span less than 100×, that axis stays linear. A nonnumeric x axis stays
+categorical in first-appearance order. Heatmaps also keep categorical x.
+
+Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range;
+x labels closer than 56 px are omitted. The SVG formats each tick from its
+original positive value and records each chosen axis scale in Plot IR and
+JSON. The plot note and axis label identify any log transform.
 
 ### Escaping order
 
@@ -126,7 +135,9 @@ the JSONL and still render identically in ten years.
 A line whose `artifact_version` is a string other than `mmka_1` is rejected
 with its line number. Lines without the field are accepted, so hand-written
 fixtures and earlier streams stay readable; a non-string version is an error.
-JSON output carries `schema_version` `mmks_1`.
+JSON output carries `schema_version` `mmks_2` and each plot's x and y axis
+scales. This version change lets consumers distinguish documents whose y-axis
+mapping is explicit from older `mmks_1` documents.
 
 ## Correctness and invariants
 
@@ -147,7 +158,8 @@ JSON output carries `schema_version` `mmks_1`.
 - **A JavaScript charting library.** It would need scripts or a CDN and
   would make the output depend on a browser runtime.
 - **Rendering only summaries.** Hides bimodality and outliers.
-- **A numeric x axis.** Needs a scale type per case; postponed.
+- **One axis policy for both dimensions.** Rejected because x and y can have
+  different ranges and need independent scale choices.
 - **Treating failed implementations as zero or infinite time.** Both are
   misleading values on a timing axis.
 
@@ -160,5 +172,5 @@ JSON output carries `schema_version` `mmks_1`.
   the x value is the dataset index, not the scale.
 - The target is passed in by the caller; it is not read from the stream.
 - No statistics, decisions or environment comparison are computed here.
-- Styling, colours and layout are not a compatibility promise; the `mmks_1`
+- Styling, colours and layout are not a compatibility promise; the `mmks_2`
   JSON structure is.

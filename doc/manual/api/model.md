@@ -57,6 +57,7 @@ pub fn ArtifactVersion::version(Self) -> Int
 
 pub(all) enum SchemaVersion {
   V1
+  V2
 }
 pub fn SchemaVersion::identifier(Self) -> String
 pub fn SchemaVersion::implementation(Self) -> String
@@ -65,14 +66,17 @@ pub fn SchemaVersion::version(Self) -> Int
 ```
 
 `implementation` is the prefix, `version` the number, and `identifier` is
-`implementation + "_" + version`. All three `V1` values are `Supported`.
+`implementation + "_" + version`. Protocol and artifact V1 are `Supported`;
+schema V1 is `Deprecated` and schema V2 is `Supported`.
 
 ```moonbit
 test "version identifiers" {
   inspect(@model.ProtocolVersion::V1.identifier(), content="mmkp_1")
   inspect(@model.ArtifactVersion::V1.identifier(), content="mmka_1")
   inspect(@model.SchemaVersion::V1.identifier(), content="mmks_1")
-  inspect(@model.SchemaVersion::V1.lifecycle() is Supported, content="true")
+  inspect(@model.SchemaVersion::V2.identifier(), content="mmks_2")
+  inspect(@model.SchemaVersion::V1.lifecycle() is Deprecated, content="true")
+  inspect(@model.SchemaVersion::V2.lifecycle() is Supported, content="true")
 }
 ```
 

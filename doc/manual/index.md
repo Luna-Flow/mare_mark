@@ -102,7 +102,7 @@ chapters. The guides span packages.
 ## Versioned contracts
 
 mare_mark is pre-1.0. The versioned contracts are the protocol vocabulary
-`mmkp_1`, the JSONL artifacts `mmka_1`, the Plot IR schema `mmks_1` and the
+`mmkp_1`, the JSONL artifacts `mmka_1`, the Plot IR schema `mmks_2` and the
 GEMM tuning configuration `mmkts_1`; readers reject other versions. Timing
 thresholds, candidate enumeration, HTML styling and private layouts are not
 compatibility promises. Each design page ends with the package's boundaries.

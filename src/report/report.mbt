@@ -93,7 +93,9 @@ fn x_position(index : Int, count : Int) -> Double {
 fn x_layout(plot : @ir.Plot) -> (Array[String], Array[Double], Array[Bool]) {
   let values = unique_x_values(plot)
   let numbers = values.map(finite_number)
-  let linear = plot.x_axis is @ir.AxisScale::Linear &&
+  let linear = (
+      plot.x_axis is @ir.AxisScale::Linear || plot.x_axis is @ir.AxisScale::Log
+    ) &&
     !(plot.kind is @ir.PlotKind::Heatmap) &&
     !values.is_empty() &&
     numbers.all(number => number is Some(_))
@@ -110,13 +112,19 @@ fn x_layout(plot : @ir.Plot) -> (Array[String], Array[Double], Array[Bool]) {
     (numbers[index].unwrap_or(0.0), index)
   })
   order.sort()
-  let low = order[0].0
-  let high = order[order.length() - 1].0
+  let log_axis = uses_log_x(plot)
+  let low = if log_axis { @math.log10(order[0].0) } else { order[0].0 }
+  let high = if log_axis {
+    @math.log10(order[order.length() - 1].0)
+  } else {
+    order[order.length() - 1].0
+  }
   let positions = order.map(entry => {
+    let value = if log_axis { @math.log10(entry.0) } else { entry.0 }
     if high == low {
       478.0
     } else {
-      76.0 + (entry.0 - low) * 804.0 / (high - low)
+      76.0 + (value - low) * 804.0 / (high - low)
     }
   })
   let labelled = []
@@ -134,6 +142,112 @@ fn x_layout(plot : @ir.Plot) -> (Array[String], Array[Double], Array[Bool]) {
 ///|
 fn y_position(value : Double, low : Double, high : Double) -> Double {
   354.0 - (value - low) * 252.0 / (high - low)
+}
+
+///|
+fn is_positive_finite(value : Double) -> Bool {
+  value > 0.0 && !value.is_nan() && !value.is_inf()
+}
+
+///|
+fn has_log_span(values : Array[Double]) -> Bool {
+  if values.is_empty() || !values.all(is_positive_finite) {
+    return false
+  }
+  let mut low = values[0]
+  let mut high = values[0]
+  for value in values {
+    low = low.min(value)
+    high = high.max(value)
+  }
+  low < high && high / low >= 100.0
+}
+
+///|
+fn uses_log_x(plot : @ir.Plot) -> Bool {
+  !(plot.kind is @ir.PlotKind::Heatmap) &&
+  plot.x_axis is @ir.AxisScale::Log &&
+  !unique_x_values(plot).is_empty() &&
+  unique_x_values(plot).all(value => {
+    match finite_number(value) {
+      Some(number) => is_positive_finite(number)
+      None => false
+    }
+  })
+}
+
+///|
+fn uses_log_y(plot : @ir.Plot) -> Bool {
+  plot.y_axis is @ir.AxisScale::Log &&
+  !plot.points.is_empty() &&
+  plot.points.all(point => is_positive_finite(point.y))
+}
+
+///|
+fn y_transform(plot : @ir.Plot, value : Double) -> Double {
+  if uses_log_y(plot) {
+    @math.log10(value)
+  } else {
+    value
+  }
+}
+
+///|
+fn log_ticks(low : Double, high : Double) -> Array[Double] {
+  if !is_positive_finite(low) || !is_positive_finite(high) || high < low {
+    return []
+  }
+  let first_exponent = @math.floor(@math.log10(low)).to_int()
+  let last_exponent = @math.ceil(@math.log10(high)).to_int()
+  let ticks = []
+  for exponent = first_exponent
+      exponent <= last_exponent
+      exponent = exponent + 1 {
+    let decade = @math.pow(10.0, exponent.to_double())
+    for multiplier in [1.0, 2.0, 5.0] {
+      let value = decade * multiplier
+      if is_positive_finite(value) && value >= low && value <= high {
+        ticks.push(value)
+      }
+    }
+  }
+  ticks.sort()
+  ticks
+}
+
+///|
+fn numeric_bounds(values : Array[Double]) -> (Double, Double) {
+  let mut low = values[0]
+  let mut high = values[0]
+  for value in values {
+    low = low.min(value)
+    high = high.max(value)
+  }
+  (low, high)
+}
+
+///|
+fn y_axis_bounds(plot : @ir.Plot) -> (Double, Double) {
+  if plot.points.is_empty() {
+    (0.0, 1.0)
+  } else if uses_log_y(plot) {
+    let mut min_value = plot.points[0].y
+    let mut max_value = plot.points[0].y
+    for point in plot.points {
+      min_value = min_value.min(point.y)
+      max_value = max_value.max(point.y)
+    }
+    let log_low = @math.log10(min_value)
+    let log_high = @math.log10(max_value)
+    if min_value == max_value {
+      (log_low - 0.1, log_high + 0.1)
+    } else {
+      let padding = (log_high - log_low) * 0.08
+      (log_low - padding, log_high + padding)
+    }
+  } else {
+    y_bounds(plot)
+  }
 }
 
 ///|
@@ -188,41 +302,89 @@ fn svg_axes(
   high : Double,
 ) -> String {
   let mut body = ""
-  for tick = 0; tick <= 4; tick = tick + 1 {
-    let y = 102.0 + tick.to_double() * 63.0
-    let value = high - (high - low) * tick.to_double() / 4.0
-    body += "<line class=\"grid\" x1=\"76\" y1=\"" +
-      y.to_string() +
-      "\" x2=\"880\" y2=\"" +
-      y.to_string() +
-      "\"/><text class=\"tick\" x=\"66\" y=\"" +
-      (y + 4.0).to_string() +
-      "\" text-anchor=\"end\">" +
-      escape_xml(format_number(value)) +
-      "</text>"
-  }
-  body += "<line class=\"axis\" x1=\"76\" y1=\"102\" x2=\"76\" y2=\"354\"/>"
-  body += "<line class=\"axis\" x1=\"76\" y1=\"354\" x2=\"880\" y2=\"354\"/>"
-  for index = 0; index < x_values.length(); index = index + 1 {
-    if x_labelled[index] {
-      let x = x_positions[index]
-      body += "<line class=\"axis\" x1=\"" +
-        x.to_string() +
-        "\" y1=\"354\" x2=\"" +
-        x.to_string() +
-        "\" y2=\"360\"/><text class=\"tick\" x=\"" +
-        x.to_string() +
-        "\" y=\"378\" text-anchor=\"middle\">" +
-        escape_xml(x_values[index]) +
+  if uses_log_y(plot) {
+    let values = plot.points.map(point => point.y)
+    let (minimum, maximum) = numeric_bounds(values)
+    let mut last_label_y = 1.0e9
+    for value in log_ticks(minimum, maximum) {
+      let y = y_position(@math.log10(value), low, high)
+      body += "<line class=\"grid\" x1=\"76\" y1=\"" +
+        y.to_string() +
+        "\" x2=\"880\" y2=\"" +
+        y.to_string() +
+        "\"/>"
+      if last_label_y - y >= 28.0 {
+        body += "<text class=\"tick\" x=\"66\" y=\"" +
+          (y + 4.0).to_string() +
+          "\" text-anchor=\"end\">" +
+          escape_xml(value.to_string()) +
+          "</text>"
+        last_label_y = y
+      }
+    }
+  } else {
+    for tick = 0; tick <= 4; tick = tick + 1 {
+      let y = 102.0 + tick.to_double() * 63.0
+      let value = high - (high - low) * tick.to_double() / 4.0
+      body += "<line class=\"grid\" x1=\"76\" y1=\"" +
+        y.to_string() +
+        "\" x2=\"880\" y2=\"" +
+        y.to_string() +
+        "\"/><text class=\"tick\" x=\"66\" y=\"" +
+        (y + 4.0).to_string() +
+        "\" text-anchor=\"end\">" +
+        escape_xml(format_number(value)) +
         "</text>"
     }
   }
+  body += "<line class=\"axis\" x1=\"76\" y1=\"102\" x2=\"76\" y2=\"354\"/>"
+  body += "<line class=\"axis\" x1=\"76\" y1=\"354\" x2=\"880\" y2=\"354\"/>"
+  if uses_log_x(plot) {
+    let values = x_values.map(value => finite_number(value).unwrap())
+    let (minimum, maximum) = numeric_bounds(values)
+    let low_log = @math.log10(minimum)
+    let high_log = @math.log10(maximum)
+    let mut last_label_x = -1.0e9
+    for value in log_ticks(minimum, maximum) {
+      let x = 76.0 +
+        (@math.log10(value) - low_log) * 804.0 / (high_log - low_log)
+      if x - last_label_x >= 56.0 {
+        body += "<line class=\"axis\" x1=\"" +
+          x.to_string() +
+          "\" y1=\"354\" x2=\"" +
+          x.to_string() +
+          "\" y2=\"360\"/><text class=\"tick\" x=\"" +
+          x.to_string() +
+          "\" y=\"378\" text-anchor=\"middle\">" +
+          escape_xml(value.to_string()) +
+          "</text>"
+        last_label_x = x
+      }
+    }
+  } else {
+    for index = 0; index < x_values.length(); index = index + 1 {
+      if x_labelled[index] {
+        let x = x_positions[index]
+        body += "<line class=\"axis\" x1=\"" +
+          x.to_string() +
+          "\" y1=\"354\" x2=\"" +
+          x.to_string() +
+          "\" y2=\"360\"/><text class=\"tick\" x=\"" +
+          x.to_string() +
+          "\" y=\"378\" text-anchor=\"middle\">" +
+          escape_xml(x_values[index]) +
+          "</text>"
+      }
+    }
+  }
   body += "<text class=\"axis-label\" x=\"22\" y=\"228\" text-anchor=\"middle\" transform=\"rotate(-90 22 228)\">" +
-    escape_xml(plot.unit) +
+    escape_xml(plot.unit + (if uses_log_y(plot) { " (log₁₀)" } else { "" })) +
     "</text>"
   if !plot.x_label.is_empty() {
     body += "<text class=\"axis-label\" x=\"478\" y=\"408\" text-anchor=\"middle\">" +
-      escape_xml(plot.x_label) +
+      escape_xml(
+        plot.x_label + (if uses_log_x(plot) { " (log₁₀)" } else { "" }),
+      ) +
       "</text>"
   }
   body
@@ -272,7 +434,7 @@ fn svg_series_plot(
             coordinates.push(
               x_positions[x_index].to_string() +
               "," +
-              y_position(value, low, high).to_string(),
+              y_position(y_transform(plot, value), low, high).to_string(),
             )
           None => ()
         }
@@ -291,7 +453,7 @@ fn svg_series_plot(
     let point_series = if point.series == "" { "value" } else { point.series }
     let series_index = string_index(series_values, point_series).max(0)
     let x = x_positions[x_index.max(0)]
-    let y = y_position(point.y, low, high)
+    let y = y_position(y_transform(plot, point.y), low, high)
     body += "<circle cx=\"" +
       x.to_string() +
       "\" cy=\"" +
@@ -363,6 +525,7 @@ fn axis_scale_name(scale : @ir.AxisScale) -> String {
   match scale {
     @ir.AxisScale::Categorical => "categorical"
     @ir.AxisScale::Linear => "linear"
+    @ir.AxisScale::Log => "log"
   }
 }
 
@@ -434,6 +597,7 @@ pub fn plot_json(document : @ir.PlotDocument) -> String {
       "unit": Json::string(plot.unit),
       "interval_kind": Json::string(plot.interval_kind),
       "x_axis": Json::string(axis_scale_name(plot.x_axis)),
+      "y_axis": Json::string(axis_scale_name(plot.y_axis)),
       "x_label": Json::string(plot.x_label),
       "note": Json::string(plot.note),
       "points": Json::array(point_values),
@@ -765,11 +929,22 @@ fn scaling_plot(timings : CaseTimings) -> @ir.Plot {
       group.implementation,
     )
   })
+  let x_numbers = points.map(point => finite_number(point.x))
   let x_axis = if !points.is_empty() &&
-    points.all(point => finite_number(point.x) is Some(_)) {
-    @ir.AxisScale::Linear
+    x_numbers.all(number => number is Some(_)) {
+    let numeric_values = x_numbers.map(number => number.unwrap())
+    if has_log_span(numeric_values) {
+      @ir.AxisScale::Log
+    } else {
+      @ir.AxisScale::Linear
+    }
   } else {
     @ir.AxisScale::Categorical
+  }
+  let y_axis = if has_log_span(points.map(point => point.y)) {
+    @ir.AxisScale::Log
+  } else {
+    @ir.AxisScale::Linear
   }
   let note = "Each point is the median per-iteration time (µs/op) of the confirmatory observations of one implementation at one " +
     (if recorded {
@@ -777,7 +952,17 @@ fn scaling_plot(timings : CaseTimings) -> @ir.Plot {
     } else {
       "dataset_id, pooled over its repetitions."
     }) +
-    excluded_note(timings.excluded_by_phase)
+    excluded_note(timings.excluded_by_phase) +
+    (if x_axis is @ir.AxisScale::Log {
+      " X uses a base-10 logarithmic axis."
+    } else {
+      ""
+    }) +
+    (if y_axis is @ir.AxisScale::Log {
+      " Y uses a base-10 logarithmic axis."
+    } else {
+      ""
+    })
   @ir.Plot::new(
     @ir.PlotKind::Scaling,
     if timings.case_id.is_empty() {
@@ -789,6 +974,7 @@ fn scaling_plot(timings : CaseTimings) -> @ir.Plot {
     "median",
     points,
     x_axis~,
+    y_axis~,
     x_label~,
     note~,
   )
@@ -1042,7 +1228,7 @@ pub fn document_from_jsonl(
 pub fn plot_svg(plot : @ir.Plot) -> String {
   let (x_values, x_positions, x_labelled) = x_layout(plot)
   let series_values = unique_series(plot)
-  let (low, high) = y_bounds(plot)
+  let (low, high) = y_axis_bounds(plot)
   let mut body = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 420\" role=\"img\" aria-labelledby=\"plot-title plot-description\">"
   body += "<title id=\"plot-title\">" + escape_xml(plot.title) + "</title>"
   body += "<desc id=\"plot-description\">" +

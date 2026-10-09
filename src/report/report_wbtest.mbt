@@ -18,7 +18,7 @@ test "report escapes structured output" {
   assert_true(svg.contains("<polyline"))
   assert_true(json.contains("base\\\"line"))
   assert_true(page.contains("run&lt;&amp;"))
-  assert_true(json.contains("\"schema_version\":\"mmks_1\""))
+  assert_true(json.contains("\"schema_version\":\"mmks_2\""))
   assert_true(page.contains("<h1>mare_mark report</h1>"))
 }
 
@@ -94,6 +94,16 @@ test "heatmap uses cells instead of scatter marks" {
     ],
   )
   assert_true(plot_svg(plot).contains("<rect"))
+  let numeric_heatmap = @ir.Plot::new(
+    @ir.PlotKind::Heatmap,
+    "Numeric heatmap",
+    "µs/op",
+    "median",
+    [@ir.PlotPoint::new("1", 1.0, "a"), @ir.PlotPoint::new("1000", 4.0, "b")],
+    x_axis=@ir.AxisScale::Log,
+  )
+  assert_true(!uses_log_x(numeric_heatmap))
+  assert_true(plot_svg(numeric_heatmap).contains(">1</text>"))
 }
 
 ///|
@@ -179,24 +189,144 @@ test "exploratory observations stay out of the confirmatory plot (#7)" {
 ///|
 test "numeric scales use a linear axis in numeric order" {
   let source =
-    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":0,"scale":"1000","phase":"confirmatory","elapsed_us":30.0}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":0,"scale":"99","phase":"confirmatory","elapsed_us":30.0}
     #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":1,"scale":"10","phase":"confirmatory","elapsed_us":1.0}
-    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":2,"scale":"100","phase":"confirmatory","elapsed_us":4.0}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":2,"scale":"50","phase":"confirmatory","elapsed_us":4.0}
   guard document_from_jsonl(source) is Ok(document) else {
     abort("expected a document")
   }
   let plot = document.plots[0]
   assert_true(plot.x_axis is @ir.AxisScale::Linear)
   let (x_values, positions, labelled) = x_layout(plot)
-  assert_true(x_values == ["10", "100", "1000"])
+  assert_true(x_values == ["10", "50", "99"])
   assert_eq(positions[0], 76.0)
   assert_eq(positions[2], 880.0)
-  // 10 and 100 are 73 px apart on a 10..1000 axis, so both are labelled.
-  assert_true(positions[1] > 76.0 && positions[1] < 160.0)
+  // 50 is slightly before the midpoint on a 10..99 linear axis.
+  assert_true(positions[1] > 430.0 && positions[1] < 440.0)
   assert_true(labelled == [true, true, true])
+  assert_true(log_ticks(1.0, 10.0) == [1.0, 2.0, 5.0, 10.0])
+  assert_true(has_log_span([1.0, 100.0]))
+  assert_true(!has_log_span([1.0, 99.0]))
   let svg = plot_svg(plot)
   assert_true(svg.contains("<polyline"))
   assert_true(svg.contains("points=\"76,"))
+}
+
+///|
+test "wide numeric scales use a logarithmic axis without squeezing small scales" {
+  let source =
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":0,"scale":"10000","phase":"confirmatory","elapsed_us":30.0}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":1,"scale":"1","phase":"confirmatory","elapsed_us":1.0}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":2,"scale":"100","phase":"confirmatory","elapsed_us":4.0}
+  guard document_from_jsonl(source) is Ok(document) else {
+    abort("expected a document")
+  }
+  let plot = document.plots[0]
+  assert_true(plot.x_axis is @ir.AxisScale::Log)
+  assert_true(plot.y_axis is @ir.AxisScale::Linear)
+  let (x_values, positions, labelled) = x_layout(plot)
+  assert_true(x_values == ["1", "100", "10000"])
+  assert_eq(positions[0], 76.0)
+  assert_eq(positions[2], 880.0)
+  assert_true(positions[1] > 475.0 && positions[1] < 481.0)
+  assert_true(labelled == [true, true, true])
+  let svg = plot_svg(plot)
+  assert_true(svg.contains("scale (log₁₀)"))
+  assert_true(svg.contains("X uses a base-10 logarithmic axis."))
+  let json = plot_json(document)
+  assert_true(json.contains("\"x_axis\":\"log\",\"y_axis\":\"linear\""))
+}
+
+///|
+test "scaling plot selects logarithmic y independently for wide positive values" {
+  let source =
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":0,"scale":"1","phase":"confirmatory","elapsed_us":0.01}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":1,"scale":"2","phase":"confirmatory","elapsed_us":1.0}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":2,"scale":"3","phase":"confirmatory","elapsed_us":10.0}
+  guard document_from_jsonl(source) is Ok(document) else {
+    abort("expected a document")
+  }
+  let plot = document.plots[0]
+  assert_true(plot.x_axis is @ir.AxisScale::Linear)
+  assert_true(plot.y_axis is @ir.AxisScale::Log)
+  let svg = plot_svg(plot)
+  assert_true(svg.contains("µs/op (log₁₀)"))
+  assert_true(svg.contains("Y uses a base-10 logarithmic axis."))
+  assert_true(svg.contains(">0.01</text>"))
+  assert_true(svg.contains(">1</text>"))
+  let equal_multiplicative_steps = @ir.Plot::new(
+    @ir.PlotKind::Scaling,
+    "equal ratios",
+    "µs/op",
+    "median",
+    [
+      @ir.PlotPoint::new("a", 1.0, "loop"),
+      @ir.PlotPoint::new("b", 100.0, "loop"),
+      @ir.PlotPoint::new("c", 10000.0, "loop"),
+    ],
+    y_axis=@ir.AxisScale::Log,
+  )
+  assert_true(uses_log_y(equal_multiplicative_steps))
+  assert_eq(
+    y_transform(equal_multiplicative_steps, 100.0) -
+    y_transform(equal_multiplicative_steps, 1.0),
+    y_transform(equal_multiplicative_steps, 10000.0) -
+    y_transform(equal_multiplicative_steps, 100.0),
+  )
+}
+
+///|
+test "wide-axis automatic log selection falls back for non-positive and narrow data" {
+  assert_true(!has_log_span([]))
+  assert_true(!has_log_span([5.0, 5.0]))
+  assert_true(!has_log_span([0.0, 1000.0]))
+  assert_true(!has_log_span([-1.0, 1000.0]))
+  assert_true(!has_log_span([@math.log10(-1.0), 1000.0]))
+  assert_true(!has_log_span([@math.pow(10.0, 400.0), 1000.0]))
+  let non_positive = @ir.Plot::new(
+    @ir.PlotKind::Scaling,
+    "non-positive",
+    "µs/op",
+    "median",
+    [
+      @ir.PlotPoint::new("0", 1.0, "loop"),
+      @ir.PlotPoint::new("1000", -2.0, "loop"),
+    ],
+    x_axis=@ir.AxisScale::Linear,
+    y_axis=@ir.AxisScale::Linear,
+  )
+  assert_true(!uses_log_x(non_positive))
+  assert_true(!uses_log_y(non_positive))
+  let narrow = @ir.Plot::new(
+    @ir.PlotKind::Scaling,
+    "narrow",
+    "µs/op",
+    "median",
+    [
+      @ir.PlotPoint::new("10", 10.0, "loop"),
+      @ir.PlotPoint::new("90", 90.0, "loop"),
+    ],
+    x_axis=@ir.AxisScale::Log,
+    y_axis=@ir.AxisScale::Log,
+  )
+  assert_true(uses_log_x(narrow))
+  assert_true(uses_log_y(narrow))
+  let narrow_auto =
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":0,"scale":"10","phase":"confirmatory","elapsed_us":10.0}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":1,"scale":"90","phase":"confirmatory","elapsed_us":90.0}
+  guard document_from_jsonl(narrow_auto) is Ok(document) else {
+    abort("expected a document")
+  }
+  assert_true(document.plots[0].x_axis is @ir.AxisScale::Linear)
+  assert_true(document.plots[0].y_axis is @ir.AxisScale::Linear)
+  let independent_fallback =
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":0,"scale":"0","phase":"confirmatory","elapsed_us":1.0}
+    #|{"type":"observation","case":"sum","implementation":"loop","dataset_id":1,"scale":"10000","phase":"confirmatory","elapsed_us":1000.0}
+  guard document_from_jsonl(independent_fallback) is Ok(document) else {
+    abort("expected a document")
+  }
+  assert_true(document.plots[0].x_axis is @ir.AxisScale::Linear)
+  assert_true(document.plots[0].y_axis is @ir.AxisScale::Log)
 }
 
 ///|

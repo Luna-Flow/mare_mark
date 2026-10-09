@@ -638,70 +638,74 @@ msgid "`PlotDocument` is one report."
 msgstr ""
 
 #: manual/api/ir_model.md:41
-msgid "`new(run_id, target, plots)` sets `schema_version` to `SchemaVersion::V1` (`mmks_1`); `differential` defaults to `DifferentialReport::empty()`."
+msgid "`new(run_id, target, plots)` sets `schema_version` to `SchemaVersion::V2` (`mmks_2`); `differential` defaults to `DifferentialReport::empty()`. V1 is deprecated because it cannot identify the y-axis scale."
 msgstr ""
 
-#: manual/api/ir_model.md:44
+#: manual/api/ir_model.md:45
 msgid "Plots"
 msgstr ""
 
-#: manual/api/ir_model.md:48
+#: manual/api/ir_model.md:49
 msgid "`Plot` is one chart."
 msgstr ""
 
-#: manual/api/ir_model.md:61
+#: manual/api/ir_model.md:66
 msgid "`unit` labels the y axis; `interval_kind` describes what the values are (`\"raw\"`, `\"median\"`, a confidence level)."
 msgstr ""
 
-#: manual/api/ir_model.md:66
+#: manual/api/ir_model.md:69
+msgid "`AxisScale` is `Categorical`, `Linear` or `Log`; x defaults to `Categorical`, y to `Linear`. A log axis places positive values by `log10(value)`, so callers should select it only for positive finite values."
+msgstr ""
+
+#: manual/api/ir_model.md:75
 msgid "`PlotPoint` is one value at a categorical x position in a named series."
 msgstr ""
 
-#: manual/api/ir_model.md:77
+#: manual/api/ir_model.md:86
 msgid "An empty `series` is drawn as `\"value\"`."
 msgstr ""
 
-#: manual/api/ir_model.md:81
+#: manual/api/ir_model.md:90
 msgid "`PlotKind` selects how a plot is drawn and labelled."
 msgstr ""
 
-#: manual/api/ir_model.md:96
+#: manual/api/ir_model.md:105
 msgid "`Scaling`, `Interval` and `ChangePoint` are drawn as points with lines through per-category means; `Heatmap` as cells; the others as points."
 msgstr ""
 
-#: manual/api/ir_model.md:114
+#: manual/api/ir_model.md:123
 msgid "Differential report"
 msgstr ""
 
-#: manual/api/ir_model.md:118
+#: manual/api/ir_model.md:127
 msgid "`DifferentialReport` gathers the correctness evidence of a run."
 msgstr ""
 
-#: manual/api/ir_model.md:131
+#: manual/api/ir_model.md:140
 msgid "`empty()` has no rows and all corpus counts `0`."
 msgstr ""
 
-#: manual/api/ir_model.md:135
+#: manual/api/ir_model.md:144
 msgid "`MismatchRow` is one failed validation."
 msgstr ""
 
-#: manual/api/ir_model.md:152
+#: manual/api/ir_model.md:161
 msgid "`report` fills `flags_diff` as the expected flags, `\" → \"`, and the actual flags, each joined with `\", \"`."
 msgstr ""
 
-#: manual/api/ir_model.md:157
+#: manual/api/ir_model.md:166
 msgid "`CapabilityCell` counts the outcomes of one kind for one implementation."
 msgstr ""
 
-#: manual/api/ir_model.md:168
+#: manual/api/ir_model.md:177
 msgid "`outcome_kind` is an `ExecutionOutcome::kind` string."
 msgstr ""
 
-#: manual/api/ir_model.md:172
+#: manual/api/ir_model.md:181
 msgid "`Counterexample` is a minimized failing input."
 msgstr ""
 
-#: manual/api/ir_model.md:187
+#: manual/api/ir_model.md:196
 msgid "`CorpusSummary` counts validation outcomes."
 msgstr ""
 
@@ -765,353 +769,353 @@ msgstr ""
 msgid "These enums name the versioned contracts: the run protocol vocabulary (`mmkp`), the JSONL artifacts (`mmka`) and the Plot IR schema (`mmks`)."
 msgstr ""
 
-#: manual/api/model.md:67
-msgid "`implementation` is the prefix, `version` the number, and `identifier` is `implementation + \"_\" + version`. All three `V1` values are `Supported`."
+#: manual/api/model.md:68
+msgid "`implementation` is the prefix, `version` the number, and `identifier` is `implementation + \"_\" + version`. Protocol and artifact V1 are `Supported`; schema V1 is `Deprecated` and schema V2 is `Supported`."
 msgstr ""
 
-#: manual/api/model.md:81
+#: manual/api/model.md:85
 msgid "`VersionLifecycle` says whether a version is still accepted."
 msgstr ""
 
-#: manual/api/model.md:90
+#: manual/api/model.md:94
 msgid "Datasets and keys"
 msgstr ""
 
-#: manual/api/model.md:94
+#: manual/api/model.md:98
 msgid "`DatasetKey` identifies one dataset of a case: its scale and its index."
 msgstr ""
 
-#: manual/api/model.md:104
+#: manual/api/model.md:108
 msgid "The runner uses the position of the scale in the case's scale list as `dataset_id`."
 msgstr ""
 
-#: manual/api/model.md:109
+#: manual/api/model.md:113
 msgid "`MeasurementKey` identifies one measured batch: dataset, repetition and block."
 msgstr ""
 
-#: manual/api/model.md:120
+#: manual/api/model.md:124
 msgid "Two measurements are paired when their keys are equal."
 msgstr ""
 
-#: manual/api/model.md:124
+#: manual/api/model.md:128
 msgid "`GenerationContext` is everything an input generator may depend on."
 msgstr ""
 
-#: manual/api/model.md:138
+#: manual/api/model.md:142
 msgid "A generator that reads only these fields is reproducible. The runner fills `seed` with the run seed, `suite_id` with `\"default\"`, and the generator id and version with the fixture's id and version."
 msgstr ""
 
-#: manual/api/model.md:144
+#: manual/api/model.md:148
 msgid "`CaseDescriptor` describes one operation for validation evidence."
 msgstr ""
 
-#: manual/api/model.md:156
+#: manual/api/model.md:160
 msgid "Run protocol"
 msgstr ""
 
-#: manual/api/model.md:160
+#: manual/api/model.md:164
 msgid "`RunProtocol` is the complete measurement protocol of a run."
 msgstr ""
 
-#: manual/api/model.md:178
+#: manual/api/model.md:182
 msgid "The runner acts on the warmup, calibration, order and sample-count fields; the others record the intended analysis. `@runner.validate_protocol` checks the values, and `@runner.ProtocolPreset` provides three complete protocols."
 msgstr ""
 
-#: manual/api/model.md:184
+#: manual/api/model.md:188
 msgid "`CalibrationProtocol` controls how many iterations a timed batch contains."
 msgstr ""
 
-#: manual/api/model.md:197
+#: manual/api/model.md:201
 msgid "Calibration grows the batch from `min_batch_iterations` until it lasts `target_batch_time_us`, reaches `max_batch_iterations` or exceeds `max_sample_time_us`."
 msgstr ""
 
-#: manual/api/model.md:203
+#: manual/api/model.md:207
 msgid "These enums name the choices a `RunProtocol` records."
 msgstr ""
 
-#: manual/api/model.md:235
+#: manual/api/model.md:239
 msgid "Enum"
 msgstr ""
 
-#: manual/api/model.md:235
-#: manual/api/model.md:466
+#: manual/api/model.md:239
+#: manual/api/model.md:470
 #: manual/api/runner.md:40
 #: manual/api/stats.md:118
 #: manual/api/stats.md:163
 msgid "Meaning"
 msgstr ""
 
-#: manual/api/model.md:237
+#: manual/api/model.md:241
 msgid "the intended sampling structure: repeated measurements of one dataset, one measurement of many datasets, or both"
 msgstr ""
 
-#: manual/api/model.md:238
+#: manual/api/model.md:242
 msgid "calibrate each implementation separately, or give all the smallest calibrated size"
 msgstr ""
 
-#: manual/api/model.md:239
+#: manual/api/model.md:243
 msgid "rotate implementation order per block with a seed, or keep the declared order"
 msgstr ""
 
-#: manual/api/model.md:240
+#: manual/api/model.md:244
 msgid "the outlier view for analysis: none, Tukey fences, or 3 MAD around the median (see `@stats.filter_outliers`)"
 msgstr ""
 
-#: manual/api/model.md:241
+#: manual/api/model.md:245
 msgid "the intended validation frequency"
 msgstr ""
 
-#: manual/api/model.md:245
+#: manual/api/model.md:249
 msgid "`IntervalMode` labels an interval with the phase whose data produced it."
 msgstr ""
 
-#: manual/api/model.md:256
+#: manual/api/model.md:260
 msgid "The enum is readonly outside the package; obtain values from the two functions."
 msgstr ""
 
-#: manual/api/model.md:261
+#: manual/api/model.md:265
 msgid "`SetupPolicy` tells the runner how often a fixture prepares its input and whether that work is timed."
 msgstr ""
 
-#: manual/api/model.md:296
+#: manual/api/model.md:300
 msgid "`frequency` and `timing` change what the runner times (the [runner design](../design/runner.md) has the exact table); `workspace_scope` documents how long a workspace lives and is not interpreted."
 msgstr ""
 
-#: manual/api/model.md:300
+#: manual/api/model.md:304
 msgid "Environment"
 msgstr ""
 
-#: manual/api/model.md:304
+#: manual/api/model.md:308
 msgid "`EnvironmentSnapshot` records where a run happened, in three parts."
 msgstr ""
 
-#: manual/api/model.md:317
+#: manual/api/model.md:321
 msgid "`SemanticEnvironment` holds what can change results, not only timings."
 msgstr ""
 
-#: manual/api/model.md:331
+#: manual/api/model.md:335
 msgid "`PerformanceEnvironment` holds what changes timings."
 msgstr ""
 
-#: manual/api/model.md:346
+#: manual/api/model.md:350
 msgid "`device` defaults to `\"host\"` and `frequency_policy` to `\"uncontrolled\"`."
 msgstr ""
 
-#: manual/api/model.md:350
+#: manual/api/model.md:354
 msgid "`ProvenanceEnvironment` holds where and when a run happened."
 msgstr ""
 
-#: manual/api/model.md:365
+#: manual/api/model.md:369
 msgid "`ExecutionTarget` names the MoonBit backend."
 msgstr ""
 
-#: manual/api/model.md:379
+#: manual/api/model.md:383
 msgid "`text` gives `\"native\"`, `\"js\"`, `\"wasm\"`, `\"wasm-gc\"`, `\"llvm\"` or the custom string."
 msgstr ""
 
-#: manual/api/model.md:384
+#: manual/api/model.md:388
 msgid "`environment_compatible` reports whether timings from two environments may be compared."
 msgstr ""
 
-#: manual/api/model.md:391
+#: manual/api/model.md:395
 msgid "It is true when every semantic and performance field is equal; provenance is ignored."
 msgstr ""
 
-#: manual/api/model.md:409
+#: manual/api/model.md:413
 msgid "Identities"
 msgstr ""
 
-#: manual/api/model.md:413
+#: manual/api/model.md:417
 msgid "`protocol_identity` returns a short key for a protocol."
 msgstr ""
 
-#: manual/api/model.md:419
+#: manual/api/model.md:423
 msgid "The key is `mmkp_1:<warmup_iterations>:<confirmatory_samples>:<practical_delta_pct>`. Only these three fields enter it; protocols that differ elsewhere share a key."
 msgstr ""
 
-#: manual/api/model.md:424
+#: manual/api/model.md:428
 msgid "`artifact_identity` returns a key for the artifacts of one case, implementation and dataset under a protocol."
 msgstr ""
 
-#: manual/api/model.md:431
+#: manual/api/model.md:435
 msgid "The key is `mmka_1:<case>:<implementation>:<dataset_id>:` followed by the protocol identity."
 msgstr ""
 
-#: manual/api/model.md:442
+#: manual/api/model.md:446
 msgid "Outcomes"
 msgstr ""
 
-#: manual/api/model.md:446
+#: manual/api/model.md:450
 msgid "`ExecutionOutcome` is what one operation produced."
 msgstr ""
 
-#: manual/api/model.md:466
-#: manual/api/model.md:789
+#: manual/api/model.md:470
+#: manual/api/model.md:793
 #: manual/api/stats.md:118
 #: manual/api/stats.md:286
 #: manual/api/tune.md:115
 msgid "Constructor"
 msgstr ""
 
-#: manual/api/model.md:468
+#: manual/api/model.md:472
 msgid "a result"
 msgstr ""
 
-#: manual/api/model.md:469
+#: manual/api/model.md:473
 msgid "a result with status flags (for example IEEE exceptions)"
 msgstr ""
 
-#: manual/api/model.md:470
+#: manual/api/model.md:474
 msgid "the operation trapped"
 msgstr ""
 
-#: manual/api/model.md:471
+#: manual/api/model.md:475
 msgid "the implementation does not support this input"
 msgstr ""
 
-#: manual/api/model.md:472
+#: manual/api/model.md:476
 msgid "a documented, accepted deviation"
 msgstr ""
 
-#: manual/api/model.md:473
+#: manual/api/model.md:477
 msgid "the result could not be decoded"
 msgstr ""
 
-#: manual/api/model.md:474
+#: manual/api/model.md:478
 msgid "a worker process failed"
 msgstr ""
 
-#: manual/api/model.md:475
+#: manual/api/model.md:479
 msgid "a worker exceeded its timeout"
 msgstr ""
 
-#: manual/api/model.md:477
+#: manual/api/model.md:481
 msgid "`value_option` returns the value of `Value` and `RaisedFlags`, otherwise `None`; `flags` returns the flags of `RaisedFlags` and `Trapped`, otherwise `[]`."
 msgstr ""
 
-#: manual/api/model.md:493
+#: manual/api/model.md:497
 msgid "`OperationResult` is an outcome together with the context for the next operation and captured process output."
 msgstr ""
 
-#: manual/api/model.md:508
+#: manual/api/model.md:512
 msgid "`completed(v, c)` is `new(Value(v), Some(c))`. `next_context = None` ends a sequence. `stdout` and `stderr` default to `\"\"`."
 msgstr ""
 
-#: manual/api/model.md:511
+#: manual/api/model.md:515
 #: manual/api/tune_gemm.md:329
 #: manual/index.md:127
 msgid "Validation"
 msgstr ""
 
-#: manual/api/model.md:515
+#: manual/api/model.md:519
 msgid "`ValidationStatus` is the verdict of an oracle on one step."
 msgstr ""
 
-#: manual/api/model.md:528
+#: manual/api/model.md:532
 msgid "The runner counts `Valid` as passed, `Invalid` and `InfrastructureFailure` as failed, `Unsupported` and `Skipped` as unsupported, and `ExpectedDifference` separately."
 msgstr ""
 
-#: manual/api/model.md:534
+#: manual/api/model.md:538
 msgid "`Validation` is one validation event."
 msgstr ""
 
-#: manual/api/model.md:548
+#: manual/api/model.md:552
 msgid "`new` leaves `evidence` empty; `detailed` attaches it."
 msgstr ""
 
-#: manual/api/model.md:552
+#: manual/api/model.md:556
 msgid "`ValidationEvidence` is everything needed to understand and replay one validated step."
 msgstr ""
 
-#: manual/api/model.md:579
+#: manual/api/model.md:583
 msgid "It is `pub(all)`: build it with a struct literal."
 msgstr ""
 
-#: manual/api/model.md:583
+#: manual/api/model.md:587
 msgid "`ValidationFailure` is a failed validation with its minimized input."
 msgstr ""
 
-#: manual/api/model.md:600
+#: manual/api/model.md:604
 msgid "`ReplaySpec` is a command that reproduces a failure."
 msgstr ""
 
-#: manual/api/model.md:611
+#: manual/api/model.md:615
 msgid "`timeout_ms` defaults to `5000`. `mare-mark replay` executes it."
 msgstr ""
 
-#: manual/api/model.md:613
+#: manual/api/model.md:617
 msgid "Run events"
 msgstr ""
 
-#: manual/api/model.md:617
+#: manual/api/model.md:621
 msgid "`Observation` is one timed batch."
 msgstr ""
 
-#: manual/api/model.md:637
+#: manual/api/model.md:641
 msgid "`raw_elapsed_us` is the batch time divided by `iterations`, in µs per operation; it is not filtered or aggregated across batches. `repetition_id` counts blocks within the phase, `block_id` counts them across both phases."
 msgstr ""
 
-#: manual/api/model.md:651
+#: manual/api/model.md:655
 msgid "`text` gives `\"exploratory\"` or `\"confirmatory\"`."
 msgstr ""
 
-#: manual/api/model.md:655
+#: manual/api/model.md:659
 msgid "`BatchSinkStatus` records whether a batch is kept for analysis."
 msgstr ""
 
-#: manual/api/model.md:665
+#: manual/api/model.md:669
 msgid "`text` gives `\"kept\"` or `\"discarded:<reason>\"`. The runner emits `Kept`; reports skip discarded batches."
 msgstr ""
 
-#: manual/api/model.md:670
+#: manual/api/model.md:674
 msgid "`CalibrationEvent` records the batch size chosen for one implementation and dataset."
 msgstr ""
 
-#: manual/api/model.md:685
+#: manual/api/model.md:689
 msgid "`elapsed_us` is the time of the last calibration batch."
 msgstr ""
 
-#: manual/api/model.md:689
+#: manual/api/model.md:693
 msgid "`RunSummary` closes a run."
 msgstr ""
 
-#: manual/api/model.md:708
+#: manual/api/model.md:712
 msgid "The counts default to `0` and `environment` to `None`."
 msgstr ""
 
-#: manual/api/model.md:710
+#: manual/api/model.md:714
 msgid "Decisions and deployment"
 msgstr ""
 
-#: manual/api/model.md:714
+#: manual/api/model.md:718
 msgid "`ScaleBoundary` is the place where the preferred implementation changes."
 msgstr ""
 
-#: manual/api/model.md:726
+#: manual/api/model.md:730
 msgid "`CrossoverResult` is the outcome of a crossover search over scales."
 msgstr ""
 
-#: manual/api/model.md:741
+#: manual/api/model.md:745
 msgid "The strings are a policy or reason, and the arrays are evidence (the labels or ids the result is based on). The enum is readonly outside the package; build it with the four functions. `@experiment.crossover_from_labels` produces it."
 msgstr ""
 
-#: manual/api/model.md:747
+#: manual/api/model.md:751
 msgid "`Region` assigns a choice to a range of keys."
 msgstr ""
 
-#: manual/api/model.md:759
+#: manual/api/model.md:763
 msgid "`None` bounds are open."
 msgstr ""
 
-#: manual/api/model.md:763
+#: manual/api/model.md:767
 msgid "`ParetoPoint` is a choice with two costs."
 msgstr ""
 
-#: manual/api/model.md:777
+#: manual/api/model.md:781
 msgid "`DeploymentPolicy` is how a tuning or crossover result is used in production."
 msgstr ""
 
-#: manual/api/model.md:789
+#: manual/api/model.md:793
 #: manual/tutorial/cli.md:8
 #: manual/tutorial/event.md:7
 #: manual/tutorial/experiment.md:8
@@ -1128,23 +1132,23 @@ msgstr ""
 msgid "Use"
 msgstr ""
 
-#: manual/api/model.md:791
+#: manual/api/model.md:795
 msgid "one choice everywhere"
 msgstr ""
 
-#: manual/api/model.md:792
+#: manual/api/model.md:796
 msgid "a choice per key range, for example below and above a crossover"
 msgstr ""
 
-#: manual/api/model.md:793
+#: manual/api/model.md:797
 msgid "a choice per measured key"
 msgstr ""
 
-#: manual/api/model.md:794
+#: manual/api/model.md:798
 msgid "the non-dominated trade-offs, left to the caller"
 msgstr ""
 
-#: manual/api/model.md:795
+#: manual/api/model.md:799
 msgid "a safe default when the evidence is insufficient"
 msgstr ""
 
@@ -1153,7 +1157,7 @@ msgid "report API"
 msgstr ""
 
 #: manual/api/report.md:5
-msgid "`Luna-Flow/mare_mark/report` turns a JSONL event stream into a Plot IR document and renders that document as `mmks_1` JSON, standalone SVG or a self-contained HTML page. All four functions are pure: they take strings and values and return strings. Reading and writing files is the job of the [`cli`](cli.md). The projection rules are explained in the [report design](../design/report.md)."
+msgid "`Luna-Flow/mare_mark/report` turns a JSONL event stream into a Plot IR document and renders that document as `mmks_2` JSON, standalone SVG or a self-contained HTML page. All four functions are pure: they take strings and values and return strings. Reading and writing files is the job of the [`cli`](cli.md). The projection rules are explained in the [report design](../design/report.md)."
 msgstr ""
 
 #: manual/api/report.md:12
@@ -1227,11 +1231,11 @@ msgid "Rendering"
 msgstr ""
 
 #: manual/api/report.md:81
-msgid "`plot_json` serializes a document as `mmks_1` JSON."
+msgid "`plot_json` serializes a document as `mmks_2` JSON."
 msgstr ""
 
 #: manual/api/report.md:87
-msgid "The object has the keys `schema_version`, `run_id`, `target`, `plots` (each with `kind`, `title`, `unit`, `interval_kind` and `points` of `x`, `y`, `series`) and `differential` (`mismatches`, `capabilities`, `counterexamples`, `corpus`). Plot kinds are written in snake case (`scaling`, `raw_distribution`, `block_order`, `interval`, `outlier`, `change_point`, `heatmap`, `pareto`). The output is compact, and strings are escaped by the JSON encoder."
+msgid "The object has the keys `schema_version`, `run_id`, `target`, `plots` (each with `kind`, `title`, `unit`, `interval_kind`, `x_axis`, `y_axis`, `x_label`, `note` and `points` of `x`, `y`, `series`) and `differential` (`mismatches`, `capabilities`, `counterexamples`, `corpus`). Plot kinds are written in snake case (`scaling`, `raw_distribution`, `block_order`, `interval`, `outlier`, `change_point`, `heatmap`, `pareto`). The output is compact, and strings are escaped by the JSON encoder."
 msgstr ""
 
 #: manual/api/report.md:108
@@ -1239,7 +1243,7 @@ msgid "`plot_svg` renders one plot as a standalone SVG element."
 msgstr ""
 
 #: manual/api/report.md:114
-msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, five horizontal grid lines with tick values, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
+msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, linear grid ticks or 1-2-5 ticks on logarithmic axes, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
 msgstr ""
 
 #: manual/api/report.md:139
@@ -2551,7 +2555,7 @@ msgid "Units and names"
 msgstr ""
 
 #: manual/conventions.md:30
-msgid "Times are microseconds unless a page says otherwise, written `µs`. Relative deltas are percentages. Schema identifiers (`mmkp_1`, `mmka_1`, `mmks_1`, `mmkts_1`) are written exactly as they appear in artifacts."
+msgid "Times are microseconds unless a page says otherwise, written `µs`. Relative deltas are percentages. Schema identifiers (`mmkp_1`, `mmka_1`, `mmks_1`, `mmks_2`, `mmkts_1`) are written exactly as they appear in artifacts."
 msgstr ""
 
 #: manual/conventions.md:34
@@ -2694,7 +2698,7 @@ msgstr ""
 #: manual/design/ir_model.md:56
 #: manual/design/ir_sink.md:30
 #: manual/design/model.md:109
-#: manual/design/report.md:131
+#: manual/design/report.md:142
 #: manual/design/runner.md:279
 #: manual/design/stats.md:422
 #: manual/design/tune.md:159
@@ -2723,10 +2727,10 @@ msgstr ""
 #: manual/design/experiment.md:145
 #: manual/design/fixture.md:98
 #: manual/design/generator.md:143
-#: manual/design/ir_model.md:62
+#: manual/design/ir_model.md:63
 #: manual/design/ir_sink.md:36
 #: manual/design/model.md:121
-#: manual/design/report.md:145
+#: manual/design/report.md:156
 #: manual/design/runner.md:300
 #: manual/design/stats.md:449
 #: manual/design/tune.md:172
@@ -2751,10 +2755,10 @@ msgstr ""
 #: manual/design/experiment.md:154
 #: manual/design/fixture.md:105
 #: manual/design/generator.md:151
-#: manual/design/ir_model.md:68
+#: manual/design/ir_model.md:71
 #: manual/design/ir_sink.md:41
 #: manual/design/model.md:130
-#: manual/design/report.md:154
+#: manual/design/report.md:166
 #: manual/design/runner.md:315
 #: manual/design/stats.md:467
 #: manual/design/tune.md:181
@@ -3429,38 +3433,38 @@ msgid "A version in every document"
 msgstr ""
 
 #: manual/design/ir_model.md:53
-msgid "`schema_version` is set by `PlotDocument::new` to `mmks_1` and written into the JSON form, so consumers can reject documents they do not understand."
+msgid "`schema_version` is set by `PlotDocument::new` to `mmks_2` and written into the JSON form, so consumers can reject documents they do not understand."
 msgstr ""
 
 #: manual/design/ir_model.md:58
-msgid "`PlotDocument::new` always sets `schema_version` to `V1`."
-msgstr ""
-
-#: manual/design/ir_model.md:59
-msgid "`DifferentialReport::empty()` has no rows and zero counts."
+msgid "`PlotDocument::new` always sets `schema_version` to `V2`; V1 is deprecated because it has no y-axis scale field."
 msgstr ""
 
 #: manual/design/ir_model.md:60
+msgid "`DifferentialReport::empty()` has no rows and zero counts."
+msgstr ""
+
+#: manual/design/ir_model.md:61
 msgid "Records are plain data: no validation, no derived fields."
 msgstr ""
 
-#: manual/design/ir_model.md:64
-msgid "**Numeric axes with units.** Postponed; see above."
+#: manual/design/ir_model.md:65
+msgid "**Renderer-inferred axes.** Rejected because a consumer must be able to reproduce the writer's coordinate mapping from the IR alone. Each plot carries both axis scales."
 msgstr ""
 
-#: manual/design/ir_model.md:65
+#: manual/design/ir_model.md:68
 msgid "**A plotting library's specification format.** Would tie the IR to one renderer."
 msgstr ""
 
-#: manual/design/ir_model.md:70
+#: manual/design/ir_model.md:73
 msgid "No rendering (that is `report`), no parsing, no statistics."
 msgstr ""
 
-#: manual/design/ir_model.md:71
+#: manual/design/ir_model.md:74
 msgid "The corpus total is not checked against the other counts."
 msgstr ""
 
-#: manual/design/ir_model.md:72
+#: manual/design/ir_model.md:75
 msgid "`PlotKind::Pareto` is a categorical scatter; there is no two-axis frontier in the IR."
 msgstr ""
 
@@ -3565,7 +3569,7 @@ msgid "Versioned identifiers"
 msgstr ""
 
 #: manual/design/model.md:61
-msgid "*Problem.* Readers of old JSONL must not silently misread new fields. *Choice.* Three version enums produce the identifiers `mmkp_1` (protocol vocabulary), `mmka_1` (event artifacts) and `mmks_1` (Plot IR). Every event carries `artifact_version`; readers reject unknown versions. *Why.* Additive changes keep the version; a breaking change adds `V2` and a lifecycle entry, and old readers fail loudly instead of guessing."
+msgid "*Problem.* Readers of old JSONL must not silently misread new fields. *Choice.* Three version enums produce the identifiers `mmkp_1` (protocol vocabulary), `mmka_1` (event artifacts) and `mmks_2` (Plot IR). Every event carries `artifact_version`; readers reject unknown versions. *Why.* Additive changes keep the version; a breaking change adds `V2` and a lifecycle entry, and old readers fail loudly instead of guessing."
 msgstr ""
 
 #: manual/design/model.md:68
@@ -3741,91 +3745,95 @@ msgid "*Problem.* Summaries hide distributions, raw clouds hide trends. *Choice.
 msgstr ""
 
 #: manual/design/report.md:102
-msgid "Categorical x axes"
+msgid "Axis selection for scaling plots"
 msgstr ""
 
 #: manual/design/report.md:104
-msgid "*Problem.* Scales are integers, shapes, layouts or names. *Choice.* `PlotPoint.x` is a string and the axis places categories evenly in order of first appearance. *Why.* A numeric axis would need a type for every scale. The cost is that spacing does not reflect magnitude, and a Pareto view is a categorical scatter, not a two-dimensional frontier."
+msgid "`PlotPoint.x` remains text so a scale can be an integer, shape, layout or name. For scaling plots, finite numeric x values are ordered numerically and placed on a linear axis unless all are positive and `max / min >= 100`; then x uses `log10(x)`. Y is evaluated independently by the same rule. This span is at least two decades and gives multiplicative changes equal distances because log10(b) - log10(a) = log10(b / a). If any value on an axis is non-finite or non-positive, or if the positive finite values span less than 100×, that axis stays linear. A nonnumeric x axis stays categorical in first-appearance order. Heatmaps also keep categorical x."
 msgstr ""
 
-#: manual/design/report.md:110
+#: manual/design/report.md:114
+msgid "Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range; x labels closer than 56 px are omitted. The SVG formats each tick from its original positive value and records each chosen axis scale in Plot IR and JSON. The plot note and axis label identify any log transform."
+msgstr ""
+
+#: manual/design/report.md:119
 msgid "Escaping order"
 msgstr ""
 
-#: manual/design/report.md:112
+#: manual/design/report.md:121
 msgid "Text is escaped by replacing `&`, `<`, `>`, `\"` and `'` in this order. `&` must be first: replacing it after `<` would turn the produced `&lt;` into `&amp;lt;`. Since every later replacement introduces only `&` that is already part of an entity, the result decodes back to the input exactly once. The same function escapes element text and attribute values."
 msgstr ""
 
-#: manual/design/report.md:118
+#: manual/design/report.md:127
 msgid "Self-contained output"
 msgstr ""
 
-#: manual/design/report.md:120
+#: manual/design/report.md:129
 msgid "The HTML embeds its CSS and inline SVG, loads no fonts, scripts or images, and declares `color-scheme: light`. It can be attached to an issue or archived with the JSONL and still render identically in ten years."
 msgstr ""
 
-#: manual/design/report.md:124
+#: manual/design/report.md:133
 msgid "Version gate"
 msgstr ""
 
-#: manual/design/report.md:126
-msgid "A line whose `artifact_version` is a string other than `mmka_1` is rejected with its line number. Lines without the field are accepted, so hand-written fixtures and earlier streams stay readable; a non-string version is an error. JSON output carries `schema_version` `mmks_1`."
+#: manual/design/report.md:135
+msgid "A line whose `artifact_version` is a string other than `mmka_1` is rejected with its line number. Lines without the field are accepted, so hand-written fixtures and earlier streams stay readable; a non-string version is an error. JSON output carries `schema_version` `mmks_2` and each plot's x and y axis scales. This version change lets consumers distinguish documents whose y-axis mapping is explicit from older `mmks_1` documents."
 msgstr ""
 
-#: manual/design/report.md:133
+#: manual/design/report.md:144
 msgid "**Determinism.** Every function is pure; equal inputs give equal strings."
 msgstr ""
 
-#: manual/design/report.md:134
+#: manual/design/report.md:145
 msgid "**Exclusion.** No point comes from an observation that is invalid, discarded or covered by a failing validation (definition of $P$)."
 msgstr ""
 
-#: manual/design/report.md:136
+#: manual/design/report.md:147
 msgid "**Containment.** For finite values, every point lies strictly inside the plot area, and every heatmap opacity lies in $(0.18, 0.90)$ (derived above)."
 msgstr ""
 
-#: manual/design/report.md:138
+#: manual/design/report.md:149
 msgid "**Escaping.** All text originating from events, titles, units and series names passes through the escape function before reaching SVG or HTML."
 msgstr ""
 
-#: manual/design/report.md:140
+#: manual/design/report.md:151
 msgid "**Complexity.** Parsing is linear in the stream size, except that each point is checked against the list of failure keys, $O(\\lvert O\\rvert \\cdot \\lvert F\\rvert)$. Rendering a plot with $N$ points, $m$ categories and $S$ series is $O(N(m + S) + mSN)$ because line means are recomputed per cell."
 msgstr ""
 
-#: manual/design/report.md:147
+#: manual/design/report.md:158
 msgid "**A JavaScript charting library.** It would need scripts or a CDN and would make the output depend on a browser runtime."
 msgstr ""
 
-#: manual/design/report.md:149
+#: manual/design/report.md:160
 msgid "**Rendering only summaries.** Hides bimodality and outliers."
 msgstr ""
 
-#: manual/design/report.md:150
-msgid "**A numeric x axis.** Needs a scale type per case; postponed."
-msgstr ""
-
-#: manual/design/report.md:151
-msgid "**Treating failed implementations as zero or infinite time.** Both are misleading values on a timing axis."
-msgstr ""
-
-#: manual/design/report.md:156
-msgid "The JSONL projection builds one `Scaling` plot. Other plot kinds are rendered when a caller constructs them in Plot IR, but nothing derives them from events yet."
-msgstr ""
-
-#: manual/design/report.md:159
-msgid "Observations of exploratory and confirmatory phases are plotted together, and the x value is the dataset index, not the scale."
-msgstr ""
-
 #: manual/design/report.md:161
-msgid "The target is passed in by the caller; it is not read from the stream."
-msgstr ""
-
-#: manual/design/report.md:162
-msgid "No statistics, decisions or environment comparison are computed here."
+msgid "**One axis policy for both dimensions.** Rejected because x and y can have different ranges and need independent scale choices."
 msgstr ""
 
 #: manual/design/report.md:163
-msgid "Styling, colours and layout are not a compatibility promise; the `mmks_1` JSON structure is."
+msgid "**Treating failed implementations as zero or infinite time.** Both are misleading values on a timing axis."
+msgstr ""
+
+#: manual/design/report.md:168
+msgid "The JSONL projection builds one `Scaling` plot. Other plot kinds are rendered when a caller constructs them in Plot IR, but nothing derives them from events yet."
+msgstr ""
+
+#: manual/design/report.md:171
+msgid "Observations of exploratory and confirmatory phases are plotted together, and the x value is the dataset index, not the scale."
+msgstr ""
+
+#: manual/design/report.md:173
+msgid "The target is passed in by the caller; it is not read from the stream."
+msgstr ""
+
+#: manual/design/report.md:174
+msgid "No statistics, decisions or environment comparison are computed here."
+msgstr ""
+
+#: manual/design/report.md:175
+msgid "Styling, colours and layout are not a compatibility promise; the `mmks_2` JSON structure is."
 msgstr ""
 
 #: manual/design/runner.md:1
@@ -5350,7 +5358,7 @@ msgid "Versioned contracts"
 msgstr ""
 
 #: manual/index.md:104
-msgid "mare_mark is pre-1.0. The versioned contracts are the protocol vocabulary `mmkp_1`, the JSONL artifacts `mmka_1`, the Plot IR schema `mmks_1` and the GEMM tuning configuration `mmkts_1`; readers reject other versions. Timing thresholds, candidate enumeration, HTML styling and private layouts are not compatibility promises. Each design page ends with the package's boundaries."
+msgid "mare_mark is pre-1.0. The versioned contracts are the protocol vocabulary `mmkp_1`, the JSONL artifacts `mmka_1`, the Plot IR schema `mmks_2` and the GEMM tuning configuration `mmkts_1`; readers reject other versions. Timing thresholds, candidate enumeration, HTML styling and private layouts are not compatibility promises. Each design page ends with the package's boundaries."
 msgstr ""
 
 #: manual/index.md:110
@@ -6230,7 +6238,7 @@ msgid "report tutorial"
 msgstr ""
 
 #: manual/tutorial/report.md:3
-msgid "This tutorial publishes benchmark results: you render a JSONL event stream as a self-contained HTML page, see how failed validations appear, export the machine-readable `mmks_1` JSON, and draw plots of your own. The examples are complete tests; file writing is left to your program or to the [`mare-mark` command](cli.md)."
+msgid "This tutorial publishes benchmark results: you render a JSONL event stream as a self-contained HTML page, see how failed validations appear, export the machine-readable `mmks_2` JSON, and draw plots of your own. The examples are complete tests; file writing is left to your program or to the [`mare-mark` command](cli.md)."
 msgstr ""
 
 #: manual/tutorial/report.md:11
@@ -6294,7 +6302,7 @@ msgid "Export JSON for other tools"
 msgstr ""
 
 #: manual/tutorial/report.md:109
-msgid "`plot_json` writes the same document as `mmks_1` JSON, which a notebook or a dashboard can read without parsing HTML:"
+msgid "`plot_json` writes the same document as `mmks_2` JSON, which a notebook or a dashboard can read without parsing HTML:"
 msgstr ""
 
 #: manual/tutorial/report.md:122

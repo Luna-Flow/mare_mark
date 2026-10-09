@@ -293,6 +293,7 @@ pub fn[Scale] ScaleBoundary::new(Scale, Scale) -> Self[Scale]
 
 pub(all) enum SchemaVersion {
   V1
+  V2
 }
 pub fn SchemaVersion::identifier(Self) -> String
 pub fn SchemaVersion::implementation(Self) -> String

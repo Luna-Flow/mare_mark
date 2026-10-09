@@ -29,7 +29,7 @@ such as timings or decisions on real measurements.
 
 Times are microseconds unless a page says otherwise, written `µs`. Relative
 deltas are percentages. Schema identifiers (`mmkp_1`, `mmka_1`, `mmks_1`,
-`mmkts_1`) are written exactly as they appear in artifacts.
+`mmks_2`, `mmkts_1`) are written exactly as they appear in artifacts.
 
 ## Translation
 
