@@ -13,7 +13,7 @@ pub fn load_replay_spec(String) -> Result[@model.ReplaySpec, String]
 
 pub fn parse_args(Array[String]) -> CliRequest
 
-pub fn render_jsonl_report(String, String, target? : String) -> Result[String, String]
+pub fn render_jsonl_report(String, String, target? : String, baseline? : String) -> Result[String, String]
 
 pub fn replay_spec_from_jsonl(String) -> Result[@model.ReplaySpec, String]
 
@@ -32,6 +32,7 @@ pub struct CliRequest {
   yes : Bool
   quiet : Bool
   open : Bool
+  baseline : String?
   show_help : Bool
   error : String?
 }

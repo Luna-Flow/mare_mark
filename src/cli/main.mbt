@@ -49,6 +49,23 @@ fn elapsed_text(elapsed_us : Double) -> String {
 }
 
 ///|
+/// The comparison table `mare-mark report` prints and whether it goes to
+/// stderr: it does when the HTML is written to stdout (`-`). `None` under
+/// `--quiet` or when the document has no comparisons.
+fn report_comparison_output(
+  document : @ir.PlotDocument,
+  output_path : String,
+  quiet : Bool,
+) -> (String, Bool)? {
+  let text = @report.comparisons_text(document)
+  if quiet || text.is_empty() {
+    None
+  } else {
+    Some((text, output_path == "-"))
+  }
+}
+
+///|
 async fn main {
   let request = parse_args(@env.args())
   if request.show_help {
@@ -144,19 +161,36 @@ async fn main {
             .split("\n")
             .filter(line => line.trim() != "")
             .length()
-          match @report.document_from_jsonl(source, target="native") {
+          match
+            @report.document_from_jsonl(
+              source,
+              target="native",
+              baseline?=request.baseline,
+            ) {
             Err(message) => {
               write_stderr(
                 "mare-mark: error: " +
                 message +
-                "\nCheck that every input line is valid JSONL.",
+                (if message.has_prefix("unknown baseline") {
+                  "\nCheck the --baseline value."
+                } else {
+                  "\nCheck that every input line is valid JSONL."
+                }),
               )
               @sys.exit(1)
             }
             Ok(document) => {
               let html = @report.html(document)
+              let table = report_comparison_output(
+                document,
+                output_path,
+                request.quiet,
+              )
               if output_path == "-" {
                 @stdio.stdout.write(html)
+                if table is Some((text, _)) {
+                  write_stderr(text)
+                }
               } else {
                 let absolute = @path.Path::resolve(output_path).to_string()
                 try @fs.write_string_to_file(absolute, html) catch {
@@ -184,6 +218,9 @@ async fn main {
                     "\nelapsed: " +
                     elapsed_text(elapsed),
                   )
+                }
+                if table is Some((text, _)) {
+                  write_stdout(text)
                 }
               }
             }

@@ -129,3 +129,66 @@ test "report elapsed time converts microseconds to milliseconds" {
   assert_eq(elapsed_text(1177.958), "1.177958ms")
   assert_eq(elapsed_text(2500.0), "2.5ms")
 }
+
+///|
+test "report accepts a baseline implementation" {
+  let request = parse_args([
+    "mare-mark", "report", "--baseline", "scalar", "--quiet", "in.jsonl", "out.html",
+  ])
+  assert_true(request.baseline is Some("scalar"))
+  assert_true(request.quiet)
+  assert_true(request.input is Some("in.jsonl"))
+  assert_true(request.output is Some("out.html"))
+  assert_true(request.error is None)
+  let inline = parse_args(["mare-mark", "report", "--baseline=simd", "-", "-"])
+  assert_true(inline.baseline is Some("simd"))
+  assert_true(inline.output is Some("-"))
+  let missing = parse_args(["mare-mark", "report", "in.jsonl", "--baseline"])
+  assert_true(
+    missing.error is Some("option '--baseline' requires an implementation id"),
+  )
+  assert_true(parse_args(["mare-mark", "report"]).baseline is None)
+  assert_true(command_help(Report).contains("--baseline <id>"))
+  assert_true(usage().contains("--baseline scalar"))
+}
+
+///|
+#cfg(target="native")
+test "report prints the comparison table unless quiet" {
+  let lines = []
+  for block = 0; block < 3; block = block + 1 {
+    for implementation in ["base", "fast"] {
+      lines.push(
+        "{\"type\":\"observation\",\"case\":\"c\",\"implementation\":\"" +
+        implementation +
+        "\",\"dataset_id\":0,\"block_id\":" +
+        block.to_string() +
+        ",\"scale\":\"8\",\"elapsed_us\":" +
+        (if implementation == "base" { "10" } else { "5" }) +
+        "}",
+      )
+    }
+  }
+  let source = lines.join("\n")
+  guard @report.document_from_jsonl(source) is Ok(document) else {
+    abort("document")
+  }
+  guard report_comparison_output(document, "out.html", false)
+    is Some((text, false)) else {
+    abort("expected the table on stdout")
+  }
+  assert_true(text.has_prefix("Comparisons\n"))
+  assert_true(text.contains("base      fast"))
+  assert_true(text.contains("Faster"))
+  assert_true(report_comparison_output(document, "-", false) is Some((_, true)))
+  assert_true(report_comparison_output(document, "-", true) is None)
+  guard @report.document_from_jsonl(source, baseline="fast") is Ok(swapped) else {
+    abort("document")
+  }
+  guard report_comparison_output(swapped, "out.html", false) is Some((text, _)) else {
+    abort("expected a table")
+  }
+  assert_true(text.contains("fast      base") && text.contains("Slower"))
+  let single = @report.document_from_jsonl(lines[0]).unwrap()
+  assert_true(report_comparison_output(single, "out.html", false) is None)
+}

@@ -16,6 +16,8 @@ pub struct CliRequest {
   yes : Bool
   quiet : Bool
   open : Bool
+  /// `--baseline <id>`: the implementation every other one is compared with.
+  baseline : String?
   show_help : Bool
   error : String?
 }
@@ -47,6 +49,7 @@ pub fn parse_args(arguments : Array[String]) -> CliRequest {
       yes: false,
       quiet: false,
       open: false,
+      baseline: None,
       show_help: true,
       error: None,
     }
@@ -56,10 +59,22 @@ pub fn parse_args(arguments : Array[String]) -> CliRequest {
   let mut yes = false
   let mut quiet = false
   let mut open = false
+  let mut baseline : String? = None
   let mut error : String? = None
-  for i = 2; i < arguments.length(); i = i + 1 {
+  let mut i = 2
+  while i < arguments.length() {
     let value = arguments[i]
-    if value == "--dry-run" {
+    i = i + 1
+    if value == "--baseline" {
+      if i < arguments.length() {
+        baseline = Some(arguments[i])
+        i = i + 1
+      } else if error is None {
+        error = Some("option '--baseline' requires an implementation id")
+      }
+    } else if value.has_prefix("--baseline=") {
+      baseline = Some(value.unsafe_substring(start=11, end=value.length()))
+    } else if value == "--dry-run" {
       dry_run = true
     } else if value == "--yes" {
       yes = true
@@ -86,6 +101,7 @@ pub fn parse_args(arguments : Array[String]) -> CliRequest {
     yes,
     quiet,
     open,
+    baseline,
     show_help: false,
     error,
   }
@@ -93,14 +109,14 @@ pub fn parse_args(arguments : Array[String]) -> CliRequest {
 
 ///|
 pub fn usage() -> String {
-  "mare-mark <replay|report> [options] [input] [output]\n\nCommands:\n  report   Convert JSONL events to HTML\n  replay   Replay the command recorded in a validation_failure artifact\n\nOptions:\n  -h, --help       Show command help\n  -V, --version    Show version\n\nExamples:\n  mare-mark report events.jsonl report.html\n  mare-mark report - -\n  mare-mark replay failure.jsonl --dry-run\n\nInput may be '-' for stdin; report output may be '-' for stdout. Replay requires the native target."
+  "mare-mark <replay|report> [options] [input] [output]\n\nCommands:\n  report   Convert JSONL events to HTML and print the paired comparisons\n  replay   Replay the command recorded in a validation_failure artifact\n\nOptions:\n  -h, --help       Show command help\n  -V, --version    Show version\n\nExamples:\n  mare-mark report events.jsonl report.html\n  mare-mark report --baseline scalar events.jsonl report.html\n  mare-mark report - -\n  mare-mark replay failure.jsonl --dry-run\n\nInput may be '-' for stdin; report output may be '-' for stdout. Replay requires the native target."
 }
 
 ///|
 pub fn command_help(command : Command) -> String {
   match command {
     Report =>
-      "mare-mark report [--quiet] [--open] <input.jsonl|-> <output.html|->\nReads JSONL events and writes a self-contained HTML report.\nUse --quiet to suppress progress; --open opens the generated report on native."
+      "mare-mark report [--quiet] [--open] [--baseline <id>] <input.jsonl|-> <output.html|->\nReads JSONL events and writes a self-contained HTML report, then prints the\npaired comparison table (to stderr when the HTML goes to stdout).\n--baseline <id> compares every implementation with <id> (default: the first\nimplementation of each case).\nUse --quiet to suppress progress and the table; --open opens the generated report on native."
     Replay =>
       "mare-mark replay [--dry-run] [--yes] <artifact.jsonl|->\n--dry-run prints the recorded command and timeout without executing it.\nExecution requires both --yes and the native target."
     _ => usage()
@@ -117,13 +133,14 @@ pub fn render_jsonl_report(
   input_path : String,
   output_path : String,
   target? : String = "unknown",
+  baseline? : String,
 ) -> Result[String, String] {
   let source = try @fs.read_file_to_string(input_path) catch {
     _ => return Err("cannot read report input: " + input_path)
   } noraise {
     source => source
   }
-  let document = match @report.document_from_jsonl(source, target~) {
+  let document = match @report.document_from_jsonl(source, target~, baseline?) {
     Ok(document) => document
     Err(message) => return Err(message)
   }
