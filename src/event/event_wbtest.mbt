@@ -62,6 +62,25 @@ test "observation ADTs encode stable JSONL strings" {
   assert_true(encoded.contains("\"artifact_version\":\"mmka_1\""))
   assert_true(encoded.contains("\"phase\":\"exploratory\""))
   assert_true(encoded.contains("\"batch_sink\":\"kept\""))
+  assert_true(!encoded.contains("\"scale\""))
+  let scaled = @model.Observation::new(
+    "case",
+    "candidate",
+    "1",
+    0,
+    0,
+    0,
+    @model.ObservationPhase::Confirmatory,
+    1.0,
+    1,
+    @model.BatchSinkStatus::Kept,
+    @model.SetupTiming::ExcludedFromMeasurement,
+    true,
+    scale_text="1024",
+  )
+  assert_true(
+    observation_json(scaled).stringify().contains("\"scale\":\"1024\""),
+  )
   assert_eq(@model.ObservationPhase::Confirmatory.text(), "confirmatory")
   assert_eq(@model.ExecutionTarget::WasmGc.text(), "wasm-gc")
   assert_eq(@model.ExecutionTarget::Custom("gpu").text(), "gpu")

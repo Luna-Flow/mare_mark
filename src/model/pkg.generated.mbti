@@ -168,8 +168,9 @@ pub struct Observation {
   valid : Bool
   setup_frequency : SetupFrequency?
   workspace_scope : WorkspaceScope?
+  scale_text : String
 }
-pub fn Observation::new(String, String, String, Int, Int, Int, ObservationPhase, Double, Int, BatchSinkStatus, SetupTiming, Bool, setup_frequency? : SetupFrequency, workspace_scope? : WorkspaceScope) -> Self
+pub fn Observation::new(String, String, String, Int, Int, Int, ObservationPhase, Double, Int, BatchSinkStatus, SetupTiming, Bool, setup_frequency? : SetupFrequency, workspace_scope? : WorkspaceScope, scale_text? : String) -> Self
 
 pub(all) enum ObservationPhase {
   Exploratory
