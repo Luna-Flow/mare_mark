@@ -703,7 +703,7 @@ pub(all) enum BenchConfigError {
 `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the
 rejected case length. `InvalidOracleSequenceLength` carries a non-positive
 length returned by a reference oracle; `OracleSequenceLengthMismatch` carries
-the configured case length and the oracle length, in that order. 
+the configured case length and the oracle length, in that order.
 `PerRunSetupWithMultipleDatasets` carries the number of datasets
 of the run. A `PerRun` setup prepares one value for the whole run, but a
 prepared value is derived from one dataset's input, so it cannot serve several
@@ -722,8 +722,7 @@ pub(all) suberror RunConfigError {
 }
 ```
 
-The payload lists the problems, currently `PerRunSetupWithMultipleDatasets`.
-`run` raises it before it emits any event.
+The payload includes `PerRunSetupWithMultipleDatasets`, `InvalidOracleSequenceLength` and `OracleSequenceLengthMismatch`. Setup incompatibility is rejected before any event. Oracle length is checked for each dataset selected for reference validation, before its candidate validation or measurement.
 
 ```moonbit
 fn per_run_spec(scales : Array[Int]) -> @runner.BenchSpec[Int, Int, Int, Int, Int, Unit, Int?, Int?] {

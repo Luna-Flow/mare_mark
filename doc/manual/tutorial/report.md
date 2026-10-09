@@ -1,8 +1,9 @@
 # report tutorial
 
 This tutorial publishes benchmark results: you render a JSONL event stream as a
-self-contained HTML page, see how failed validations appear, export the
-machine-readable `mmks_2` JSON, and draw plots of your own. The examples are
+self-contained HTML page, compare implementations against a baseline, see how
+failed validations appear, export the machine-readable `mmks_2` JSON, and draw
+plots of your own. The examples are
 complete tests; file writing is left to your program or to the
 [`mare-mark` command](cli.md).
 
@@ -10,6 +11,8 @@ complete tests; file writing is left to your program or to the
 | --- | --- |
 | render a JSONL stream as HTML | `@report.document_from_jsonl` and `@report.html` |
 | report a run without a file | an in-memory JSONL sink, then the two functions above |
+| decide which implementation is faster | the `comparisons` of the document, with `baseline=` |
+| print the decisions in a terminal or CI log | `@report.comparisons_text` |
 | export machine-readable results | `@report.plot_json` (`mmks_2`) |
 | draw one plot as SVG | `@report.plot_svg` |
 | publish numbers that did not come from a run | a `PlotDocument` built with `ir_model` |
@@ -25,6 +28,7 @@ import {
   "Luna-Flow/mare_mark/ir_model",
   "Luna-Flow/mare_mark/report",
   "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/env_detect",
   "Luna-Flow/mare_mark/event",
   "Luna-Flow/mare_mark/runner",
   "moonbitlang/async",
@@ -45,7 +49,9 @@ test "JSONL to HTML" {
 ```
 
 Save `page` as `report.html` and open it in a browser; it needs no server and
-no network.
+no network. These hand-written lines have no `phase`, `scale` or `block_id`;
+the report treats them as confirmatory timings, places them by `dataset_id`,
+and cannot pair them. Records written by the runner carry all three.
 
 ## Everyday tasks
 
@@ -54,35 +60,76 @@ no network.
 `JsonlSink` produces exactly the stream that `document_from_jsonl` reads:
 
 ```moonbit
-async test "run and render" {
+async fn negation_record() -> String {
   let negate = @runner.Implementation::stateless("negate", "1", (x : Int) => {
     @model.OperationResult::completed(-x, ())
   })
+  let subtract = @runner.Implementation::stateless("subtract", "1", (x : Int) => {
+    @model.OperationResult::completed(0 - x, ())
+  })
   let plan = @runner.single_step("negate", [1, 2, 3])
     .with_immutable_input(context => context.dataset_key.scale, x => x.to_string())
-    .compare([negate])
+    .compare([negate, subtract])
     .against_equal(x => -x, (expected, actual) => expected == actual)
     .compile()
     .unwrap()
   let sink = @event.JsonlSink::new()
-  let environment = @model.EnvironmentSnapshot::new(
-    @model.SemanticEnvironment::new(@model.ExecutionTarget::Native, "moonc", "", "i32"),
-    @model.PerformanceEnvironment::new("native", "cpu", "default", 1, "monotonic"),
-    @model.ProvenanceEnvironment::new("os", "host", "now", "HEAD", "report-tutorial"),
-  )
+  let environment = @env_detect.detect(compiler_flags="debug", dtype_abi="i32", concurrency=1).snapshot
   ignore(
     @runner.run(
       plan,
       @runner.RunContext::new(environment, sink.as_sink(), 5UL, @runner.ProtocolPreset::QuickCheck.validated()),
     ),
   )
-  let document = @report.document_from_jsonl(sink.to_jsonl(), target="native").unwrap()
-  inspect(document.plots[0].points.length(), content="12")
-  inspect(document.differential.corpus.passed, content="3")
+  sink.to_jsonl()
+}
+
+async test "run and render" {
+  let document = @report.document_from_jsonl(negation_record(), target="native").unwrap()
+  let plot = document.plots[0]
+  inspect(plot.title, content="Benchmark observations: negate")
+  inspect(plot.points.length(), content="6")
+  inspect(plot.x_label, content="dataset_id (scale not recorded)")
+  inspect(document.differential.corpus.passed, content="6")
 }
 ```
 
-Three scales times four blocks give twelve points, one per observation.
+`QuickCheck` measures one exploratory and three confirmatory blocks per scale.
+The plot keeps only the confirmatory ones and shows one point per
+implementation and scale, the median of its three blocks: three scales and two
+implementations give six points. The `single_step` builder records no scale
+text, so the x axis shows the `dataset_id`; build the case with
+`BenchSpec::advanced` and a `scale_text` function to put the scales
+themselves on the axis.
+
+### Compare implementations against a baseline
+
+The same document holds the paired comparison of every implementation with a
+baseline at every scale. The runner records the protocol and the seed in the
+summary, so the report decides with the run's own threshold and outlier
+policy:
+
+```moonbit
+async test "decide against a baseline" {
+  let document = @report.document_from_jsonl(negation_record(), baseline="negate").unwrap()
+  let comparisons = document.comparisons
+  inspect(comparisons.rows.length(), content="3")
+  inspect(comparisons.rows.all(row => row.candidate == "subtract" && row.blocks_used == 3), content="true")
+  inspect(comparisons.protocol_recorded && comparisons.seed_recorded, content="true")
+  inspect(comparisons.practical_delta_pct, content="1")
+  let table = @report.comparisons_text(document)
+  inspect(table.has_prefix("Comparisons\nDecision threshold ±1 % and outlier policy report_only"), content="true")
+}
+```
+
+Each row pairs the two implementations block by block, so the drift of the
+machine between blocks cancels, and decides on the median paired delta in
+percent of the baseline: `Faster` or `Slower` when it is at least the
+threshold, `Equivalent` otherwise, `Unknown` with fewer than three usable
+blocks. Read the interval next to it: with three blocks it spans the whole
+range of the deltas. The decisions themselves depend on your machine, which is
+why the test does not show them. Without `baseline=` the first implementation
+of each case is the baseline.
 
 ### See what happens to a wrong implementation
 
@@ -145,9 +192,10 @@ test "a hand-made heatmap" {
 - **Files and pipes.** `mare-mark report events.jsonl report.html` and
   `mare-mark report - -` do the reading and writing for you; see the
   [cli tutorial](cli.md).
-- **Statistics in the report.** Compute comparisons with `stats` and add them
-  as `Interval` plots or as text around the HTML; the renderer does not compute
-  them.
+- **Your own statistics.** The report compares against one baseline with the
+  recorded settings. For other questions (all pairs, another threshold, a
+  subset of datasets), compute comparisons with `stats` and add them as
+  `Interval` plots; see the [ir_model tutorial](ir_model.md).
 - **Keep the JSONL.** The HTML is a projection that can be regenerated; the
   JSONL is the record.
 
@@ -155,9 +203,18 @@ test "a hand-made heatmap" {
 
 - **A stream with only calibration events.** It yields an error, because there
   is nothing to show.
-- **Expecting the scale on the x axis.** The x value is the dataset index.
-- **Mixing runs in one file.** Points of different runs are plotted together,
-  and the last summary sets the run id.
+- **Expecting the scale on the x axis with `single_step`.** That builder
+  records no scale text, so the report uses `dataset_id`; use
+  `BenchSpec::advanced` with a `scale_text` function.
+- **Looking for exploratory blocks in the plot.** Only confirmatory
+  observations are plotted and compared; the plot's note says how many were
+  left out.
+- **Mixing runs in one file.** Observations of different runs are pooled and
+  their blocks paired with each other, and the last summary sets the run id,
+  the protocol and the seed. Render each run's record separately.
+- **Reading a decision without its row.** Check `blocks_used`, the
+  incomplete and outlier counts, and the interval; a decision on three blocks
+  is a weak one.
 - **Changing `artifact_version`.** Only `mmka_1` is accepted.
 
 ## Next steps
@@ -165,3 +222,7 @@ test "a hand-made heatmap" {
 - [report API](../api/report.md) and [report design](../design/report.md).
 - [ir_model API](../api/ir_model.md) for the document types.
 - [event tutorial](event.md) for the stream format.
+
+### Logarithmic axes
+
+Scaling plots choose x and y independently. Positive finite values spanning at least 100× use base-10 logarithmic coordinates; other numeric axes remain linear, and nonnumeric x values remain categorical. Log ticks prioritize powers of ten, thinning decades for dense ranges and adding 2× and 5× ticks only when labels fit. The IR and JSON record both axis scales, and labels and notes identify log scaling.
