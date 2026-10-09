@@ -17,6 +17,7 @@ In the `moon.pkg` of the package that holds your benchmarks:
 ```moonbit nocheck
 import {
   "Luna-Flow/mare_mark/model",
+  "Luna-Flow/mare_mark/env_detect",
   "Luna-Flow/mare_mark/event",
   "Luna-Flow/mare_mark/runner",
   "Luna-Flow/mare_mark/stats",
@@ -59,14 +60,10 @@ async test "loop versus closed form" {
     .against_equal(squares_loop, (expected, actual) => expected == actual)
     .compile()
     .unwrap()
-  // 2. Run it with a seed, an environment and two sinks.
+  // 2. Run it with a seed, the detected environment and two sinks.
   let memory = @event.InMemorySink::new()
   let record = @event.JsonlSink::new()
-  let environment = @model.EnvironmentSnapshot::new(
-    @model.SemanticEnvironment::new(@model.ExecutionTarget::Native, "moonc 0.10", "release", "i64"),
-    @model.PerformanceEnvironment::new("native", "my-cpu", "default", 1, "monotonic"),
-    @model.ProvenanceEnvironment::new("my-os", "my-host", "2026-10-08T12:00:00Z", "HEAD", "getting-started"),
-  )
+  let environment = @env_detect.detect(compiler_flags="release", dtype_abi="i64", concurrency=1).snapshot
   let summary = @runner.run(
     plan,
     @runner.RunContext::new(
@@ -89,8 +86,10 @@ async test "loop versus closed form" {
     "loop", "formula", baseline, candidate, 5.0, @model.confirmatory_interval(), 42UL, 2000, 95.0,
   ).unwrap()
   inspect(comparison.valid_samples, content="10")
-  // 4. Render the record.
-  let document = @report.document_from_jsonl(record.to_jsonl(), target="native").unwrap()
+  // 4. Render the record; the report makes the same comparison at every scale.
+  let document = @report.document_from_jsonl(record.to_jsonl(), target="native", baseline="loop").unwrap()
+  inspect(document.comparisons.rows.length(), content="2")
+  inspect(document.comparisons.rows.all(row => row.blocks_used == 10), content="true")
   inspect(@report.html(document).has_prefix("<!doctype html>"), content="true")
 }
 ```
@@ -100,15 +99,22 @@ What happened:
 1. `against_equal` attached the loop as the reference oracle. Both
    implementations were validated on both scales before any timing (four
    passed validations).
-2. `Development` warmed every implementation up, calibrated a batch size per
+2. `env_detect.detect` described the machine (target, runtime, CPU and
+   cores, OS, host, time, revision, a fresh run id); the test adds what the
+   process cannot know: the build flags, the numeric ABI and that the
+   benchmark runs one operation at a time.
+3. `Development` warmed every implementation up, calibrated a batch size per
    implementation, then ran 3 exploratory and 10 confirmatory blocks per
-   scale, rotating the order of the two implementations.
-3. The confirmatory blocks are paired by position (block $i$ of the loop with
+   scale on one dataset, rotating the order of the two implementations.
+4. The confirmatory blocks are paired by position (block $i$ of the loop with
    block $i$ of the formula). `comparison.decision` and
    `comparison.speedup` depend on your machine; the formula is expected to be
    `Faster`.
-4. The JSONL record (`record.to_jsonl()`) holds every event; save it next to
-   the HTML.
+5. The JSONL record (`record.to_jsonl()`) holds every event, and its summary
+   the protocol, the seed and the environment. `document_from_jsonl` pairs
+   the confirmatory blocks again, at both scales, and decides with the
+   protocol's 1 % threshold; the HTML shows these decisions in a
+   "Comparisons" table above the plots. Save the record next to the HTML.
 
 Run it with `moon test --target native`. The test also runs on `js` and
 `wasm`.
@@ -118,14 +124,17 @@ Run it with `moon test --target native`. The test also runs on `js` and
 From a checkout of the repository:
 
 ```sh
-moon run src/cli --target native -- report testdata/report/sample.jsonl report.html
+moon run src/cli --target native -- report testdata/report/compare.jsonl report.html
+moon run src/cli --target native -- report --baseline simd testdata/report/compare.jsonl report.html
 moon run src/cli --target native -- report - - < testdata/report/sample.jsonl > report.html
 moon run src/cli --target native -- replay testdata/replay/sample.jsonl --dry-run
 ```
 
-`report` writes a self-contained HTML file. `replay --dry-run` prints the
-command recorded in a validation failure; add `--yes` instead of `--dry-run`
-to execute it. See the [cli tutorial](tutorial/cli.md).
+`report` writes a self-contained HTML file and prints the comparison of every
+implementation with the baseline (the first one, or the one named by
+`--baseline`). `replay --dry-run` prints the command recorded in a validation
+failure; add `--yes` instead of `--dry-run` to execute it. See the
+[cli tutorial](tutorial/cli.md).
 
 ## Common first mistakes
 
@@ -134,11 +143,18 @@ to execute it. See the [cli tutorial](tutorial/cli.md).
 - Comparing arrays from different blocks, phases, datasets or targets.
 - Treating `Unsupported`, a timeout or a validation failure as a number.
 - Executing a replay artifact without reading it with `--dry-run` first.
-- Reusing `summary.run_id` as a unique id; it names the protocol and the case.
+- Reusing one hand-written environment for every run: `summary.run_id`
+  contains its provenance run id and timestamp, so the runs then share an id.
+  `@env_detect.detect` makes a fresh one each time.
+- Leaving `concurrency` to `detect`: it is the benchmark's own parallelism and
+  stays `0` (unknown) unless you pass it.
 
 ## Where to go next
 
-- [runner tutorial](tutorial/runner.md) for fixtures, sequences, shrinking and
-  protocols.
+- [runner tutorial](tutorial/runner.md) for fixtures, sequences, shrinking,
+  several datasets per scale and protocols.
+- [env_detect tutorial](tutorial/env_detect.md) for what is detected and how
+  to override it.
+- [report tutorial](tutorial/report.md) for plots and comparisons.
 - [stats tutorial](tutorial/stats.md) for decisions and intervals.
 - [architecture](architecture.md) for how the packages fit together.

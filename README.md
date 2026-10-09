@@ -85,7 +85,7 @@ moon run src/cli --target native -- replay testdata/replay/sample.jsonl --dry-ru
 | Package | Role |
 | --- | --- |
 | [`model`](doc/manual/api/model.md) | shared vocabulary: versions, protocols, environments, outcomes, events, decisions |
-| [`env_detect`](src/env_detect/README.mbt.md) | environment snapshots detected from the running process |
+| [`env_detect`](doc/manual/api/env_detect.md) | environment snapshots detected from the running process |
 | [`generator`](doc/manual/api/generator.md) | seed derivation and input fingerprints |
 | [`fixture`](doc/manual/api/fixture.md) | input lifecycle and setup timing |
 | [`experiment`](doc/manual/api/experiment.md) | oracles, shrinking, crossover analysis |
