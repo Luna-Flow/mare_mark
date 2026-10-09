@@ -11,6 +11,7 @@ example is a complete test.
 | write lines while the run is going | `@event.streaming_jsonl(write_line, location)` |
 | send events to two sinks | `@event.tee(left, right)` |
 | store events somewhere else | `@event.ObservationSink::new(...)` with your callbacks |
+| read the protocol of a recorded run | `@event.protocol_from_json` on the summary's `protocol` |
 
 ## Quick start
 
@@ -22,8 +23,13 @@ moon add Luna-Flow/mare_mark@0.3.0
 import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/event",
+  "Luna-Flow/mare_mark/runner",
+  "moonbitlang/core/json",
 }
 ```
+
+`runner` and `moonbitlang/core/json` are needed only for the last task, which
+reads a protocol back from a record.
 
 ```moonbit
 fn sample_observation(implementation : String, block : Int, elapsed : Double) -> @model.Observation {
@@ -120,6 +126,29 @@ test "a custom sink" {
   inspect(best.get("loop").unwrap(), content="3.1")
 }
 ```
+
+### Read the protocol of a recorded run
+
+The summary line of a run carries the protocol it was measured with, its
+identity and the run seed. Read them back to re-analyse a record with the
+same settings, or to check that two records used the same protocol:
+
+```moonbit
+test "read the protocol back" {
+  let protocol = @runner.ProtocolPreset::QuickCheck.validated().protocol
+  let jsonl = @event.JsonlSink::new()
+  let summary = @model.RunSummary::new("r", 0, 0, 0, true, None, protocol~, seed=42UL)
+  ignore((jsonl.as_sink().finish)(summary))
+  guard @json.parse(jsonl.lines[0]) is Object(fields) else { fail("not an object") }
+  let recorded = @event.protocol_from_json(fields["protocol"]).unwrap()
+  inspect(recorded.confirmatory_samples, content="3")
+  inspect(fields["protocol_identity"] == Json::string(@model.protocol_identity(recorded)), content="true")
+  inspect(fields["seed"] == Json::string("42"), content="true")
+}
+```
+
+The runner fills `protocol` and `seed` of every summary it emits; summaries
+you build yourself carry them only when you pass them.
 
 ## Going further
 

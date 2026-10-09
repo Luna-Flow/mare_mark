@@ -10,7 +10,8 @@ the runner.
 ## Constraints
 
 - The record must be streamable, appendable and readable by any tool.
-- JSON numbers are doubles, so 64-bit integers cannot be stored as numbers.
+- JSON numbers are doubles, so 64-bit integers cannot be stored as numbers,
+  and JSON has no `NaN`, no infinities and, in common printers, no `-0`.
 - The package does no file IO, so it runs on every target.
 
 ## Mathematical background
@@ -62,8 +63,54 @@ values, and an outlier policy cannot rewrite history.
 
 ### Seeds as strings
 
-`seed` is written as a decimal string, because a JSON number is a double and
-cannot represent every 64-bit integer: integers above $2^{53}$ would be rounded.
+`seed` (of a failure and of a summary) and the block-order seed in a
+protocol are written as decimal strings, because a JSON number is a double and
+cannot represent every 64-bit integer: a double has a 53-bit significand, so
+above $2^{53}$ only every second integer is representable, above $2^{54}$ only
+every fourth, and a seed such as $2^{64} - 1$ would be rounded to $2^{64}$,
+which is not even a `UInt64`. Readers accept only the canonical decimal text
+(no sign, no leading zeros), so the text round-trips.
+
+### The full protocol in the summary
+
+*Problem.* A record must say how it was measured, and a report must decide
+with the threshold and outlier policy the run declared. `protocol_identity`
+is a digest and cannot be decoded. *Choice.* The `summary` line carries the
+`protocol` object with every field, its `protocol_identity`, and the run
+`seed`. `protocol_json` writes the object and `protocol_from_json` reads it.
+*Why.* With the object a reader can audit the experiment, re-run it, and
+re-analyse it, and the identity next to it lets tools group records without
+decoding anything.
+
+The encoding is exact, so that decoding gives back the same protocol and
+hence the same identity. Every finite double is written as a JSON number
+whose text reads back to the same bits, except that values JSON numbers cannot
+hold are strings (`"NaN"`, `"Infinity"`, `"-Infinity"`, as in
+`moonbitlang/core/json`) and `-0.0` is written `-0`, because the default text
+drops the sign of zero and $0.0$ and $-0.0$ have different identities.
+Formally, with $J$ the encoding and $D$ the decoding,
+
+$$
+D(J(P)) = P \quad\text{and hence}\quad
+\operatorname{protocol\_identity}(D(J(P))) = \operatorname{protocol\_identity}(P)
+$$
+
+for every protocol $P$; the tests check it through the JSON text, for every
+preset and for edge values (`-0.0`, `1e-300`, `NaN`, both infinities, the
+extreme `Int` and `UInt64` values). The decoder ignores unknown keys, so a later version may add fields
+within `mmka_1`, and it reads a missing `repeats_per_dataset` as `1`: records
+written before the field existed come from runs that measured with one
+repetition per dataset.
+
+### Additive fields
+
+`mmka_1` grows by adding fields, never by changing the meaning of one. A new
+field is omitted when the producer has nothing to say, so that "not recorded"
+looks the same in old and new records: an observation without scale text has
+no `scale` key rather than `"scale":""`, and a summary without a protocol has
+no `protocol` key. Readers treat a missing key as "not recorded"; `report`,
+for example, falls back to `dataset_id` when `scale` is missing and to stated
+defaults when `protocol` or `seed` is missing.
 
 ### Finish returns a location
 
@@ -94,4 +141,5 @@ evidence is without the runner knowing about files.
 - No file IO: writing lines to disk is the caller's job (the `cli` and
   applications do it).
 - `InMemorySink` does not keep the summary.
-- No reader lives here; `report` and `cli` parse the stream.
+- The only reader here is `protocol_from_json`, for the `protocol` object;
+  `report` and `cli` parse the stream.
