@@ -159,10 +159,13 @@ would encode noise.
   such a sequence reports `NoCrossover`.
 - Oracles are not run here; the runner runs them. For each input selected for
   reference validation, the runner evaluates `ReferenceOracle.sequence_length`
-  once. The result must be positive and equal the case's configured sequence
-  length; otherwise the run raises `RunConfigError` before candidate execution.
-  This equality is a correctness precondition: checking only the common prefix
-  would leave a suffix without a verdict. If an expected or actual operation
-  sequence terminates early, the runner emits an `Invalid` validation for the
-  length mismatch after validating the common steps.
+  once, before running any operation on that input. The result must be
+  positive and equal the case's configured sequence length; otherwise the run
+  raises `RunConfigError` at that dataset, after earlier datasets have already
+  been measured. This equality is a correctness precondition: checking only
+  the common prefix would leave a suffix without a verdict. If an expected or
+  actual operation sequence terminates early and every common step passed, the
+  runner emits an `Invalid` validation and a `ValidationFailure` for the length
+  mismatch; a sequence that stopped on a step that did not pass is reported by
+  that step only.
 - `shrink` does not check that the initial input fails.

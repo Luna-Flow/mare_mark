@@ -314,106 +314,106 @@ msgid "`ReferenceOracle` computes the expected result of every step and judges a
 msgstr "`ReferenceOracle` は各ステップの期待される結果を計算し、実装の結果をそれと照らして判定します。"
 
 #: manual/api/experiment.md:46
-msgid "`compute_expected(input, step, context)` returns the expected outcome of step `step` and the oracle's next context; the sequence stops when it returns no context. `validate(input, step, expected, actual)` returns the verdict. `expected_text` renders expected values in evidence. For each dataset selected for validation, the runner calls `sequence_length(input)` once and uses that positive length for both the expected and candidate validation sequences. It must equal the `BenchSpec` case length; a non-positive value or disagreement is a `RunConfigError` before candidate validation or measurement begins. If either sequence terminates early, the common steps are checked and an additional `Invalid` validation reports the expected and actual sequence lengths, so an unchecked suffix cannot be reported as a complete pass. The case length remains the sequence length for relational-only cases."
-msgstr "`compute_expected(input, step, context)` はステップ `step` の期待結果と、オラクルの次のコンテキストを返します。コンテキストを返さなくなった時点で系列は終了します。`validate(input, step, expected, actual)` は判定を返します。`expected_text` は証拠中の期待値を文字列化します。検証対象の各データセットについて、ランナーは `sequence_length(input)` を一度だけ呼び出し、その正の長さを期待系列と候補の検証系列の両方に使用します。この値は `BenchSpec` のケース長と等しくなければなりません。値が 0 以下、または両者が不一致の場合、候補の検証や測定を始める前に `RunConfigError` が発生します。いずれかの系列が途中で終了した場合、共通するステップを検証したうえで、期待系列と実際の系列の長さを報告する追加の `Invalid` 検証を出力します。これにより、未検証の末尾が全体の成功として扱われません。リレーショナル判定器のみを使うケースでは、系列長はケース側の設定に従います。"
+msgid "`compute_expected(input, step, context)` returns the expected outcome of step `step` and the oracle's next context; the sequence stops when it returns no context. `validate(input, step, expected, actual)` returns the verdict. `expected_text` renders expected values in evidence. For each dataset selected for validation, the runner calls `sequence_length(input)` once, after materializing the dataset and before running any operation on it, and uses that positive length for both the expected and candidate validation sequences. It must equal the `BenchSpec` case length; a non-positive value or disagreement raises `RunConfigError` and stops the run at that dataset. Datasets processed earlier (earlier scales or datasets, including exploratory-only datasets under `ConfirmatoryOnly`) have already been validated and measured, and their events have reached the sink. If either sequence terminates early after every common step passed, an additional `Invalid` validation and a `ValidationFailure` report the expected and actual sequence lengths, so an unchecked suffix cannot be reported as a complete pass. A sequence that stopped on a failing, unsupported, expected-difference or infrastructure-failure step is reported by that step alone. The case length remains the sequence length for relational-only cases."
+msgstr "`compute_expected(input, step, context)` はステップ `step` の期待結果と、オラクルの次のコンテキストを返します。コンテキストを返さなくなった時点で系列は終了します。`validate(input, step, expected, actual)` は判定を返します。`expected_text` は証拠中の期待値を文字列化します。検証対象の各データセットについて、ランナーはデータセットを生成した後、その上で操作を実行する前に `sequence_length(input)` を一度だけ呼び出し、その正の長さを期待系列と候補の検証系列の両方に使用します。この値は `BenchSpec` のケース長と等しくなければなりません。値が 0 以下、または両者が不一致の場合、`RunConfigError` が発生し、実行はそのデータセットで停止します。それ以前に処理されたデータセット（前のスケールやデータセット。`ConfirmatoryOnly` での探索専用データセットを含む）はすでに検証と測定を終えており、そのイベントは sink に届いています。共通ステップがすべて合格した後にいずれかの系列が途中で終了した場合、期待系列と実際の系列の長さを報告する追加の `Invalid` 検証と `ValidationFailure` を出力します。これにより、未検証の末尾が全体の成功として扱われません。失敗、未対応、期待される差異、またはインフラ障害のステップで止まった系列は、そのステップだけで報告されます。リレーショナル判定器のみを使うケースでは、系列長はケース側の設定に従います。"
 
-#: manual/api/experiment.md:61
+#: manual/api/experiment.md:67
 msgid "`ReferenceOracle::equal` builds a one-step oracle from a reference function and an equality."
 msgstr "`ReferenceOracle::equal` は参照関数と等価判定から 1 ステップのオラクルを構築します。"
 
-#: manual/api/experiment.md:68
+#: manual/api/experiment.md:74
 msgid "The verdict is `Valid` when both outcomes are `Value` and the comparator accepts them, `Invalid(\"value mismatch\")` when the comparator rejects them, and `Invalid(\"outcome mismatch\")` for any other pair of outcomes. Expected values are rendered as `\"<expected>\"`."
 msgstr "判定は、両方の結果が `Value` で比較関数がそれらを受け入れた場合は `Valid`、比較関数が拒否した場合は `Invalid(\"value mismatch\")`、それ以外の結果の組み合わせでは `Invalid(\"outcome mismatch\")` です。期待値は `\"<expected>\"` として文字列化されます。"
 
-#: manual/api/experiment.md:89
+#: manual/api/experiment.md:95
 msgid "`validate_reference` applies a reference oracle to one step and wraps the verdict in a `Validation` without evidence."
 msgstr "`validate_reference` は参照オラクルを 1 つのステップに適用し、判定を証拠なしの `Validation` に包みます。"
 
-#: manual/api/experiment.md:96
+#: manual/api/experiment.md:102
 msgid "Arguments: oracle, input, step, expected outcome, actual outcome, implementation id, scale text."
 msgstr "引数: オラクル、入力、ステップ、期待される結果、実際の結果、実装 ID、スケールのテキスト。"
 
-#: manual/api/experiment.md:101
+#: manual/api/experiment.md:107
 msgid "`RelationalOracle` judges two implementations against each other when there is no single reference."
 msgstr "`RelationalOracle` は、単一の参照がない場合に 2 つの実装を互いに照らして判定します。"
 
-#: manual/api/experiment.md:112
+#: manual/api/experiment.md:118
 msgid "`validate_pair(input, step, left_id, left, right_id, right)` returns the verdict for the pair; the runner attributes it to the right implementation."
 msgstr "`validate_pair(input, step, left_id, left, right_id, right)` はペアに対する判定を返します。ランナーはそれを右側の実装に帰属させます。"
 
-#: manual/api/experiment.md:131
+#: manual/api/experiment.md:137
 msgid "`OracleSpec` selects the oracles of a case."
 msgstr "`OracleSpec` はケースのオラクルを選択します。"
 
-#: manual/api/experiment.md:141
+#: manual/api/experiment.md:147
 msgid "With `ReferenceAndRelational` the runner runs both checks and reports each separately."
 msgstr "`ReferenceAndRelational` では、ランナーは両方の検査を実行し、それぞれを個別に報告します。"
 
-#: manual/api/experiment.md:144
+#: manual/api/experiment.md:150
 msgid "Shrinking"
 msgstr "縮小"
 
-#: manual/api/experiment.md:148
+#: manual/api/experiment.md:154
 msgid "`Shrinker` proposes smaller variants of a failing input."
 msgstr "`Shrinker` は失敗した入力のより小さな変種を提案します。"
 
-#: manual/api/experiment.md:159
+#: manual/api/experiment.md:165
 msgid "`candidates(x)` lists smaller inputs, most aggressive first. `text` renders an accepted candidate for the shrink path. `max_steps` (default `128`) bounds the number of candidates tried."
 msgstr "`candidates(x)` はより小さな入力を、最も積極的なものから順に列挙します。`text` は受理された候補を縮小パス用に文字列化します。`max_steps`（既定値 `128`）は試す候補の数の上限です。"
 
-#: manual/api/experiment.md:165
+#: manual/api/experiment.md:171
 msgid "`shrink` minimizes an input while a predicate keeps holding."
 msgstr "`shrink` は述語が成り立ち続ける限り入力を最小化します。"
 
-#: manual/api/experiment.md:171
+#: manual/api/experiment.md:177
 msgid "Starting from the input, it repeatedly takes the first candidate for which the predicate is true, until no candidate satisfies it or `max_steps` candidates have been tried. It returns the last accepted input and the texts of the accepted candidates in order. The initial input is not tested."
 msgstr "入力から始めて、述語が真となる最初の候補を繰り返し採用し、述語を満たす候補がなくなるか `max_steps` 個の候補を試すまで続けます。最後に受理された入力と、受理された候補のテキストを順に返します。最初の入力自体は検査されません。"
 
-#: manual/api/experiment.md:188
+#: manual/api/experiment.md:194
 msgid "Crossover analysis"
 msgstr "クロスオーバー分析"
 
-#: manual/api/experiment.md:192
+#: manual/api/experiment.md:198
 msgid "`ScaleDomain` lists the scales of an analysis with their order and text."
 msgstr "`ScaleDomain` は分析対象のスケールを、その順序とテキストとともに列挙します。"
 
-#: manual/api/experiment.md:217
+#: manual/api/experiment.md:223
 msgid "`comparator_label` turns a relative delta into a label for crossover analysis."
 msgstr "`comparator_label` は相対差をクロスオーバー分析用のラベルに変換します。"
 
-#: manual/api/experiment.md:223
+#: manual/api/experiment.md:229
 msgid "`comparator_label(r, t)` is `\"A\"` when $r < 0$ and $r \\le -t$, `\"B\"` when $r > 0$ and $r \\ge t$, and `\"Unknown\"` otherwise, the same rule as the decision of `@stats.compare_paired`. An exact tie is `\"Unknown\"` for every threshold, including `0`. A `NaN` delta and a threshold that is `NaN`, infinite or negative also give `\"Unknown\"`. Pass the relative delta of A measured against B as the baseline, so that `\"A\"` means A is faster."
 msgstr "`comparator_label(r, t)` は $r < 0$ かつ $r \\le -t$ のとき `\"A\"`、$r > 0$ かつ $r \\ge t$ のとき `\"B\"`、それ以外は `\"Unknown\"` で、`@stats.compare_paired` の判断と同じ規則です。完全な同値は `0` を含むどの閾値でも `\"Unknown\"` です。`NaN` の差や、`NaN`・無限大・負の閾値も `\"Unknown\"` になります。B をベースラインとして測った A の相対差を渡してください。そうすれば `\"A\"` は A の方が速いことを意味します。"
 
-#: manual/api/experiment.md:240
+#: manual/api/experiment.md:246
 msgid "`crossover_from_labels` finds the scale at which the preferred implementation changes."
 msgstr "`crossover_from_labels` は、優位な実装が切り替わるスケールを見つけます。"
 
-#: manual/api/experiment.md:247
+#: manual/api/experiment.md:253
 msgid "`labels[i]` is the verdict at `values[i]`. The pairs (`values[i]`, `labels[i]`) are first sorted stably with `domain.compare`, so the values may be given in any order; below, `values` and `labels` mean the sorted sequences. A transition is a pair of adjacent labels that differ and are both not `\"Unknown\"`."
 msgstr "`labels[i]` は `values[i]` での判定です。組（`values[i]`, `labels[i]`）はまず `domain.compare` で安定ソートされるので、値はどの順序で与えてもかまいません。以下の `values` と `labels` はソート後の列を指します。遷移とは、隣り合う 2 つのラベルが異なり、どちらも `\"Unknown\"` でないものです。"
 
-#: manual/api/experiment.md:253
+#: manual/api/experiment.md:259
 msgid "Situation"
 msgstr "状況"
 
-#: manual/api/experiment.md:253
+#: manual/api/experiment.md:259
 msgid "Result"
 msgstr "結果"
 
-#: manual/api/experiment.md:255
+#: manual/api/experiment.md:261
 msgid "no labels, or a different number of labels and values"
 msgstr "ラベルがない、またはラベルと値の個数が異なる"
 
-#: manual/api/experiment.md:256
+#: manual/api/experiment.md:262
 msgid "no transition"
 msgstr "遷移がない"
 
-#: manual/api/experiment.md:257
+#: manual/api/experiment.md:263
 msgid "exactly one transition, between $i-1$ and $i$"
 msgstr "$i-1$ と $i$ の間にちょうど 1 つの遷移がある"
 
-#: manual/api/experiment.md:258
+#: manual/api/experiment.md:264
 msgid "more than one transition"
 msgstr "複数の遷移がある"
 
@@ -2703,7 +2703,7 @@ msgstr "`report` は入力全体を読み込み、ターゲットラベル `nati
 #: manual/design/ir_sink.md:30
 #: manual/design/model.md:109
 #: manual/design/report.md:151
-#: manual/design/runner.md:279
+#: manual/design/runner.md:287
 #: manual/design/stats.md:422
 #: manual/design/tune.md:159
 #: manual/design/tune_gemm.md:150
@@ -2735,7 +2735,7 @@ msgstr "イベントの解析に失敗した場合、`report` は何も書き出
 #: manual/design/ir_sink.md:36
 #: manual/design/model.md:121
 #: manual/design/report.md:165
-#: manual/design/runner.md:300
+#: manual/design/runner.md:308
 #: manual/design/stats.md:449
 #: manual/design/tune.md:172
 #: manual/design/tune_gemm.md:162
@@ -2763,7 +2763,7 @@ msgstr "**CLI のロジックを `report` に埋め込む。** 純粋なパッ�
 #: manual/design/ir_sink.md:41
 #: manual/design/model.md:130
 #: manual/design/report.md:175
-#: manual/design/runner.md:315
+#: manual/design/runner.md:323
 #: manual/design/stats.md:467
 #: manual/design/tune.md:181
 #: manual/design/tune_gemm.md:170
@@ -3067,10 +3067,10 @@ msgid "A transition across an `Unknown` label (A, Unknown, B) is not counted, so
 msgstr "`Unknown` ラベルをまたぐ遷移（A, Unknown, B）は数えられないため、そのような系列は `NoCrossover` を報告します。"
 
 #: manual/design/experiment.md:160
-msgid "Oracles are not run here; the runner runs them. For each input selected for reference validation, the runner evaluates `ReferenceOracle.sequence_length` once. The result must be positive and equal the case's configured sequence length; otherwise the run raises `RunConfigError` before candidate execution. This equality is a correctness precondition: checking only the common prefix would leave a suffix without a verdict. If an expected or actual operation sequence terminates early, the runner emits an `Invalid` validation for the length mismatch after validating the common steps."
-msgstr "オラクルはここでは実行せず、ランナーが実行します。参照検証の対象となる入力ごとに、ランナーは `ReferenceOracle.sequence_length` を一度評価します。結果は正の値で、ケースに設定された系列長と等しくなければなりません。そうでない場合、候補を実行する前に `RunConfigError` が発生します。この一致は正しさの前提です。共通の接頭部分だけを検査すると、残りの末尾に判定結果がありません。期待側または実際の操作系列が途中で終了した場合、共通ステップを検証した後、長さの不一致に対する `Invalid` 検証を出力します。"
+msgid "Oracles are not run here; the runner runs them. For each input selected for reference validation, the runner evaluates `ReferenceOracle.sequence_length` once, before running any operation on that input. The result must be positive and equal the case's configured sequence length; otherwise the run raises `RunConfigError` at that dataset, after earlier datasets have already been measured. This equality is a correctness precondition: checking only the common prefix would leave a suffix without a verdict. If an expected or actual operation sequence terminates early and every common step passed, the runner emits an `Invalid` validation and a `ValidationFailure` for the length mismatch; a sequence that stopped on a step that did not pass is reported by that step only."
+msgstr "オラクルはここでは実行せず、ランナーが実行します。参照検証の対象となる入力ごとに、ランナーはその入力で操作を実行する前に `ReferenceOracle.sequence_length` を一度評価します。結果は正の値で、ケースに設定された系列長と等しくなければなりません。そうでない場合、そのデータセットで `RunConfigError` が発生します。このとき、それ以前のデータセットはすでに測定済みです。この一致は正しさの前提です。共通の接頭部分だけを検査すると、残りの末尾に判定結果がありません。期待側または実際の操作系列が途中で終了し、共通ステップがすべて合格していた場合、長さの不一致に対する `Invalid` 検証と `ValidationFailure` を出力します。合格しなかったステップで止まった系列は、そのステップだけで報告されます。"
 
-#: manual/design/experiment.md:168
+#: manual/design/experiment.md:171
 msgid "`shrink` does not check that the initial input fails."
 msgstr "`shrink` は最初の入力が失敗することを検査しません。"
 
@@ -3967,214 +3967,214 @@ msgid "decided by the oracle"
 msgstr "オラクルが判定"
 
 #: manual/design/runner.md:177
-msgid "For a relational oracle every unordered pair $i < j$ of implementations is compared step by step; the event is attributed to the second implementation of the pair. A sequence that ends early (`next_context = None`) is compared on the steps both sides produced. `Invalid` and `InfrastructureFailure` count as failures; a failure triggers the shrinker, if one is configured, and emits a `ValidationFailure` with the seed, both fingerprints, the shrink path and the minimal input."
-msgstr "関係オラクルでは、実装の順序なしペア $i < j$ のすべてがステップごとに比較されます。イベントはペアの 2 番目の実装に帰属します。早期に終わった系列（`next_context = None`）は、両側が生成したステップについて比較されます。`Invalid` と `InfrastructureFailure` は失敗として数えられます。失敗すると、シュリンカーが設定されていればそれが起動され、シード、両方のフィンガープリント、縮小パス、最小入力を伴う `ValidationFailure` が出力されます。"
+msgid "For a relational oracle every unordered pair $i < j$ of implementations is compared step by step; the event is attributed to the second implementation of the pair. A relational sequence that ends early (`next_context = None`) is compared on the steps both sides produced. A reference-oracle sequence must reach the configured length: when the oracle or the implementation ends early and every common step passed, the runner adds an `Invalid` length-mismatch validation whose evidence describes the first missing step. When a common step did not pass (a failure, `Unsupported`, `ExpectedDifference` or an infrastructure failure), that step already accounts for the stop and no mismatch is added, so a timed-out worker is counted once. `Invalid` and `InfrastructureFailure` count as failures; a failure triggers the shrinker, if one is configured, and emits a `ValidationFailure` with the seed, both fingerprints, the shrink path and the minimal input. A length mismatch is not shrunk; its `ValidationFailure` has an empty shrink path and the original input."
+msgstr "関係オラクルでは、実装の順序なしペア $i < j$ のすべてがステップごとに比較されます。イベントはペアの 2 番目の実装に帰属します。早期に終わった関係系列（`next_context = None`）は、両側が生成したステップについて比較されます。参照オラクルの系列は設定された長さに達しなければなりません。オラクルまたは実装が早期に終わり、共通ステップがすべて合格していた場合、ランナーは最初の欠けたステップを証拠に記述した `Invalid` の長さ不一致検証を追加します。共通ステップのいずれかが合格しなかった場合（失敗、`Unsupported`、`ExpectedDifference`、またはインフラ障害）、そのステップが停止を説明しているため不一致は追加されず、タイムアウトしたワーカーは一度だけ数えられます。`Invalid` と `InfrastructureFailure` は失敗として数えられます。失敗すると、シュリンカーが設定されていればそれが起動され、シード、両方のフィンガープリント、縮小パス、最小入力を伴う `ValidationFailure` が出力されます。長さ不一致は縮小されず、その `ValidationFailure` の縮小パスは空で、元の入力を使います。"
 
-#: manual/design/runner.md:185
+#: manual/design/runner.md:193
 msgid "A failure does not stop the measurement. The report removes the series of the failing implementation for that dataset and shows the mismatch instead."
 msgstr "失敗は計測を止めません。レポートはそのデータセットにおける失敗した実装の系列を取り除き、代わりに不一致を表示します。"
 
-#: manual/design/runner.md:188
+#: manual/design/runner.md:196
 msgid "Balanced, seeded rotation instead of randomization"
 msgstr "ランダム化ではなくバランスの取れたシード付きローテーション"
 
-#: manual/design/runner.md:190
+#: manual/design/runner.md:198
 msgid "*Problem.* Position and drift effects bias a fixed order. *Options.* Fixed order; an independent random permutation per block; a cyclic Latin square. *Choice.* The cyclic rotation derived above, with a seeded offset. *Why.* A random permutation balances positions only in expectation; with ten blocks and three implementations, one implementation can easily run first four times. The rotation balances them exactly over every cycle, and the seed still decides which implementation starts."
 msgstr "*問題。* 位置とドリフトの効果は、固定された順序にバイアスをもたらします。*選択肢。* 固定された順序、ブロックごとの独立したランダムな置換、巡回ラテン方格。*選択。* 上で導いた巡回ローテーションを、シード付きのオフセットとともに使います。*理由。* ランダムな置換は位置を期待値の上でしかバランスさせません。10 ブロックと 3 つの実装では、ある実装が 4 回最初に実行されることも容易に起こります。ローテーションはすべての周期で位置を厳密にバランスさせ、それでもどの実装から始めるかはシードが決めます。"
 
-#: manual/design/runner.md:198
+#: manual/design/runner.md:206
 msgid "Calibrated batches, and one size per implementation by default"
 msgstr "キャリブレーションされたバッチと、既定では実装ごとに 1 つのサイズ"
 
-#: manual/design/runner.md:200
+#: manual/design/runner.md:208
 msgid "*Problem.* Single operations are too short to time. *Choice.* Every implementation is calibrated separately (`BatchPolicy::PerImplementation`), so each reaches the target duration. `BatchPolicy::SharedBatchSize` replaces all sizes with their minimum, $n = \\min_i n_i$, for experiments in which the amount of work per batch must be identical, at the cost of a shorter batch, and a larger relative timer error, for the slower implementations. The per-iteration value $\\hat T / n$ is a batch mean: a batch reduces the variance of independent per-iteration noise by a factor $n$ but also hides the tail inside the batch."
 msgstr "*問題。* 単一の操作は短すぎて計時できません。*選択。* 各実装は個別にキャリブレーションされ（`BatchPolicy::PerImplementation`）、それぞれが目標の時間に達します。`BatchPolicy::SharedBatchSize` はすべてのサイズをその最小値 $n = \\min_i n_i$ に置き換えます。これはバッチあたりの作業量が同一でなければならない実験のためのもので、その代償として遅い実装ではバッチが短くなり、タイマーの相対誤差が大きくなります。反復あたりの値 $\\hat T / n$ はバッチの平均です。バッチは独立な反復ごとのノイズの分散を $n$ 分の 1 にしますが、バッチ内の裾も隠してしまいます。"
 
-#: manual/design/runner.md:209
+#: manual/design/runner.md:217
 msgid "Explicit timing boundaries"
 msgstr "明示的な計時の境界"
 
-#: manual/design/runner.md:211
+#: manual/design/runner.md:219
 msgid "The clock is `@bench.monotonic_clock_start`/`monotonic_clock_end` (µs). What it encloses depends on the fixture's `SetupPolicy`:"
 msgstr "時計は `@bench.monotonic_clock_start`/`monotonic_clock_end`（µs）です。それが何を囲むかはフィクスチャの `SetupPolicy` によって決まります:"
 
-#: manual/design/runner.md:214
+#: manual/design/runner.md:222
 msgid "Setup"
 msgstr "セットアップ"
 
-#: manual/design/runner.md:216
+#: manual/design/runner.md:224
 msgid "prepare once and cache; per batch: start, $n \\times$ (execute, fold), stop"
 msgstr "一度準備してキャッシュする。バッチごとに: 開始、$n \\times$（実行、畳み込み）、停止"
 
-#: manual/design/runner.md:216
+#: manual/design/runner.md:224
 msgid "as excluded, except that the one-time prepare falls inside the timed region of the first batch that runs (usually a warmup batch)"
 msgstr "除外の場合と同じ。ただし一度きりの準備は、最初に実行されるバッチ（通常はウォームアップバッチ）の計時区間内に入ります"
 
-#: manual/design/runner.md:217
+#: manual/design/runner.md:225
 msgid "prepare; start; $n \\times$ (execute, fold); stop; reset"
 msgstr "準備、開始、$n \\times$（実行、畳み込み）、停止、リセット"
 
-#: manual/design/runner.md:217
+#: manual/design/runner.md:225
 msgid "start; prepare; $n \\times$ (execute, fold); reset; stop"
 msgstr "開始、準備、$n \\times$（実行、畳み込み）、リセット、停止"
 
-#: manual/design/runner.md:218
+#: manual/design/runner.md:226
 msgid "$n \\times$ (prepare; start; execute; fold; stop; reset), times summed"
 msgstr "$n \\times$（準備、開始、実行、畳み込み、停止、リセット）、時間は合計されます"
 
-#: manual/design/runner.md:218
+#: manual/design/runner.md:226
 msgid "start; $n \\times$ (prepare; execute; fold; reset); stop"
 msgstr "開始、$n \\times$（準備、実行、畳み込み、リセット）、停止"
 
-#: manual/design/runner.md:220
+#: manual/design/runner.md:228
 msgid "`prepare` here includes `clone_input`. `synchronize` is called immediately before every start and before every stop. `finish` of the output sink and `@bench.Bench::keep` run after the stop, outside timing; `keep` stops the compiler from removing work whose result is unused. Event emission never happens inside a timed region."
 msgstr "ここでの `prepare` は `clone_input` を含みます。`synchronize` は毎回の開始の直前と毎回の停止の前に呼ばれます。出力シンクの `finish` と `@bench.Bench::keep` は停止の後、計時の外で実行されます。`keep` は、結果が使われない処理をコンパイラが取り除くのを防ぎます。イベントの出力が計時区間内で行われることはありません。"
 
-#: manual/design/runner.md:226
+#: manual/design/runner.md:234
 msgid "`PerIteration` with excluded setup has a cost: it takes $n$ timer readings per batch, so the quantization error is $n\\rho / (n c) = \\rho / c$ and does not shrink with the batch size. Use it only for operations that are long compared with the timer resolution."
 msgstr "セットアップを除外した `PerIteration` にはコストがあります。バッチあたり $n$ 回タイマーを読むため、量子化誤差は $n\\rho / (n c) = \\rho / c$ となり、バッチサイズとともに小さくなりません。タイマーの分解能に比べて長い操作にのみ使ってください。"
 
-#: manual/design/runner.md:231
+#: manual/design/runner.md:239
 msgid "Fixture lifecycle and sentinel sample ids"
 msgstr "フィクスチャのライフサイクルと番兵のサンプル ID"
 
-#: manual/design/runner.md:233
+#: manual/design/runner.md:241
 msgid "The fixture's `prepare` and `reset` receive a `SampleContext` or `ResetContext` whose `sample_id` tells the fixture what the runner is doing:"
 msgstr "フィクスチャの `prepare` と `reset` は `SampleContext` または `ResetContext` を受け取り、その `sample_id` がランナーの現在の作業をフィクスチャに伝えます:"
 
-#: manual/design/runner.md:236
+#: manual/design/runner.md:244
 msgid "Phase"
 msgstr "フェーズ"
 
-#: manual/design/runner.md:238
+#: manual/design/runner.md:246
 msgid "validation sequence"
 msgstr "検証系列"
 
-#: manual/design/runner.md:239
+#: manual/design/runner.md:247
 msgid "warmup batch $w$"
 msgstr "ウォームアップバッチ $w$"
 
-#: manual/design/runner.md:240
+#: manual/design/runner.md:248
 msgid "reset after warmup (long-lived setups only)"
 msgstr "ウォームアップ後のリセット（長寿命のセットアップのみ）"
 
-#: manual/design/runner.md:241
+#: manual/design/runner.md:249
 msgid "calibration batch after $r$ retries; `-2` is also the reset after calibration"
 msgstr "$r$ 回の再試行後のキャリブレーションバッチ。`-2` はキャリブレーション後のリセットでもあります"
 
-#: manual/design/runner.md:242
+#: manual/design/runner.md:250
 msgid "exploratory block $r$"
 msgstr "探索的ブロック $r$"
 
-#: manual/design/runner.md:243
+#: manual/design/runner.md:251
 msgid "confirmatory block $r$"
 msgstr "確認的ブロック $r$"
 
-#: manual/design/runner.md:244
+#: manual/design/runner.md:252
 msgid "final reset of a cached prepared value"
 msgstr "キャッシュされた準備済みの値の最後のリセット"
 
-#: manual/design/runner.md:246
+#: manual/design/runner.md:254
 msgid "Long-lived setups (`PerRun`, `PerDataset`, `PerImplementation`) are prepared once per implementation and dataset, reset after warmup and after calibration, and reset again at the end of the dataset. The runner keeps one cache per implementation, so `PerRun` and `PerDataset` currently behave like `PerImplementation`."
 msgstr "長寿命のセットアップ（`PerRun`、`PerDataset`、`PerImplementation`）は、実装とデータセットごとに一度準備され、ウォームアップ後とキャリブレーション後にリセットされ、データセットの終わりに再びリセットされます。ランナーは実装ごとに 1 つのキャッシュを持つため、現在のところ `PerRun` と `PerDataset` は `PerImplementation` と同様に振る舞います。"
 
-#: manual/design/runner.md:252
+#: manual/design/runner.md:260
 msgid "Warmup"
 msgstr "ウォームアップ"
 
-#: manual/design/runner.md:254
+#: manual/design/runner.md:262
 msgid "Every implementation runs single-iteration batches until it has run `warmup_iterations` batches and spent `warmup_time_us`, capped at $\\max(\\text{warmup\\_iterations}, \\text{max\\_batch\\_iterations})$ batches. The same warmup applies to every implementation, so none starts the measurement with an advantage from just-in-time compilation or caches."
 msgstr "各実装は、`warmup_iterations` 個のバッチを実行し、かつ `warmup_time_us` を費やすまで、反復 1 回のバッチを実行します。バッチ数の上限は $\\max(\\text{warmup\\_iterations}, \\text{max\\_batch\\_iterations})$ です。すべての実装に同じウォームアップが適用されるため、JIT コンパイルやキャッシュによる優位を持って計測を始める実装はありません。"
 
-#: manual/design/runner.md:260
+#: manual/design/runner.md:268
 msgid "Crash isolation through subprocess workers"
 msgstr "サブプロセスワーカーによるクラッシュの隔離"
 
-#: manual/design/runner.md:262
+#: manual/design/runner.md:270
 msgid "*Problem.* A candidate that segfaults or loops forever would end the experiment. *Choice.* `Implementation::worker` runs each operation as a child process inside a task group with a hard-cancel handler, captures stdout and stderr concurrently, and turns a timeout or non-zero exit into an outcome. *Why.* An outcome is data: it is counted, reported and replayable. Process creation is part of the measured operation for workers, which is acceptable for correctness corpora and unsafe code, not for micro-benchmarks."
 msgstr "*問題。* セグメンテーション違反を起こしたり無限ループしたりする候補は、実験を終わらせてしまいます。*選択。* `Implementation::worker` は各操作を、強制キャンセルのハンドラを持つタスクグループ内の子プロセスとして実行し、stdout と stderr を並行してキャプチャし、タイムアウトや非ゼロの終了を結果に変換します。*理由。* 結果はデータであり、数えられ、報告され、リプレイできます。ワーカーではプロセスの生成が計測される操作の一部になりますが、これは正しさのコーパスや安全でないコードには許容できても、マイクロベンチマークには適しません。"
 
-#: manual/design/runner.md:270
+#: manual/design/runner.md:278
 msgid "Seeds and identities"
 msgstr "シードと識別情報"
 
-#: manual/design/runner.md:272
+#: manual/design/runner.md:280
 msgid "The run seed reaches the fixture unchanged in `GenerationContext(seed, \"default\", case_id, DatasetKey(scale, index), fixture.id, fixture.version)`. Derive per-dataset seeds from it with `@generator.derive_seed`; the [generator design](generator.md) explains the mixing. The same seed sets the rotation offset. Together with the protocol, the plan and the environment snapshot, the seed determines everything except the timings."
 msgstr "実行シードは `GenerationContext(seed, \"default\", case_id, DatasetKey(scale, index), fixture.id, fixture.version)` でそのままフィクスチャに届きます。そこから `@generator.derive_seed` でデータセットごとのシードを導出してください。混合については [generator の設計](generator.md)で説明しています。同じシードがローテーションのオフセットも決めます。プロトコル、プラン、環境スナップショットと合わせて、シードが計時値以外のすべてを決定します。"
 
-#: manual/design/runner.md:281
+#: manual/design/runner.md:289
 msgid "**Validation precedes timing** for every dataset and implementation."
 msgstr "すべてのデータセットと実装について**検証が計時に先立ちます**。"
 
-#: manual/design/runner.md:282
+#: manual/design/runner.md:290
 msgid "**Balance.** Over every $k$ consecutive blocks each implementation occupies each position once (proved above)."
 msgstr "**バランス。** 連続する $k$ 個のブロックごとに、各実装は各位置を 1 回ずつ占めます（上で証明したとおり）。"
 
-#: manual/design/runner.md:284
+#: manual/design/runner.md:292
 msgid "**Event order per dataset.** Validations and failures, then one calibration event per implementation, then $k(E + C)$ observations (exploratory first); the summary is emitted once, after the last dataset."
 msgstr "**データセットごとのイベントの順序。** 検証と失敗、次に実装ごとに 1 つのキャリブレーションイベント、次に $k(E + C)$ 個の観測（探索的なものが先）。要約は最後のデータセットの後に一度だけ出力されます。"
 
-#: manual/design/runner.md:287
+#: manual/design/runner.md:295
 msgid "**Counts.** `observation_count` $= \\lvert\\text{scales}\\rvert\\cdot k (E + C)$; `calibration_count` $= \\lvert\\text{scales}\\rvert \\cdot k$; `validation_count` is the number of compared steps."
 msgstr "**件数。** `observation_count` $= \\lvert\\text{scales}\\rvert\\cdot k (E + C)$、`calibration_count` $= \\lvert\\text{scales}\\rvert \\cdot k$、`validation_count` は比較したステップの数です。"
 
-#: manual/design/runner.md:290
+#: manual/design/runner.md:298
 msgid "**Validity.** An observation is `valid = false` when an operation in its batch produced no value or ended the context sequence."
 msgstr "**有効性。** バッチ内の操作が値を生成しなかったか、コンテキストの系列を終わらせた場合、観測は `valid = false` になります。"
 
-#: manual/design/runner.md:292
+#: manual/design/runner.md:300
 msgid "**Termination.** Calibration performs at most $n_{\\max} - n_0$ retries; warmup at most $\\max(\\text{warmup\\_iterations}, n_{\\max})$ batches; shrinking at most `max_steps` candidate evaluations."
 msgstr "**停止性。** キャリブレーションは高々 $n_{\\max} - n_0$ 回の再試行、ウォームアップは高々 $\\max(\\text{warmup\\_iterations}, n_{\\max})$ 個のバッチ、縮小は高々 `max_steps` 回の候補の評価を行います。"
 
-#: manual/design/runner.md:295
+#: manual/design/runner.md:303
 msgid "**Reset discipline.** A short-lived prepared value (validation sequence, `PerSample`, `PerBatch`, `PerIteration`) is reset exactly once. A cached long-lived value is reset after warmup, after calibration and at the end of the dataset, and reused in between, so `reset` must leave it reusable."
 msgstr "**リセットの規律。** 短寿命の準備済みの値（検証系列、`PerSample`、`PerBatch`、`PerIteration`）はちょうど 1 回リセットされます。キャッシュされた長寿命の値は、ウォームアップ後、キャリブレーション後、データセットの終わりにリセットされ、その間は再利用されるため、`reset` はそれを再利用可能な状態にしておかなければなりません。"
 
-#: manual/design/runner.md:302
+#: manual/design/runner.md:310
 msgid "**Random permutation per block.** Balanced only in expectation."
 msgstr "**ブロックごとのランダムな置換。** 期待値の上でしかバランスが取れません。"
 
-#: manual/design/runner.md:303
+#: manual/design/runner.md:311
 msgid "**Williams designs.** They also balance first-order carryover (which implementation ran just before), but need $2k$ blocks per cycle for odd $k$. The cyclic order always places implementation $i - 1$ before $i$ inside a block."
 msgstr "**Williams 計画。** 一次の持ち越し効果（直前にどの実装が実行されたか）もバランスさせますが、$k$ が奇数の場合は周期あたり $2k$ 個のブロックが必要です。巡回順序では、ブロック内で常に実装 $i - 1$ が $i$ の前に置かれます。"
 
-#: manual/design/runner.md:307
+#: manual/design/runner.md:315
 msgid "**Timing each iteration.** Timer overhead and resolution dominate short operations; batches amortize them."
 msgstr "**各反復を計時する。** 短い操作ではタイマーのオーバーヘッドと分解能が支配的になります。バッチはそれらを償却します。"
 
-#: manual/design/runner.md:309
+#: manual/design/runner.md:317
 msgid "**Stopping when an interval is narrow enough.** Sequential stopping rules invalidate fixed-sample intervals; the sample counts are fixed by the protocol."
 msgstr "**区間が十分狭くなったら止める。** 逐次的な停止規則は固定サンプルの区間を無効にします。サンプル数はプロトコルで固定されています。"
 
-#: manual/design/runner.md:312
+#: manual/design/runner.md:320
 msgid "**Validation after timing.** It would separate a wrong result from the measurement that should be discarded."
 msgstr "**計時の後に検証する。** 誤った結果を、破棄すべき計測から切り離してしまいます。"
 
-#: manual/design/runner.md:317
+#: manual/design/runner.md:325
 msgid "The runner does not pin threads, fix CPU frequency or isolate the process; it records what you declare about them in the `EnvironmentSnapshot`."
 msgstr "ランナーはスレッドの固定、CPU 周波数の固定、プロセスの隔離を行いません。それらについて宣言した内容を `EnvironmentSnapshot` に記録します。"
 
-#: manual/design/runner.md:319
+#: manual/design/runner.md:327
 msgid "`experiment_design`, `outlier_policy`, `validation_coverage` and `practical_delta_pct` are stored in the protocol but do not change the run. Validation runs once per dataset, before timing, whatever the coverage says."
 msgstr "`experiment_design`、`outlier_policy`、`validation_coverage`、`practical_delta_pct` はプロトコルに保存されますが、実行を変えることはありません。カバレッジの指定にかかわらず、検証はデータセットごとに 1 回、計時の前に実行されます。"
 
-#: manual/design/runner.md:322
+#: manual/design/runner.md:330
 msgid "It does not compute comparisons or decisions; `stats` does."
 msgstr "比較や判断は計算しません。それは `stats` が行います。"
 
-#: manual/design/runner.md:323
+#: manual/design/runner.md:331
 msgid "It materializes one input per scale; it does not regenerate inputs per block."
 msgstr "スケールごとに 1 つの入力を実体化します。ブロックごとに入力を再生成することはありません。"
 
-#: manual/design/runner.md:324
+#: manual/design/runner.md:332
 msgid "`protocol_identity`, and hence `run_id`, covers only the warmup count, the confirmatory sample count and the practical threshold."
 msgstr "`protocol_identity`、したがって `run_id` が含むのは、ウォームアップ回数、確認サンプル数、実用的な閾値だけです。"
 
-#: manual/design/runner.md:326
+#: manual/design/runner.md:334
 msgid "Subprocess workers need the native target; `run` itself needs an async runtime (native, JS or wasm, not wasm-gc)."
 msgstr "サブプロセスワーカーには native ターゲットが必要です。`run` 自体には非同期ランタイム（native、JS、wasm。wasm-gc は不可）が必要です。"
 
-#: manual/design/runner.md:328
+#: manual/design/runner.md:336
 msgid "First-order carryover between implementations is not balanced."
 msgstr "実装間の一次の持ち越し効果はバランスされません。"
 
@@ -5529,7 +5529,7 @@ msgstr "[runner のチュートリアル](runner.md)に、そのようなイベ�
 #: manual/tutorial/ir_sink.md:53
 #: manual/tutorial/model.md:118
 #: manual/tutorial/report.md:143
-#: manual/tutorial/runner.md:328
+#: manual/tutorial/runner.md:329
 #: manual/tutorial/stats.md:225
 #: manual/tutorial/tune.md:118
 #: manual/tutorial/tune_gemm.md:157
@@ -5553,7 +5553,7 @@ msgstr "その他のターゲットでは、このコマンドはファイルパ
 #: manual/tutorial/ir_sink.md:58
 #: manual/tutorial/model.md:126
 #: manual/tutorial/report.md:154
-#: manual/tutorial/runner.md:351
+#: manual/tutorial/runner.md:352
 #: manual/tutorial/stats.md:257
 #: manual/tutorial/tune.md:132
 #: manual/tutorial/tune_gemm.md:165
@@ -5585,7 +5585,7 @@ msgstr "**成果物を忘れる。** `replay` は `--dry-run` でも成果物の
 #: manual/tutorial/ir_sink.md:63
 #: manual/tutorial/model.md:135
 #: manual/tutorial/report.md:163
-#: manual/tutorial/runner.md:369
+#: manual/tutorial/runner.md:370
 #: manual/tutorial/stats.md:281
 #: manual/tutorial/tune.md:143
 #: manual/tutorial/tune_gemm.md:175
@@ -6477,94 +6477,94 @@ msgid "Step 4 of the sequence returns $3 \\cdot 5 = 15$, and the evidence record
 msgstr "系列のステップ 4 は $3 \\cdot 5 = 15$ を返し、証拠にはステップ後の値とコンテキストの両方が記録されます。"
 
 #: manual/tutorial/runner.md:248
-msgid "For a reference oracle, `sequence_length(input)` must return a positive value equal to the case length shown above. The runner uses that value for both sequences. A disagreement is a `RunConfigError`; an implementation or oracle that stops early produces an explicit invalid length-mismatch result. This prevents the shared prefix from being mistaken for a complete check."
-msgstr "参照オラクルの `sequence_length(input)` は、正の値を返し、上記のケース長と等しくなければなりません。ランナーはその値を両方の系列に使用します。長さが一致しない場合は `RunConfigError` が発生し、実装またはオラクルが途中で終了した場合は、長さ不一致を示す無効な結果が明示的に生成されます。これにより、共通の接頭部分を完全な検査と誤認しません。"
+msgid "For a reference oracle, `sequence_length(input)` must return a positive value equal to the case length shown above. The runner uses that value for both sequences. A disagreement is a `RunConfigError`; an implementation or oracle that stops early after passing steps produces an explicit invalid length-mismatch result. This prevents the shared prefix from being mistaken for a complete check."
+msgstr "参照オラクルの `sequence_length(input)` は、正の値を返し、上記のケース長と等しくなければなりません。ランナーはその値を両方の系列に使用します。長さが一致しない場合は `RunConfigError` が発生し、実装またはオラクルが合格したステップの後で途中終了した場合は、長さ不一致を示す無効な結果が明示的に生成されます。これにより、共通の接頭部分を完全な検査と誤認しません。"
 
-#: manual/tutorial/runner.md:254
+#: manual/tutorial/runner.md:255
 msgid "Catch and minimize a wrong implementation"
 msgstr "誤った実装を捕捉して最小化する"
 
-#: manual/tutorial/runner.md:256
+#: manual/tutorial/runner.md:257
 msgid "An off-by-one implementation fails validation. With a shrinker, the runner reduces the failing input before writing the failure artifact:"
 msgstr "off-by-one の誤りを含む実装は検証に失敗します。シュリンカーがあれば、ランナーは失敗アーティファクトを書き出す前に失敗する入力を縮小します:"
 
-#: manual/tutorial/runner.md:294
+#: manual/tutorial/runner.md:295
 msgid "The failure event carries the seed, the original and minimal fingerprints, the shrink path and the replay command `identity-worker off-by-one 40`. The implementation is still timed; the report hides its series and shows the mismatch instead."
 msgstr "失敗イベントには、シード、元のフィンガープリントと最小のフィンガープリント、縮小パス、リプレイコマンド `identity-worker off-by-one 40` が含まれます。実装はそれでも計時されますが、レポートはその系列を隠し、代わりに不一致を表示します。"
 
-#: manual/tutorial/runner.md:299
+#: manual/tutorial/runner.md:300
 msgid "Write your own protocol"
 msgstr "独自のプロトコルを書く"
 
-#: manual/tutorial/runner.md:301
+#: manual/tutorial/runner.md:302
 msgid "Presets cover common cases. For a gate in CI you may want more confirmatory blocks, a multiple of the number of implementations so that every rotation cycle is complete:"
 msgstr "プリセットはよくあるケースをカバーします。CI のゲートでは、より多くの確認的ブロックが欲しいかもしれません。すべてのローテーション周期が完全になるよう、実装の数の倍数にします:"
 
-#: manual/tutorial/runner.md:326
+#: manual/tutorial/runner.md:327
 msgid "With two implementations, $2 + 30 = 32$ blocks form 16 complete cycles."
 msgstr "実装が 2 つの場合、$2 + 30 = 32$ 個のブロックは 16 個の完全な周期になります。"
 
-#: manual/tutorial/runner.md:330
+#: manual/tutorial/runner.md:331
 msgid "**Isolate unsafe code.** `Implementation::worker` runs each operation in a child process with a timeout; a crash becomes an `Aborted` outcome and a hang a `Timeout`, both counted as infrastructure failures. Workers need the native target. See [`WorkerSpec`](../api/runner.md#workerspec)."
 msgstr "**安全でないコードを隔離する。** `Implementation::worker` は各操作をタイムアウト付きの子プロセスで実行します。クラッシュは `Aborted`、ハングは `Timeout` という結果になり、どちらもインフラストラクチャの失敗として数えられます。ワーカーには native ターゲットが必要です。[`WorkerSpec`](../api/runner.md#workerspec) を参照してください。"
 
-#: manual/tutorial/runner.md:335
+#: manual/tutorial/runner.md:336
 msgid "**Asynchronous devices.** Pass `synchronize=` to `Implementation::in_process` with a function that blocks until queued work is done. The runner calls it right before starting and right before stopping the clock."
 msgstr "**非同期デバイス。** キューに入った処理が終わるまでブロックする関数を、`synchronize=` として `Implementation::in_process` に渡してください。ランナーは時計を開始する直前と停止する直前にそれを呼び出します。"
 
-#: manual/tutorial/runner.md:339
+#: manual/tutorial/runner.md:340
 msgid "**Equal work per batch.** `BatchPolicy::SharedBatchSize` gives every implementation the smallest calibrated batch size."
 msgstr "**バッチあたりの作業量を等しくする。** `BatchPolicy::SharedBatchSize` は、すべての実装にキャリブレーションされた最小のバッチサイズを与えます。"
 
-#: manual/tutorial/runner.md:342
+#: manual/tutorial/runner.md:343
 msgid "**Several implementations against each other.** Use `OracleSpec::Relational` or `ReferenceAndRelational` to compare implementations pairwise when no single reference exists; see the [experiment tutorial](experiment.md)."
 msgstr "**複数の実装同士の比較。** 単一の参照がない場合は、`OracleSpec::Relational` または `ReferenceAndRelational` を使って実装をペアごとに比較してください。[experiment のチュートリアル](experiment.md)を参照してください。"
 
-#: manual/tutorial/runner.md:347
+#: manual/tutorial/runner.md:348
 msgid "**Reproducible inputs.** Derive dataset seeds inside the fixture with `@generator.derive_seed(context.seed, context.case_id, context.dataset_key.dataset_id)`; see the [generator tutorial](generator.md)."
 msgstr "**再現可能な入力。** フィクスチャ内で `@generator.derive_seed(context.seed, context.case_id, context.dataset_key.dataset_id)` によってデータセットのシードを導出してください。[generator のチュートリアル](generator.md)を参照してください。"
 
-#: manual/tutorial/runner.md:353
+#: manual/tutorial/runner.md:354
 msgid "**Work inside the payload that is not the payload.** Allocation, parsing or printing inside the implementation function is timed. Move it into the fixture."
 msgstr "**ペイロード内にあるペイロードでない処理。** 実装の関数内での割り当て、解析、出力は計時されます。フィクスチャに移してください。"
 
-#: manual/tutorial/runner.md:356
+#: manual/tutorial/runner.md:357
 msgid "**Forgetting `clone_input` for mutating code.** Later batches then measure a different input."
 msgstr "**変更を加えるコードで `clone_input` を忘れる。** 後のバッチが異なる入力を計測することになります。"
 
-#: manual/tutorial/runner.md:358
+#: manual/tutorial/runner.md:359
 msgid "**Reading timings from invalid observations.** Filter on `valid` and drop datasets with validation failures before comparing."
 msgstr "**無効な観測から計時値を読む。** 比較の前に `valid` でフィルタリングし、検証に失敗したデータセットを除外してください。"
 
-#: manual/tutorial/runner.md:360
+#: manual/tutorial/runner.md:361
 msgid "**Mixing phases.** Exploratory blocks are for orientation; decide on confirmatory ones."
 msgstr "**フェーズを混在させる。** 探索的ブロックは方向付けのためのものです。判断は確認的ブロックで行ってください。"
 
-#: manual/tutorial/runner.md:362
+#: manual/tutorial/runner.md:363
 msgid "**Assuming `run_id` is unique.** It identifies protocol and case; put a unique id in `ProvenanceEnvironment.run_id`."
 msgstr "**`run_id` が一意だと思い込む。** これはプロトコルとケースを識別するものです。一意な ID は `ProvenanceEnvironment.run_id` に入れてください。"
 
-#: manual/tutorial/runner.md:364
+#: manual/tutorial/runner.md:365
 msgid "**Calling `run` outside an async context.** It is an `async fn`."
 msgstr "**非同期コンテキストの外で `run` を呼ぶ。** これは `async fn` です。"
 
-#: manual/tutorial/runner.md:365
+#: manual/tutorial/runner.md:366
 msgid "**A zero threshold with noisy data.** `validate_protocol` accepts `0.0`, and `stats.compare_paired` then calls every non-zero difference `Faster` or `Slower`. Choose the smallest change you care about."
 msgstr "**ノイズのあるデータでゼロの閾値を使う。** `validate_protocol` は `0.0` を受け入れ、そのとき `stats.compare_paired` はゼロでない差をすべて `Faster` か `Slower` とします。気にする最小の変化を選んでください。"
 
-#: manual/tutorial/runner.md:371
+#: manual/tutorial/runner.md:372
 msgid "[runner API](../api/runner.md) and [runner design](../design/runner.md)."
 msgstr "[runner API](../api/runner.md) と [runner の設計](../design/runner.md)。"
 
-#: manual/tutorial/runner.md:372
+#: manual/tutorial/runner.md:373
 msgid "[stats tutorial](stats.md) to turn observations into a decision."
 msgstr "観測を判断に変えるには [stats のチュートリアル](stats.md)。"
 
-#: manual/tutorial/runner.md:373
+#: manual/tutorial/runner.md:374
 msgid "[report tutorial](report.md) to publish the JSONL as HTML."
 msgstr "JSONL を HTML として公開するには [report のチュートリアル](report.md)。"
 
-#: manual/tutorial/runner.md:374
+#: manual/tutorial/runner.md:375
 msgid "[fixture tutorial](fixture.md) and [experiment tutorial](experiment.md) for lifecycles and oracles."
 msgstr "ライフサイクルとオラクルについては [fixture のチュートリアル](fixture.md)と [experiment のチュートリアル](experiment.md)。"
 

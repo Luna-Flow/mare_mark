@@ -47,13 +47,19 @@ pub fn[Input, Expected, Output, Context] ReferenceOracle::new(String, () -> Cont
 `step` and the oracle's next context; the sequence stops when it returns no
 context. `validate(input, step, expected, actual)` returns the verdict.
 `expected_text` renders expected values in evidence. For each dataset selected
-for validation, the runner calls `sequence_length(input)` once and uses that
-positive length for both the expected and candidate validation sequences. It
-must equal the `BenchSpec` case length; a non-positive value or disagreement is
-a `RunConfigError` before candidate validation or measurement begins. If either
-sequence terminates early, the common steps are checked and an additional
-`Invalid` validation reports the expected and actual sequence lengths, so an
-unchecked suffix cannot be reported as a complete pass. The case length remains
+for validation, the runner calls `sequence_length(input)` once, after
+materializing the dataset and before running any operation on it, and uses
+that positive length for both the expected and candidate validation sequences.
+It must equal the `BenchSpec` case length; a non-positive value or
+disagreement raises `RunConfigError` and stops the run at that dataset.
+Datasets processed earlier (earlier scales or datasets, including
+exploratory-only datasets under `ConfirmatoryOnly`) have already been
+validated and measured, and their events have reached the sink. If either
+sequence terminates early after every common step passed, an additional
+`Invalid` validation and a `ValidationFailure` report the expected and actual
+sequence lengths, so an unchecked suffix cannot be reported as a complete
+pass. A sequence that stopped on a failing, unsupported, expected-difference
+or infrastructure-failure step is reported by that step alone. The case length remains
 the sequence length for relational-only cases.
 
 ### `ReferenceOracle::equal`

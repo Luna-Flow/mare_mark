@@ -248,7 +248,8 @@ the value and the context after the step.
 For a reference oracle, `sequence_length(input)` must return a positive value
 equal to the case length shown above. The runner uses that value for both
 sequences. A disagreement is a `RunConfigError`; an implementation or oracle
-that stops early produces an explicit invalid length-mismatch result. This
+that stops early after passing steps produces an explicit invalid
+length-mismatch result. This
 prevents the shared prefix from being mistaken for a complete check.
 
 ### Catch and minimize a wrong implementation
