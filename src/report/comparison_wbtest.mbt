@@ -549,3 +549,16 @@ test "comparisons print as an aligned plain-text table" {
   assert_true(rows[3].contains("[-50 %, -50 %]"))
   assert_true(signed_number(0.0) == "0" && signed_number(1.5) == "+1.5")
 }
+
+///|
+test "filter_pairs keeps NaN deltas under ReportOnly and drops them under fences (#29)" {
+  let nan = 0.0 / 0.0
+  let pairs = [(0, 1.0, nan), (1, 1.0, 2.0), (2, 1.0, 2.1)]
+  let reported = filter_pairs(pairs, @model.OutlierPolicy::ReportOnly)
+  assert_eq(reported.length(), 3)
+  assert_true(reported[0].2.is_nan())
+  let tukey = filter_pairs(pairs, @model.OutlierPolicy::TukeyFence)
+  assert_eq(tukey.map(pair => pair.0), [1, 2])
+  let mad = filter_pairs(pairs, @model.OutlierPolicy::MADTrim)
+  assert_true(mad.all(pair => !pair.2.is_nan()))
+}
