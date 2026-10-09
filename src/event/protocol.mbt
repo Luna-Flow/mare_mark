@@ -275,10 +275,13 @@ fn decode_protocol(json : Json) -> @model.RunProtocol raise ProtocolDecodeError 
 /// `protocol_json`, back into the `RunProtocol` the run used.
 ///
 /// Every field is required except `repeats_per_dataset`, which defaults to `1`
-/// for records written before it existed; unknown keys are ignored. The result is exact:
+/// for records written before it existed; unknown keys are ignored. The
+/// decoding is exact, so for a record written by this version
 /// `@model.protocol_identity` of the decoded protocol equals the
-/// `protocol_identity` recorded next to it. Errors name the offending field,
-/// e.g. `protocol.calibration.batch_policy: unknown value 'x'`.
+/// `protocol_identity` recorded next to it. Identities recorded before
+/// `repeats_per_dataset` joined the canonical encoding differ, because the
+/// encoding they were computed from did not contain it. Errors name the
+/// offending field, e.g. `protocol.calibration.batch_policy: unknown value 'x'`.
 pub fn protocol_from_json(json : Json) -> Result[@model.RunProtocol, String] {
   try decode_protocol(json) catch {
     ProtocolDecodeError(message) => Err(message)
