@@ -1325,6 +1325,12 @@ fn filter_pairs(
   pairs : Array[(Int, Double, Double)],
   policy : @model.OutlierPolicy,
 ) -> Array[(Int, Double, Double)] {
+  if policy is ReportOnly {
+    return pairs.copy()
+  }
+  // `filter_outliers` keeps or drops a value by the value alone, so membership
+  // of a delta in its result decides the pair. A `NaN` delta is never kept by
+  // the fences, and `contains` would not find it anyway (`NaN != NaN`).
   let deltas = pairs.map(pair => pair.2 - pair.1)
   let kept = @stats.filter_outliers(deltas, policy)
   pairs.filter(pair => kept.contains(pair.2 - pair.1))

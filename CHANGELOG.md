@@ -87,6 +87,10 @@ All notable changes to mare_mark are documented in this file.
   `option '--baseline' requires an implementation id`, as is an empty
   `--baseline=`; use `--baseline=<id>` for an id that starts with `-`. When
   several usage errors occur, the first one is reported (#28).
+- Report comparisons keep every pair under `ReportOnly`. A pair whose paired
+  delta is `NaN` was always removed and counted as an outlier, because
+  membership was tested with `NaN != NaN`; it now reaches the bootstrap,
+  which makes the row `Invalid` with its reason (#29).
 - `mare-mark report` prints its elapsed time with three decimals of a
   millisecond (`elapsed: 11.127ms`), the resolution of the microsecond
   clock, instead of the raw `Double` text with floating-point noise
