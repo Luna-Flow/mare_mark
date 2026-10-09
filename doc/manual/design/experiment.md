@@ -157,6 +157,12 @@ would encode noise.
   scales are not merged, and their labels stay in input order.
 - A transition across an `Unknown` label (A, Unknown, B) is not counted, so
   such a sequence reports `NoCrossover`.
-- Oracles are not run here; the runner runs them. `ReferenceOracle.sequence_length`
-  is not used by the runner.
+- Oracles are not run here; the runner runs them. For each input selected for
+  reference validation, the runner evaluates `ReferenceOracle.sequence_length`
+  once. The result must be positive and equal the case's configured sequence
+  length; otherwise the run raises `RunConfigError` before candidate execution.
+  This equality is a correctness precondition: checking only the common prefix
+  would leave a suffix without a verdict. If an expected or actual operation
+  sequence terminates early, the runner emits an `Invalid` validation for the
+  length mismatch after validating the common steps.
 - `shrink` does not check that the initial input fails.

@@ -148,6 +148,335 @@ fn traced_sink(trace : Array[String]) -> @event.ObservationSink {
 }
 
 ///|
+async test "reference oracle sequence length controls both sequences" {
+  let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
+  let sequence_length_calls = Ref(0)
+  let reference : @experiment.ReferenceOracle[Int, Int, Int, Int] = @experiment.ReferenceOracle::new(
+    "dynamic-length-reference",
+    () => 0,
+    _ => {
+      sequence_length_calls.val += 1
+      2
+    },
+    (input, _, context) => {
+      @model.OperationResult::completed(input + context, context + 1)
+    },
+    (_, _, expected, actual) => {
+      match (expected, actual) {
+        (
+          @model.ExecutionOutcome::Value(expected),
+          @model.ExecutionOutcome::Value(actual),
+        ) =>
+          if expected == actual {
+            @model.ValidationStatus::Valid
+          } else {
+            @model.ValidationStatus::Invalid("value mismatch")
+          }
+        _ => @model.ValidationStatus::Invalid("outcome mismatch")
+      }
+    },
+    value => value.to_string(),
+  )
+  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+    case: {
+      ..spec.case,
+      sequence_length: 2,
+      oracle: @experiment.OracleSpec::Reference(reference),
+    },
+  }
+  let validations : Array[@model.ValidationStatus] = []
+  let sink = @event.ObservationSink::new(
+    _ => (),
+    validation => validations.push(validation.status),
+    _ => (),
+    _ => "trace://dynamic-length",
+  )
+  ignore(
+    run(
+      spec.compile().unwrap(),
+      RunContext::new(
+        test_environment("dynamic-length"),
+        sink,
+        11UL,
+        validate_protocol(
+          protocol_with(
+            @model.ExperimentDesign::FixedDatasetRepeatedMeasurements,
+            @model.ValidationCoverage::EveryDataset,
+            0,
+            1,
+            warmup=0,
+          ),
+        ).unwrap(),
+      ),
+    ),
+  )
+  assert_eq(validations.length(), 4)
+  assert_eq(sequence_length_calls.val, 1)
+  assert_true(
+    validations.all(status => status is @model.ValidationStatus::Valid),
+  )
+}
+
+///|
+async test "reference oracle and actual sequence length mismatch fails validation" {
+  let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
+  let reference = @experiment.ReferenceOracle::new(
+    "length-mismatch-reference",
+    () => 0,
+    _ => 3,
+    (input, _, context) => {
+      @model.OperationResult::completed(input + context, context + 1)
+    },
+    (_, _, _, _) => @model.ValidationStatus::Valid,
+    value => value.to_string(),
+  )
+  let implementation = Implementation::in_process(
+    "short-candidate",
+    "1",
+    () => 0,
+    (prepared, context) => {
+      if context >= 1 {
+        @model.OperationResult::new(
+          @model.ExecutionOutcome::Value(prepared + context),
+          None,
+        )
+      } else {
+        @model.OperationResult::completed(prepared + context, context + 1)
+      }
+    },
+  )
+  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+    case: {
+      ..spec.case,
+      sequence_length: 3,
+      implementations: [implementation],
+      oracle: @experiment.OracleSpec::Reference(reference),
+    },
+  }
+  let validations : Array[@model.ValidationStatus] = []
+  let sink = @event.ObservationSink::new(
+    _ => (),
+    validation => validations.push(validation.status),
+    _ => (),
+    _ => "trace://length-mismatch",
+  )
+  ignore(
+    run(
+      spec.compile().unwrap(),
+      RunContext::new(
+        test_environment("length-mismatch"),
+        sink,
+        11UL,
+        validate_protocol(
+          protocol_with(
+            @model.ExperimentDesign::FixedDatasetRepeatedMeasurements,
+            @model.ValidationCoverage::EveryDataset,
+            0,
+            1,
+            warmup=0,
+          ),
+        ).unwrap(),
+      ),
+    ),
+  )
+  assert_eq(validations.length(), 3)
+  assert_true(
+    validations.any(status => {
+      match status {
+        @model.ValidationStatus::Invalid(reason) =>
+          reason.contains("sequence length mismatch")
+        _ => false
+      }
+    }),
+  )
+}
+
+///|
+async test "matching early termination still fails the configured sequence length" {
+  let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
+  let reference : @experiment.ReferenceOracle[Int, Int, Int, Int] = @experiment.ReferenceOracle::new(
+    "matching-early-stop-reference",
+    () => 0,
+    _ => 3,
+    (input, _, _) => {
+      @model.OperationResult::new(@model.ExecutionOutcome::Value(input), None)
+    },
+    (_, _, _, _) => @model.ValidationStatus::Valid,
+    value => value.to_string(),
+  )
+  let implementation = Implementation::in_process(
+    "matching-early-stop",
+    "1",
+    () => 0,
+    (prepared, _) => {
+      @model.OperationResult::new(
+        @model.ExecutionOutcome::Value(prepared),
+        None,
+      )
+    },
+  )
+  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+    case: {
+      ..spec.case,
+      sequence_length: 3,
+      implementations: [implementation],
+      oracle: @experiment.OracleSpec::Reference(reference),
+    },
+  }
+  let validations : Array[@model.ValidationStatus] = []
+  let sink = @event.ObservationSink::new(
+    _ => (),
+    validation => validations.push(validation.status),
+    _ => (),
+    _ => "trace://matching-early-stop",
+  )
+  ignore(
+    run(
+      spec.compile().unwrap(),
+      RunContext::new(
+        test_environment("matching-early-stop"),
+        sink,
+        11UL,
+        validate_protocol(
+          protocol_with(
+            @model.ExperimentDesign::FixedDatasetRepeatedMeasurements,
+            @model.ValidationCoverage::EveryDataset,
+            0,
+            1,
+            warmup=0,
+          ),
+        ).unwrap(),
+      ),
+    ),
+  )
+  assert_eq(validations.length(), 2)
+  assert_true(validations[0] is @model.ValidationStatus::Valid)
+  assert_true(
+    match validations[1] {
+      @model.ValidationStatus::Invalid(reason) =>
+        reason.contains("configured 3 steps") &&
+        reason.contains("oracle produced 1") &&
+        reason.contains("implementation produced 1")
+      _ => false
+    },
+  )
+}
+
+///|
+async test "non-positive reference sequence length is a run configuration error" {
+  let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
+  let reference = @experiment.ReferenceOracle::new(
+    "invalid-length-reference",
+    () => 0,
+    _ => 0,
+    (input, _, context) => {
+      @model.OperationResult::completed(input + context, context + 1)
+    },
+    (_, _, _, _) => @model.ValidationStatus::Valid,
+    value => value.to_string(),
+  )
+  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+    case: { ..spec.case, oracle: @experiment.OracleSpec::Reference(reference), },
+  }
+  let trace = []
+  let raised = try {
+    ignore(
+      run(
+        spec.compile().unwrap(),
+        RunContext::new(
+          test_environment("invalid-oracle-length"),
+          traced_sink(trace),
+          11UL,
+          validate_protocol(
+            protocol_with(
+              @model.ExperimentDesign::FixedDatasetRepeatedMeasurements,
+              @model.ValidationCoverage::EveryDataset,
+              0,
+              1,
+              warmup=0,
+            ),
+          ).unwrap(),
+        ),
+      ),
+    )
+    None
+  } catch {
+    RunConfigError(errors) => Some(errors)
+    _ => None
+  }
+  assert_true(raised is Some([InvalidOracleSequenceLength(0)]))
+  let negative_reference : @experiment.ReferenceOracle[Int, Int, Int, Int] = @experiment.ReferenceOracle::new(
+    "negative-length-reference",
+    () => 0,
+    _ => -1,
+    (input, _, context) => {
+      @model.OperationResult::completed(input + context, context + 1)
+    },
+    (_, _, _, _) => @model.ValidationStatus::Valid,
+    value => value.to_string(),
+  )
+  assert_true(
+    validation_steps(
+      1,
+      @experiment.OracleSpec::Reference(negative_reference),
+      1,
+    )
+    is Err(InvalidOracleSequenceLength(-1)),
+  )
+  assert_true(trace.is_empty())
+}
+
+///|
+async test "case and oracle sequence length mismatch is rejected before operations" {
+  let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
+  let reference = @experiment.ReferenceOracle::new(
+    "different-length-reference",
+    () => 0,
+    _ => 3,
+    (input, _, context) => {
+      @model.OperationResult::completed(input + context, context + 1)
+    },
+    (_, _, _, _) => @model.ValidationStatus::Valid,
+    value => value.to_string(),
+  )
+  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+    case: {
+      ..spec.case,
+      sequence_length: 2,
+      oracle: @experiment.OracleSpec::Reference(reference),
+    },
+  }
+  let trace = []
+  let raised = try {
+    ignore(
+      run(
+        spec.compile().unwrap(),
+        RunContext::new(
+          test_environment("length-disagreement"),
+          traced_sink(trace),
+          11UL,
+          validate_protocol(
+            protocol_with(
+              @model.ExperimentDesign::FixedDatasetRepeatedMeasurements,
+              @model.ValidationCoverage::EveryDataset,
+              0,
+              1,
+              warmup=0,
+            ),
+          ).unwrap(),
+        ),
+      ),
+    )
+    None
+  } catch {
+    RunConfigError(errors) => Some(errors)
+    _ => None
+  }
+  assert_true(raised is Some([OracleSequenceLengthMismatch(2, 3)]))
+  assert_true(trace.is_empty())
+}
+
+///|
 async fn traced_run(
   frequency : @model.SetupFrequency,
   scales : Array[Int],

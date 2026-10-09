@@ -620,12 +620,16 @@ pub(all) enum BenchConfigError {
   EmptyImplementationId(Int)
   DuplicateImplementationId(String)
   InvalidSequenceLength(Int)
+  InvalidOracleSequenceLength(Int)
+  OracleSequenceLengthMismatch(Int, Int)
 }
 ```
 
 `EmptyImplementationId` carries the index of the implementation,
 `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the
-rejected length. The `Missing*` constructors come from
+rejected case length. `InvalidOracleSequenceLength` carries a non-positive
+length returned by a reference oracle; `OracleSequenceLengthMismatch` carries
+the configured case length and the oracle length, in that order. The `Missing*` constructors come from
 `SingleStepCase::compile`; `MissingSerializer` is reserved and not produced by
 the current code.
 

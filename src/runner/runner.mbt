@@ -310,6 +310,28 @@ fn[Input, Expected, Output, Context] reference_expected_sequence(
 }
 
 ///|
+fn[Input, Expected, Output, Context] validation_steps(
+  case_steps : Int,
+  oracle : @experiment.OracleSpec[Input, Expected, Output, Context],
+  input : Input,
+) -> Result[Int, BenchConfigError] {
+  match oracle {
+    @experiment.OracleSpec::Reference(reference)
+    | @experiment.OracleSpec::ReferenceAndRelational(reference, _) => {
+      let steps = (reference.sequence_length)(input)
+      if steps <= 0 {
+        Err(InvalidOracleSequenceLength(steps))
+      } else if steps != case_steps {
+        Err(OracleSequenceLengthMismatch(case_steps, steps))
+      } else {
+        Ok(steps)
+      }
+    }
+    @experiment.OracleSpec::Relational(_) => Ok(case_steps)
+  }
+}
+
+///|
 fn[Value] status_from_outcome(
   outcome : @model.ExecutionOutcome[Value],
 ) -> @model.ValidationStatus? {
@@ -411,7 +433,10 @@ async fn[Scale, Input, Prepared, Expected, Output, Context] minimize_failure(
     let mut reduced = false
     for candidate in (shrinker.candidates)(current) {
       attempts += 1
-      let steps = failing_step + 1
+      let steps = (oracle.sequence_length)(candidate)
+      if steps <= 0 || steps != (oracle.sequence_length)(current) {
+        continue
+      }
       let expected = reference_expected_sequence(oracle, candidate, steps)
       let actual = validation_sequence(
         fixture, candidate, implementation, steps,
@@ -846,6 +871,22 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] em
       )
     }
   }
+  if expected.length() != case.sequence_length ||
+    actual.length() != case.sequence_length {
+    let expected_count = expected.length()
+    let actual_count = actual.length()
+    let validation = @model.Validation::new(
+      @model.ValidationStatus::Invalid(
+        "sequence length mismatch: configured \{case.sequence_length} steps, oracle produced \{expected_count}, implementation produced \{actual_count}",
+      ),
+      reference.id,
+      implementation.id,
+      scale_text,
+      measurement?,
+    )
+    (sink.emit_validation)(validation)
+    tally.count(validation)
+  }
 }
 
 ///|
@@ -980,7 +1021,6 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] ru
   let tally = ValidationTally::new()
   let setup_policy = case.fixture.setup_policy
   let implementation_count = case.implementations.length()
-  let steps = case.sequence_length
   let dataset_count = datasets_per_scale(protocol)
   let dataset_blocks = blocks_per_dataset(protocol)
   for scale_index = 0
@@ -1013,6 +1053,14 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] ru
       let validate_dataset = match protocol.validation_coverage {
         EveryDataset | EveryMeasurement => true
         ConfirmatoryOnly => end_block > protocol.exploratory_samples
+      }
+      let steps = if validate_dataset {
+        match validation_steps(case.sequence_length, case.oracle, input) {
+          Ok(steps) => steps
+          Err(error) => raise RunConfigError([error])
+        }
+      } else {
+        case.sequence_length
       }
       let expected_sequence : Array[@model.OperationResult[Expected, Context]] = []
       let actual_sequences = []
