@@ -67,7 +67,9 @@ $0.18 + 0.72\,(v - \ell)/(h - \ell)$, which therefore lies strictly between
 $0.18$ and $0.90$: no cell is invisible and none is fully saturated.
 
 Grid lines are drawn at $Y = 102 + 63j$ for $j = 0, \dots, 4$ with tick value
-$h - (h - \ell)\,j/4$, rounded to three decimals. With $m$ categories, labels
+$h - (h - \ell)\,j/4$, rounded to three decimals; magnitudes below $0.001$ or
+from $10^{15}$ up keep their shortest round-trip form, because rounding would
+erase or overflow them. With $m$ categories, labels
 are drawn every $\lceil m/10\rceil$ categories and at the last one, so at most
 eleven labels are shown.
 
@@ -111,10 +113,17 @@ value on an axis is non-finite or non-positive, or if the positive finite
 values span less than 100×, that axis stays linear. A nonnumeric x axis stays
 categorical in first-appearance order. Heatmaps also keep categorical x.
 
-Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range;
-x labels closer than 56 px are omitted. The SVG formats each tick from its
-original positive value and records each chosen axis scale in Plot IR and
-JSON. The plot note and axis label identify any log transform.
+Log-axis ticks lie within the observed data range, and labels stay at least
+56 px apart on x and 28 px apart on y. Every power of ten in range is labelled;
+when decades are closer than that spacing, only the powers whose exponent is
+divisible by the smallest k that keeps them apart are labelled, so the labels
+stay uniform. The `2 × 10^k` and `5 × 10^k` ticks are added only when a decade
+is wide enough to keep every label that far apart. A range that holds no
+`1, 2, 5 × 10^k` value labels its endpoints, and a single value is labelled at
+the centre of the axis. Grid lines are drawn only at labelled ticks, so their
+number stays bounded however many decades the data span. Tick labels use the
+same number format as linear axes. The SVG records each chosen axis scale in
+Plot IR and JSON, and the plot note and axis label identify any log transform.
 
 ### Escaping order
 

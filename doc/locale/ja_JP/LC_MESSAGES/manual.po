@@ -1245,14 +1245,14 @@ msgid "`plot_svg` renders one plot as a standalone SVG element."
 msgstr "`plot_svg` は 1 つのプロットを単独の SVG 要素として描画します。"
 
 #: manual/api/report.md:114
-msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, linear grid ticks or 1-2-5 ticks on logarithmic axes, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
-msgstr "SVG は 960 × 420 の viewBox、アクセシブルな `<title>` と `<desc>`、インラインスタイル、線形軸の目盛りまたは対数軸の 1-2-5 目盛り、およそ 10 個までの x ラベル、凡例を備えます。各点は `series — x: y unit` のツールチップを持つ円で描画されます。`Scaling`、`Interval`、`ChangePoint` の各 plot は、系列ごとに x カテゴリーの点の平均を線で結びます。`Heatmap` は系列と x カテゴリーごとにセルを描き、平均値に応じて不透明度を変えます。空の plot には「No observations」と表示します。すべてのテキストは XML エスケープされます。"
+msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, linear grid ticks or, on logarithmic axes, a label at every power of ten (every k-th one when decades are dense) with 2× and 5× ticks when space allows, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
+msgstr "SVG は 960 × 420 の viewBox、アクセシブルな `<title>` と `<desc>`、インラインスタイル、線形軸の目盛り、または対数軸ではすべての 10 のべき乗のラベル（桁が密な場合は k 桁ごと）と余裕がある場合の 2× と 5× の目盛り、およそ 10 個までの x ラベル、凡例を備えます。各点は `series — x: y unit` のツールチップを持つ円で描画されます。`Scaling`、`Interval`、`ChangePoint` の各 plot は、系列ごとに x カテゴリーの点の平均を線で結びます。`Heatmap` は系列と x カテゴリーごとにセルを描き、平均値に応じて不透明度を変えます。空の plot には「No observations」と表示します。すべてのテキストは XML エスケープされます。"
 
-#: manual/api/report.md:139
+#: manual/api/report.md:140
 msgid "`html` renders a whole document as one self-contained HTML page."
 msgstr "`html` はドキュメント全体を 1 つの自己完結型 HTML ページとして描画します。"
 
-#: manual/api/report.md:145
+#: manual/api/report.md:146
 msgid "The page contains a header with run id, target and schema version, then the differential report (corpus outcomes, mismatches, capability coverage matrix, minimal counterexamples), then one figure per plot. CSS is inline, plots are inline SVG, and there are no scripts and no external resources, so the file can be archived or attached as it is. The output depends only on the document."
 msgstr "ページには、実行 ID、ターゲット、スキーマバージョンを含むヘッダー、続いて差分レポート（コーパスの結果、不一致、ケイパビリティのカバレッジ行列、最小反例）、さらにプロットごとに 1 つの図が含まれます。CSS はインライン、プロットはインライン SVG で、スクリプトも外部リソースもないため、ファイルをそのままアーカイブしたり添付したりできます。出力はドキュメントだけに依存します。"
 
@@ -2654,7 +2654,7 @@ msgstr "`parse_args` は決して失敗しません。どのベクタもリク�
 #: manual/design/ir_model.md:30
 #: manual/design/ir_sink.md:20
 #: manual/design/model.md:57
-#: manual/design/report.md:74
+#: manual/design/report.md:76
 #: manual/design/runner.md:152
 #: manual/design/stats.md:218
 #: manual/design/tune.md:124
@@ -2702,7 +2702,7 @@ msgstr "`report` は入力全体を読み込み、ターゲットラベル `nati
 #: manual/design/ir_model.md:56
 #: manual/design/ir_sink.md:30
 #: manual/design/model.md:109
-#: manual/design/report.md:142
+#: manual/design/report.md:151
 #: manual/design/runner.md:279
 #: manual/design/stats.md:422
 #: manual/design/tune.md:159
@@ -2734,7 +2734,7 @@ msgstr "イベントの解析に失敗した場合、`report` は何も書き出
 #: manual/design/ir_model.md:63
 #: manual/design/ir_sink.md:36
 #: manual/design/model.md:121
-#: manual/design/report.md:156
+#: manual/design/report.md:165
 #: manual/design/runner.md:300
 #: manual/design/stats.md:449
 #: manual/design/tune.md:172
@@ -2762,7 +2762,7 @@ msgstr "**CLI のロジックを `report` に埋め込む。** 純粋なパッ�
 #: manual/design/ir_model.md:71
 #: manual/design/ir_sink.md:41
 #: manual/design/model.md:130
-#: manual/design/report.md:166
+#: manual/design/report.md:175
 #: manual/design/runner.md:315
 #: manual/design/stats.md:467
 #: manual/design/tune.md:181
@@ -3723,122 +3723,122 @@ msgid "is well defined, and for every plotted value $\\ell < v < h$, which place
 msgstr "は well-defined であり、描画されるすべての値について $\\ell < v < h$ となるので、すべての点がプロット領域の厳密に内側に置かれます。浮動小数点では、$w$ が $\\lvert v\\rvert$ に比べて非常に小さいと余白が丸めで失われることがあり、無限大や `NaN` の値は範囲を壊します。レンダラーはそれらを除外しません。ヒートマップのセルは不透明度 $0.18 + 0.72\\,(v - \\ell)/(h - \\ell)$ を使うので、これは $0.18$ と $0.90$ の厳密に間にあります。見えないセルも、完全に飽和したセルもありません。"
 
 #: manual/design/report.md:69
-msgid "Grid lines are drawn at $Y = 102 + 63j$ for $j = 0, \\dots, 4$ with tick value $h - (h - \\ell)\\,j/4$, rounded to three decimals. With $m$ categories, labels are drawn every $\\lceil m/10\\rceil$ categories and at the last one, so at most eleven labels are shown."
-msgstr "グリッド線は $j = 0, \\dots, 4$ について $Y = 102 + 63j$ に描かれ、目盛り値は $h - (h - \\ell)\\,j/4$ を小数点以下 3 桁に丸めたものです。$m$ 個のカテゴリがある場合、ラベルは $\\lceil m/10\\rceil$ カテゴリごとと最後のカテゴリに描かれるため、表示されるラベルは最大 11 個です。"
+msgid "Grid lines are drawn at $Y = 102 + 63j$ for $j = 0, \\dots, 4$ with tick value $h - (h - \\ell)\\,j/4$, rounded to three decimals; magnitudes below $0.001$ or from $10^{15}$ up keep their shortest round-trip form, because rounding would erase or overflow them. With $m$ categories, labels are drawn every $\\lceil m/10\\rceil$ categories and at the last one, so at most eleven labels are shown."
+msgstr "グリッド線は $j = 0, \\dots, 4$ について $Y = 102 + 63j$ に描かれ、目盛り値は $h - (h - \\ell)\\,j/4$ を小数点以下 3 桁に丸めたものです。ただし絶対値が $0.001$ 未満または $10^{15}$ 以上の値は、丸めると消えたりオーバーフローしたりするため、最短の往復可能な表記を保ちます。$m$ 個のカテゴリがある場合、ラベルは $\\lceil m/10\\rceil$ カテゴリごとと最後のカテゴリに描かれるため、表示されるラベルは最大 11 個です。"
 
-#: manual/design/report.md:76
+#: manual/design/report.md:78
 msgid "A pure projection with the effects outside"
 msgstr "副作用を外に置いた純粋な射影"
 
-#: manual/design/report.md:78
+#: manual/design/report.md:80
 msgid "*Problem.* Reports are regenerated after renderer changes and compared in review. *Choice.* `document_from_jsonl`, `plot_json`, `plot_svg` and `html` take values and return strings; file IO, standard streams and opening a browser live in the [`cli`](cli.md). *Why.* The same JSONL gives the same bytes on every target, tests need no filesystem, and the HTML can be produced inside a larger application."
 msgstr "*問題。* レポートはレンダラの変更後に再生成され、レビューで比較されます。*選択。* `document_from_jsonl`、`plot_json`、`plot_svg`、`html` は値を受け取り文字列を返します。ファイル IO、標準ストリーム、ブラウザを開く処理は [`cli`](cli.md) にあります。*理由。* 同じ JSONL からはどのターゲットでも同じバイト列が得られ、テストにファイルシステムは不要で、HTML をより大きなアプリケーションの中で生成できます。"
 
-#: manual/design/report.md:85
+#: manual/design/report.md:87
 msgid "Failures remove series and stay visible"
 msgstr "失敗は系列を取り除き、見えるまま残る"
 
-#: manual/design/report.md:87
+#: manual/design/report.md:89
 msgid "*Problem.* A fast implementation that returns wrong results would look like a win. *Choice.* A failing validation removes the points of that implementation for that case and dataset, and adds a mismatch row; minimized failures add a counterexample row with the replay command. *Why.* The differential section sits above the plots, so the reader sees why a series is missing."
 msgstr "*問題。* 誤った結果を返す高速な実装は、勝者のように見えてしまいます。*選択。* 失敗した検証は、そのケースとデータセットにおけるその実装の点を取り除き、不一致の行を追加します。最小化された失敗は、リプレイコマンド付きの反例の行を追加します。*理由。* 差分セクションはプロットの上にあるため、読み手はなぜ系列が欠けているのかがわかります。"
 
-#: manual/design/report.md:93
+#: manual/design/report.md:95
 msgid "Raw points with mean lines"
 msgstr "平均線付きの生の点"
 
-#: manual/design/report.md:95
+#: manual/design/report.md:97
 msgid "*Problem.* Summaries hide distributions, raw clouds hide trends. *Choice.* Every observation is drawn with a tooltip, and for line kinds the per-category mean connects the categories. *Why.* The mean of the drawn points is the centre of mass the eye already estimates; robust statistics and decisions belong to `stats` and can be added as further plots. The line is a guide, not an estimate the report vouches for."
 msgstr "*問題。* 要約は分布を隠し、生の点群は傾向を隠します。*選択。* すべての観測をツールチップ付きで描き、線を使う種類ではカテゴリごとの平均でカテゴリを結びます。*理由。* 描かれた点の平均は、目がすでに見積もっている重心です。頑健な統計量と判断は `stats` の役割であり、追加のプロットとして加えられます。線は目安であって、レポートが保証する推定値ではありません。"
 
-#: manual/design/report.md:102
+#: manual/design/report.md:104
 msgid "Axis selection for scaling plots"
 msgstr "## Scaling plot の軸選択"
 
-#: manual/design/report.md:104
+#: manual/design/report.md:106
 msgid "`PlotPoint.x` remains text so a scale can be an integer, shape, layout or name. For scaling plots, finite numeric x values are ordered numerically and placed on a linear axis unless all are positive and `max / min >= 100`; then x uses `log10(x)`. Y is evaluated independently by the same rule. This span is at least two decades and gives multiplicative changes equal distances because log10(b) - log10(a) = log10(b / a). If any value on an axis is non-finite or non-positive, or if the positive finite values span less than 100×, that axis stays linear. A nonnumeric x axis stays categorical in first-appearance order. Heatmaps also keep categorical x."
 msgstr "`PlotPoint.x` は、尺度が整数、形状、レイアウト、名前のいずれでも表せるよう引き続き文字列にします。Scaling plot では有限な数値 x を数値順に並べ、すべてが正で `max / min >= 100` の場合に限って x 軸に `log10(x)` を使います。y 軸も同じ規則で独立に判定します。これは 2 桁以上の範囲で、同じ倍率の変化を同じ距離に配置するためです。log10(b) - log10(a) = log10(b / a) という関係によります。いずれかの値が正の有限値でない場合、または正の有限値の範囲が 100 倍未満なら、その軸は線形のままです。数値でない x 軸は初出順のカテゴリ軸にし、Heatmap の x 軸もカテゴリ軸のままにします。"
 
-#: manual/design/report.md:114
-msgid "Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range; x labels closer than 56 px are omitted. The SVG formats each tick from its original positive value and records each chosen axis scale in Plot IR and JSON. The plot note and axis label identify any log transform."
-msgstr "対数軸の目盛り候補は観測範囲内の `1, 2, 5 × 10^k` です。x ラベル間隔が 56 px 未満の場合、近いラベルを省略します。SVG は元の正の値をラベルに使い、Plot IR と JSON は選択した軸スケールを記録します。plot の注記と軸ラベルには対数変換が明示されます。"
+#: manual/design/report.md:116
+msgid "Log-axis ticks lie within the observed data range, and labels stay at least 56 px apart on x and 28 px apart on y. Every power of ten in range is labelled; when decades are closer than that spacing, only the powers whose exponent is divisible by the smallest k that keeps them apart are labelled, so the labels stay uniform. The `2 × 10^k` and `5 × 10^k` ticks are added only when a decade is wide enough to keep every label that far apart. A range that holds no `1, 2, 5 × 10^k` value labels its endpoints, and a single value is labelled at the centre of the axis. Grid lines are drawn only at labelled ticks, so their number stays bounded however many decades the data span. Tick labels use the same number format as linear axes. The SVG records each chosen axis scale in Plot IR and JSON, and the plot note and axis label identify any log transform."
+msgstr "対数軸の目盛りは観測範囲内にあり、ラベルの間隔は x 軸で 56 px 以上、y 軸で 28 px 以上に保たれます。範囲内のすべての 10 のべき乗にラベルを付けます。桁の間隔がそれより狭い場合は、間隔を保てる最小の k で指数が割り切れるべき乗だけにラベルを付け、ラベルを均等に保ちます。`2 × 10^k` と `5 × 10^k` の目盛りは、1 桁の幅がすべてのラベルの間隔を保てるほど広い場合にのみ追加します。`1, 2, 5 × 10^k` の値を含まない範囲では両端にラベルを付け、値が 1 つだけの場合は軸の中央にラベルを付けます。グリッド線はラベル付きの目盛りにだけ描くため、データが何桁にわたっても本数は有界です。目盛りラベルは線形軸と同じ数値書式を使います。SVG は選択した軸スケールを Plot IR と JSON に記録し、plot の注記と軸ラベルには対数変換が明示されます。"
 
-#: manual/design/report.md:119
+#: manual/design/report.md:128
 msgid "Escaping order"
 msgstr "エスケープの順序"
 
-#: manual/design/report.md:121
+#: manual/design/report.md:130
 msgid "Text is escaped by replacing `&`, `<`, `>`, `\"` and `'` in this order. `&` must be first: replacing it after `<` would turn the produced `&lt;` into `&amp;lt;`. Since every later replacement introduces only `&` that is already part of an entity, the result decodes back to the input exactly once. The same function escapes element text and attribute values."
 msgstr "テキストは `&`、`<`、`>`、`\"`、`'` をこの順に置換してエスケープされます。`&` は最初でなければなりません。`<` の後に置換すると、生成された `&lt;` が `&amp;lt;` になってしまいます。後続の置換が持ち込む `&` はすべてすでにエンティティの一部なので、結果を一度デコードするとちょうど入力に戻ります。同じ関数が要素のテキストと属性値をエスケープします。"
 
-#: manual/design/report.md:127
+#: manual/design/report.md:136
 msgid "Self-contained output"
 msgstr "自己完結型の出力"
 
-#: manual/design/report.md:129
+#: manual/design/report.md:138
 msgid "The HTML embeds its CSS and inline SVG, loads no fonts, scripts or images, and declares `color-scheme: light`. It can be attached to an issue or archived with the JSONL and still render identically in ten years."
 msgstr "HTML は CSS とインライン SVG を埋め込み、フォント、スクリプト、画像を読み込まず、`color-scheme: light` を宣言します。issue に添付したり JSONL と一緒にアーカイブしたりしても、10 年後も同じように描画されます。"
 
-#: manual/design/report.md:133
+#: manual/design/report.md:142
 msgid "Version gate"
 msgstr "バージョンによる関門"
 
-#: manual/design/report.md:135
+#: manual/design/report.md:144
 msgid "A line whose `artifact_version` is a string other than `mmka_1` is rejected with its line number. Lines without the field are accepted, so hand-written fixtures and earlier streams stay readable; a non-string version is an error. JSON output carries `schema_version` `mmks_2` and each plot's x and y axis scales. This version change lets consumers distinguish documents whose y-axis mapping is explicit from older `mmks_1` documents."
 msgstr "JSON 出力は `schema_version` `mmks_2` を持ち、各 plot に x 軸と y 軸のスケールを記録します。このバージョン変更により、y 軸の対応が明示された文書と旧形式の `mmks_1` 文書を区別できます。"
 
-#: manual/design/report.md:144
+#: manual/design/report.md:153
 msgid "**Determinism.** Every function is pure; equal inputs give equal strings."
 msgstr "**決定性。** すべての関数は純粋で、等しい入力からは等しい文字列が得られます。"
 
-#: manual/design/report.md:145
+#: manual/design/report.md:154
 msgid "**Exclusion.** No point comes from an observation that is invalid, discarded or covered by a failing validation (definition of $P$)."
 msgstr "**除外。** 無効な観測、破棄された観測、失敗した検証の対象となる観測からは、どの点も生じません（$P$ の定義）。"
 
-#: manual/design/report.md:147
+#: manual/design/report.md:156
 msgid "**Containment.** For finite values, every point lies strictly inside the plot area, and every heatmap opacity lies in $(0.18, 0.90)$ (derived above)."
 msgstr "**包含。** 有限の値については、すべての点はプロット領域の厳密に内側にあり、ヒートマップの不透明度はすべて $(0.18, 0.90)$ に収まります（上で導いたとおり）。"
 
-#: manual/design/report.md:149
+#: manual/design/report.md:158
 msgid "**Escaping.** All text originating from events, titles, units and series names passes through the escape function before reaching SVG or HTML."
 msgstr "**エスケープ。** イベント、タイトル、単位、系列名に由来するすべてのテキストは、SVG や HTML に達する前にエスケープ関数を通ります。"
 
-#: manual/design/report.md:151
+#: manual/design/report.md:160
 msgid "**Complexity.** Parsing is linear in the stream size, except that each point is checked against the list of failure keys, $O(\\lvert O\\rvert \\cdot \\lvert F\\rvert)$. Rendering a plot with $N$ points, $m$ categories and $S$ series is $O(N(m + S) + mSN)$ because line means are recomputed per cell."
 msgstr "**計算量。** 解析はストリームのサイズに対して線形ですが、各点を失敗キーのリストと照合するため $O(\\lvert O\\rvert \\cdot \\lvert F\\rvert)$ かかります。$N$ 個の点、$m$ 個のカテゴリ、$S$ 個の系列を持つプロットの描画は、線の平均がセルごとに再計算されるため $O(N(m + S) + mSN)$ です。"
 
-#: manual/design/report.md:158
+#: manual/design/report.md:167
 msgid "**A JavaScript charting library.** It would need scripts or a CDN and would make the output depend on a browser runtime."
 msgstr "**JavaScript のグラフライブラリ。** スクリプトや CDN が必要になり、出力がブラウザのランタイムに依存することになります。"
 
-#: manual/design/report.md:160
+#: manual/design/report.md:169
 msgid "**Rendering only summaries.** Hides bimodality and outliers."
 msgstr "**要約だけを描画する。** 二峰性や外れ値が隠れます。"
 
-#: manual/design/report.md:161
+#: manual/design/report.md:170
 msgid "**One axis policy for both dimensions.** Rejected because x and y can have different ranges and need independent scale choices."
 msgstr "**両軸に同じスケール規則を使う案。** x と y の範囲は異なることがあるため、それぞれ独立して選択する必要があり、採用しません。"
 
-#: manual/design/report.md:163
+#: manual/design/report.md:172
 msgid "**Treating failed implementations as zero or infinite time.** Both are misleading values on a timing axis."
 msgstr "**失敗した実装を時間ゼロまたは無限大として扱う。** どちらも計時の軸上では誤解を招く値です。"
 
-#: manual/design/report.md:168
+#: manual/design/report.md:177
 msgid "The JSONL projection builds one `Scaling` plot. Other plot kinds are rendered when a caller constructs them in Plot IR, but nothing derives them from events yet."
 msgstr "JSONL からの射影は 1 つの `Scaling` プロットを構築します。他の種類のプロットは、呼び出し側が Plot IR で構築すれば描画されますが、イベントからそれらを導出するものはまだありません。"
 
-#: manual/design/report.md:171
+#: manual/design/report.md:180
 msgid "Observations of exploratory and confirmatory phases are plotted together, and the x value is the dataset index, not the scale."
 msgstr "探索フェーズと確認フェーズの観測は一緒にプロットされ、x の値はスケールではなくデータセットのインデックスです。"
 
-#: manual/design/report.md:173
+#: manual/design/report.md:182
 msgid "The target is passed in by the caller; it is not read from the stream."
 msgstr "ターゲットは呼び出し側から渡され、ストリームからは読まれません。"
 
-#: manual/design/report.md:174
+#: manual/design/report.md:183
 msgid "No statistics, decisions or environment comparison are computed here."
 msgstr "ここでは統計量、判断、環境の比較は計算されません。"
 
-#: manual/design/report.md:175
+#: manual/design/report.md:184
 msgid "Styling, colours and layout are not a compatibility promise; the `mmks_2` JSON structure is."
 msgstr "スタイル、色、レイアウトは互換性の保証対象ではありません。`mmks_2` JSON の構造が保証対象です。"
 
@@ -7051,6 +7051,9 @@ msgstr "`tune` と `tune_gemm`: 中央値によるスコア付け、順序に依
 #: manual/verification.md:93
 msgid "`cli`: argument parsing, help texts, replay extraction. The native `main` is exercised by the smoke tests only."
 msgstr "`cli`: 引数の解析、ヘルプテキスト、リプレイ情報の抽出。native の `main` はスモークテストでのみ実行されます。"
+
+#~ msgid "Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range; x labels closer than 56 px are omitted. The SVG formats each tick from its original positive value and records each chosen axis scale in Plot IR and JSON. The plot note and axis label identify any log transform."
+#~ msgstr "対数軸の目盛り候補は観測範囲内の `1, 2, 5 × 10^k` です。x ラベル間隔が 56 px 未満の場合、近いラベルを省略します。SVG は元の正の値をラベルに使い、Plot IR と JSON は選択した軸スケールを記録します。plot の注記と軸ラベルには対数変換が明示されます。"
 
 #~ msgid "`PlotDocument::new` always sets `schema_version` to `V1`."
 #~ msgstr "`PlotDocument::new` は常に `schema_version` を `V1` に設定します。"

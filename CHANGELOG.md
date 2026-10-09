@@ -5,9 +5,13 @@ All notable changes to mare_mark are documented in this file.
 ## Unreleased
 
 - Scaling plots use independent base-10 logarithmic axes when all values on an
-  axis are positive and finite and span at least 100×. Log axes use 1-2-5
-  ticks; other axes keep linear or categorical placement. Plot JSON advances to
-  schema mmks_2 and records both axis scales (#26).
+  axis are positive and finite and span at least 100×. Log axes label every
+  power of ten (every k-th decade when decades are dense), add 2× and 5× ticks
+  only when space allows, and draw grid lines only at labelled ticks; other
+  axes keep linear or categorical placement. Plot JSON advances to schema
+  mmks_2 and records both axis scales (#26).
+- Report numbers below 0.001 or from 1e15 up keep their shortest round-trip
+  form instead of being rounded to 0 or overflowing.
 
 - Migrate to MoonBit 0.10 (`moonc` 0.10 or later is now required).
 - Bump `moonbitlang/x` to 0.5.5 and `moonbitlang/async` to 0.22.4.

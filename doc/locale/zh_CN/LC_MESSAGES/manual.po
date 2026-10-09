@@ -1245,14 +1245,14 @@ msgid "`plot_svg` renders one plot as a standalone SVG element."
 msgstr "`plot_svg` 把一张图表渲染为独立的 SVG 元素。"
 
 #: manual/api/report.md:114
-msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, linear grid ticks or 1-2-5 ticks on logarithmic axes, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
-msgstr "SVG 画布为 960 × 420，包含可访问的 `<title>` 和 `<desc>`、内联样式、线性轴刻度或对数轴的 1-2-5 刻度、最多约十个 x 轴标签以及图例。每个点都绘制为带有 `series — x: y unit` 提示的圆点。`Scaling`、`Interval` 和 `ChangePoint` 图表还会按系列连接各 x 类别的点均值。`Heatmap` 图表按系列和 x 类别绘制单元格，并根据均值设置不透明度。空图表显示“No observations”。所有文本都会进行 XML 转义。"
+msgid "The SVG has a 960 × 420 view box, an accessible `<title>` and `<desc>`, inline styles, linear grid ticks or, on logarithmic axes, a label at every power of ten (every k-th one when decades are dense) with 2× and 5× ticks when space allows, at most about ten x labels, and a legend. Every point is drawn as a circle with a tooltip `series — x: y unit`. `Scaling`, `Interval` and `ChangePoint` plots also connect, per series, the mean of the points at each x category. `Heatmap` plots draw one cell per series and x category, with an opacity that grows with the mean value. An empty plot shows \"No observations\". All text is XML-escaped."
+msgstr "SVG 画布为 960 × 420，包含可访问的 `<title>` 和 `<desc>`、内联样式、线性轴刻度，或对数轴上每个十的幂处的标签（十进位过密时每隔 k 个十进位标注一次）以及空间允许时的 2× 和 5× 刻度、最多约十个 x 轴标签以及图例。每个点都绘制为带有 `series — x: y unit` 提示的圆点。`Scaling`、`Interval` 和 `ChangePoint` 图表还会按系列连接各 x 类别的点均值。`Heatmap` 图表按系列和 x 类别绘制单元格，并根据均值设置不透明度。空图表显示“No observations”。所有文本都会进行 XML 转义。"
 
-#: manual/api/report.md:139
+#: manual/api/report.md:140
 msgid "`html` renders a whole document as one self-contained HTML page."
 msgstr "`html` 把整个文档渲染为一个自包含的 HTML 页面。"
 
-#: manual/api/report.md:145
+#: manual/api/report.md:146
 msgid "The page contains a header with run id, target and schema version, then the differential report (corpus outcomes, mismatches, capability coverage matrix, minimal counterexamples), then one figure per plot. CSS is inline, plots are inline SVG, and there are no scripts and no external resources, so the file can be archived or attached as it is. The output depends only on the document."
 msgstr "页面包含一个带有运行 id、目标和模式版本的页头，接着是差分报告（语料结果、不匹配、能力覆盖矩阵、最小反例），然后每张图表一个 figure。CSS 是内联的，图表是内联 SVG，没有脚本也没有外部资源，因此该文件可以原样归档或作为附件。输出只取决于文档。"
 
@@ -2654,7 +2654,7 @@ msgstr "`parse_args` 从不失败：每个向量都映射到一个请求，错�
 #: manual/design/ir_model.md:30
 #: manual/design/ir_sink.md:20
 #: manual/design/model.md:57
-#: manual/design/report.md:74
+#: manual/design/report.md:76
 #: manual/design/runner.md:152
 #: manual/design/stats.md:218
 #: manual/design/tune.md:124
@@ -2702,7 +2702,7 @@ msgstr "`report` 读取全部输入，以目标标签 `native` 构建文档，�
 #: manual/design/ir_model.md:56
 #: manual/design/ir_sink.md:30
 #: manual/design/model.md:109
-#: manual/design/report.md:142
+#: manual/design/report.md:151
 #: manual/design/runner.md:279
 #: manual/design/stats.md:422
 #: manual/design/tune.md:159
@@ -2734,7 +2734,7 @@ msgstr "解析事件失败时，`report` 不写出任何内容。"
 #: manual/design/ir_model.md:63
 #: manual/design/ir_sink.md:36
 #: manual/design/model.md:121
-#: manual/design/report.md:156
+#: manual/design/report.md:165
 #: manual/design/runner.md:300
 #: manual/design/stats.md:449
 #: manual/design/tune.md:172
@@ -2762,7 +2762,7 @@ msgstr "**把 CLI 逻辑嵌入 `report`。** 会把文件 IO 带入一个纯包�
 #: manual/design/ir_model.md:71
 #: manual/design/ir_sink.md:41
 #: manual/design/model.md:130
-#: manual/design/report.md:166
+#: manual/design/report.md:175
 #: manual/design/runner.md:315
 #: manual/design/stats.md:467
 #: manual/design/tune.md:181
@@ -3723,122 +3723,122 @@ msgid "is well defined, and for every plotted value $\\ell < v < h$, which place
 msgstr "是良定义的，并且对每个绘制的值都有 $\\ell < v < h$，这使每个点都严格位于绘图区域内部。在浮点运算中，当 $w$ 相对于 $\\lvert v\\rvert$ 极小时，填充可能因舍入而丢失；无穷大或 `NaN` 的值会破坏这些边界，而渲染器不会过滤它们。热力图单元格使用不透明度 $0.18 + 0.72\\,(v - \\ell)/(h - \\ell)$，因此它严格介于 $0.18$ 和 $0.90$ 之间：没有单元格是不可见的，也没有单元格是完全饱和的。"
 
 #: manual/design/report.md:69
-msgid "Grid lines are drawn at $Y = 102 + 63j$ for $j = 0, \\dots, 4$ with tick value $h - (h - \\ell)\\,j/4$, rounded to three decimals. With $m$ categories, labels are drawn every $\\lceil m/10\\rceil$ categories and at the last one, so at most eleven labels are shown."
-msgstr "网格线绘制在 $Y = 102 + 63j$ 处（$j = 0, \\dots, 4$），刻度值为 $h - (h - \\ell)\\,j/4$，四舍五入到三位小数。若有 $m$ 个类别，则每隔 $\\lceil m/10\\rceil$ 个类别以及在最后一个类别处绘制标签，因此最多显示十一个标签。"
+msgid "Grid lines are drawn at $Y = 102 + 63j$ for $j = 0, \\dots, 4$ with tick value $h - (h - \\ell)\\,j/4$, rounded to three decimals; magnitudes below $0.001$ or from $10^{15}$ up keep their shortest round-trip form, because rounding would erase or overflow them. With $m$ categories, labels are drawn every $\\lceil m/10\\rceil$ categories and at the last one, so at most eleven labels are shown."
+msgstr "网格线绘制在 $Y = 102 + 63j$ 处（$j = 0, \\dots, 4$），刻度值为 $h - (h - \\ell)\\,j/4$，四舍五入到三位小数；绝对值小于 $0.001$ 或不小于 $10^{15}$ 的数保留最短往返表示，因为舍入会抹去或溢出这些值。若有 $m$ 个类别，则每隔 $\\lceil m/10\\rceil$ 个类别以及在最后一个类别处绘制标签，因此最多显示十一个标签。"
 
-#: manual/design/report.md:76
+#: manual/design/report.md:78
 msgid "A pure projection with the effects outside"
 msgstr "纯投影，副作用在外"
 
-#: manual/design/report.md:78
+#: manual/design/report.md:80
 msgid "*Problem.* Reports are regenerated after renderer changes and compared in review. *Choice.* `document_from_jsonl`, `plot_json`, `plot_svg` and `html` take values and return strings; file IO, standard streams and opening a browser live in the [`cli`](cli.md). *Why.* The same JSONL gives the same bytes on every target, tests need no filesystem, and the HTML can be produced inside a larger application."
 msgstr "*问题。* 渲染器改动后需要重新生成报告，并在评审中进行比较。*选择。* `document_from_jsonl`、`plot_json`、`plot_svg` 和 `html` 接收值并返回字符串；文件 IO、标准流和打开浏览器都位于 [`cli`](cli.md) 中。*理由。* 同一份 JSONL 在每个目标上都给出相同的字节，测试不需要文件系统，HTML 也可以在更大的应用中生成。"
 
-#: manual/design/report.md:85
+#: manual/design/report.md:87
 msgid "Failures remove series and stay visible"
 msgstr "失败会移除系列，并保持可见"
 
-#: manual/design/report.md:87
+#: manual/design/report.md:89
 msgid "*Problem.* A fast implementation that returns wrong results would look like a win. *Choice.* A failing validation removes the points of that implementation for that case and dataset, and adds a mismatch row; minimized failures add a counterexample row with the replay command. *Why.* The differential section sits above the plots, so the reader sees why a series is missing."
 msgstr "*问题。* 一个返回错误结果的快速实现看起来会像是赢家。*选择。* 失败的验证会移除该实现在该用例和数据集上的点，并添加一行不匹配记录；最小化后的失败会添加一行带重放命令的反例。*理由。* 差分部分位于图表上方，因此读者能看到某个系列缺失的原因。"
 
-#: manual/design/report.md:93
+#: manual/design/report.md:95
 msgid "Raw points with mean lines"
 msgstr "原始点加均值线"
 
-#: manual/design/report.md:95
+#: manual/design/report.md:97
 msgid "*Problem.* Summaries hide distributions, raw clouds hide trends. *Choice.* Every observation is drawn with a tooltip, and for line kinds the per-category mean connects the categories. *Why.* The mean of the drawn points is the centre of mass the eye already estimates; robust statistics and decisions belong to `stats` and can be added as further plots. The line is a guide, not an estimate the report vouches for."
 msgstr "*问题。* 摘要掩盖分布，原始点云掩盖趋势。*选择。* 每个观测都带提示地绘制出来，对于线型图表，各类别的均值把类别连接起来。*理由。* 所绘各点的均值正是肉眼已经在估计的重心；稳健统计和决策属于 `stats`，可以作为更多图表添加。这条线是参考线，而不是报告为之担保的估计。"
 
-#: manual/design/report.md:102
+#: manual/design/report.md:104
 msgid "Axis selection for scaling plots"
 msgstr "## 缩放图的轴选择"
 
-#: manual/design/report.md:104
+#: manual/design/report.md:106
 msgid "`PlotPoint.x` remains text so a scale can be an integer, shape, layout or name. For scaling plots, finite numeric x values are ordered numerically and placed on a linear axis unless all are positive and `max / min >= 100`; then x uses `log10(x)`. Y is evaluated independently by the same rule. This span is at least two decades and gives multiplicative changes equal distances because log10(b) - log10(a) = log10(b / a). If any value on an axis is non-finite or non-positive, or if the positive finite values span less than 100×, that axis stays linear. A nonnumeric x axis stays categorical in first-appearance order. Heatmaps also keep categorical x."
 msgstr "`PlotPoint.x` 仍以文本表示，以便刻度可以是整数、形状、布局或名称。对缩放图而言，有限数值 x 按数值排序；除非所有值均为正且 `max / min >= 100`，此时 x 轴才使用 `log10(x)`。y 轴按相同规则独立判断。该跨度至少为两个数量级，能让相同倍数的变化占据相同距离，因为 log10(b) - log10(a) = log10(b / a)。如果轴上的任一值不是有限正数，或正有限值的跨度小于 100 倍，该轴保持线性。非数值 x 轴仍按首次出现顺序作为分类轴。热图的 x 轴也保持分类刻度。"
 
-#: manual/design/report.md:114
-msgid "Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range; x labels closer than 56 px are omitted. The SVG formats each tick from its original positive value and records each chosen axis scale in Plot IR and JSON. The plot note and axis label identify any log transform."
-msgstr "对数轴刻度是观测数据范围内的 `1, 2, 5 × 10^k` 值；相距不足 56 px 的 x 轴标签会被省略。SVG 使用刻度对应的原始正值生成标签，Plot IR 和 JSON 则记录每个已选轴刻度。图表注释和轴标签会标明对数变换。"
+#: manual/design/report.md:116
+msgid "Log-axis ticks lie within the observed data range, and labels stay at least 56 px apart on x and 28 px apart on y. Every power of ten in range is labelled; when decades are closer than that spacing, only the powers whose exponent is divisible by the smallest k that keeps them apart are labelled, so the labels stay uniform. The `2 × 10^k` and `5 × 10^k` ticks are added only when a decade is wide enough to keep every label that far apart. A range that holds no `1, 2, 5 × 10^k` value labels its endpoints, and a single value is labelled at the centre of the axis. Grid lines are drawn only at labelled ticks, so their number stays bounded however many decades the data span. Tick labels use the same number format as linear axes. The SVG records each chosen axis scale in Plot IR and JSON, and the plot note and axis label identify any log transform."
+msgstr "对数轴刻度位于观测数据范围内，标签间距在 x 轴上至少为 56 px，在 y 轴上至少为 28 px。范围内的每个十的幂都会标注；当十进位间距小于该间距时，只标注指数能被最小的、足以保持间距的 k 整除的幂，使标签保持均匀。只有当一个十进位足够宽、能使所有标签保持该间距时，才添加 `2 × 10^k` 和 `5 × 10^k` 刻度。若范围内没有任何 `1, 2, 5 × 10^k` 值，则标注两个端点；单个值标注在轴的中央。网格线只绘制在已标注的刻度处，因此无论数据跨越多少个十进位，其数量都有上界。刻度标签与线性轴使用相同的数字格式。SVG 在 Plot IR 和 JSON 中记录每个选定的轴刻度，图表注释和轴标签会标明对数变换。"
 
-#: manual/design/report.md:119
+#: manual/design/report.md:128
 msgid "Escaping order"
 msgstr "转义顺序"
 
-#: manual/design/report.md:121
+#: manual/design/report.md:130
 msgid "Text is escaped by replacing `&`, `<`, `>`, `\"` and `'` in this order. `&` must be first: replacing it after `<` would turn the produced `&lt;` into `&amp;lt;`. Since every later replacement introduces only `&` that is already part of an entity, the result decodes back to the input exactly once. The same function escapes element text and attribute values."
 msgstr "文本转义按此顺序替换 `&`、`<`、`>`、`\"` 和 `'`。`&` 必须排在最前：若在 `<` 之后再替换它，生成的 `&lt;` 就会变成 `&amp;lt;`。由于之后的每次替换引入的 `&` 都已经是某个实体的一部分，结果恰好能解码回输入一次。同一个函数既转义元素文本，也转义属性值。"
 
-#: manual/design/report.md:127
+#: manual/design/report.md:136
 msgid "Self-contained output"
 msgstr "自包含的输出"
 
-#: manual/design/report.md:129
+#: manual/design/report.md:138
 msgid "The HTML embeds its CSS and inline SVG, loads no fonts, scripts or images, and declares `color-scheme: light`. It can be attached to an issue or archived with the JSONL and still render identically in ten years."
 msgstr "HTML 内嵌其 CSS 和内联 SVG，不加载任何字体、脚本或图像，并声明 `color-scheme: light`。它可以作为附件添加到 issue 中，或与 JSONL 一起归档，十年后渲染效果依然相同。"
 
-#: manual/design/report.md:133
+#: manual/design/report.md:142
 msgid "Version gate"
 msgstr "版本关卡"
 
-#: manual/design/report.md:135
+#: manual/design/report.md:144
 msgid "A line whose `artifact_version` is a string other than `mmka_1` is rejected with its line number. Lines without the field are accepted, so hand-written fixtures and earlier streams stay readable; a non-string version is an error. JSON output carries `schema_version` `mmks_2` and each plot's x and y axis scales. This version change lets consumers distinguish documents whose y-axis mapping is explicit from older `mmks_1` documents."
 msgstr "JSON 输出使用 `schema_version` `mmks_2`，每个 plot 都记录 x、y 轴刻度。版本升级让读取器能区分轴映射明确的新文档与旧版 `mmks_1` 文档。"
 
-#: manual/design/report.md:144
+#: manual/design/report.md:153
 msgid "**Determinism.** Every function is pure; equal inputs give equal strings."
 msgstr "**确定性。** 每个函数都是纯函数；相等的输入给出相等的字符串。"
 
-#: manual/design/report.md:145
+#: manual/design/report.md:154
 msgid "**Exclusion.** No point comes from an observation that is invalid, discarded or covered by a failing validation (definition of $P$)."
 msgstr "**排除。** 没有点来自无效的、被丢弃的或被失败验证覆盖的观测（$P$ 的定义）。"
 
-#: manual/design/report.md:147
+#: manual/design/report.md:156
 msgid "**Containment.** For finite values, every point lies strictly inside the plot area, and every heatmap opacity lies in $(0.18, 0.90)$ (derived above)."
 msgstr "**包含。** 对于有限值，每个点都严格位于绘图区域内部，每个热力图不透明度都位于 $(0.18, 0.90)$ 中（推导见上文）。"
 
-#: manual/design/report.md:149
+#: manual/design/report.md:158
 msgid "**Escaping.** All text originating from events, titles, units and series names passes through the escape function before reaching SVG or HTML."
 msgstr "**转义。** 所有来自事件、标题、单位和系列名称的文本在进入 SVG 或 HTML 之前都会经过转义函数。"
 
-#: manual/design/report.md:151
+#: manual/design/report.md:160
 msgid "**Complexity.** Parsing is linear in the stream size, except that each point is checked against the list of failure keys, $O(\\lvert O\\rvert \\cdot \\lvert F\\rvert)$. Rendering a plot with $N$ points, $m$ categories and $S$ series is $O(N(m + S) + mSN)$ because line means are recomputed per cell."
 msgstr "**复杂度。** 解析与流的大小成线性关系，只是每个点都要与失败键列表比对，代价为 $O(\\lvert O\\rvert \\cdot \\lvert F\\rvert)$。渲染含 $N$ 个点、$m$ 个类别和 $S$ 个系列的图表需要 $O(N(m + S) + mSN)$，因为每个单元格都会重新计算线的均值。"
 
-#: manual/design/report.md:158
+#: manual/design/report.md:167
 msgid "**A JavaScript charting library.** It would need scripts or a CDN and would make the output depend on a browser runtime."
 msgstr "**JavaScript 图表库。** 它需要脚本或 CDN，并会使输出依赖浏览器运行时。"
 
-#: manual/design/report.md:160
+#: manual/design/report.md:169
 msgid "**Rendering only summaries.** Hides bimodality and outliers."
 msgstr "**只渲染摘要。** 会掩盖双峰性和离群值。"
 
-#: manual/design/report.md:161
+#: manual/design/report.md:170
 msgid "**One axis policy for both dimensions.** Rejected because x and y can have different ranges and need independent scale choices."
 msgstr "**两维共用一种轴策略。** 不采用此方案，因为 x 和 y 的取值范围可能不同，必须分别选择刻度。"
 
-#: manual/design/report.md:163
+#: manual/design/report.md:172
 msgid "**Treating failed implementations as zero or infinite time.** Both are misleading values on a timing axis."
 msgstr "**把失败的实现视为零时间或无穷时间。** 在计时坐标轴上，两者都是误导性的值。"
 
-#: manual/design/report.md:168
+#: manual/design/report.md:177
 msgid "The JSONL projection builds one `Scaling` plot. Other plot kinds are rendered when a caller constructs them in Plot IR, but nothing derives them from events yet."
 msgstr "JSONL 投影只构建一张 `Scaling` 图表。当调用者在 Plot IR 中构造其他种类的图表时它们也会被渲染，但目前还没有任何代码从事件中派生它们。"
 
-#: manual/design/report.md:171
+#: manual/design/report.md:180
 msgid "Observations of exploratory and confirmatory phases are plotted together, and the x value is the dataset index, not the scale."
 msgstr "探索性阶段和验证性阶段的观测绘制在一起，x 值是数据集索引，而不是规模。"
 
-#: manual/design/report.md:173
+#: manual/design/report.md:182
 msgid "The target is passed in by the caller; it is not read from the stream."
 msgstr "目标由调用者传入；它不是从流中读取的。"
 
-#: manual/design/report.md:174
+#: manual/design/report.md:183
 msgid "No statistics, decisions or environment comparison are computed here."
 msgstr "这里不计算统计量、决策或环境比较。"
 
-#: manual/design/report.md:175
+#: manual/design/report.md:184
 msgid "Styling, colours and layout are not a compatibility promise; the `mmks_2` JSON structure is."
 msgstr "样式、颜色和布局不属于兼容性承诺；`mmks_2` JSON 结构才是。"
 
@@ -7051,6 +7051,9 @@ msgstr "`tune` 与 `tune_gemm`：中位数打分、与顺序无关的选择、Pa
 #: manual/verification.md:93
 msgid "`cli`: argument parsing, help texts, replay extraction. The native `main` is exercised by the smoke tests only."
 msgstr "`cli`：参数解析、帮助文本、重放信息提取。native 的 `main` 只由冒烟测试覆盖。"
+
+#~ msgid "Log-axis ticks are the `1, 2, 5 × 10^k` values within the observed data range; x labels closer than 56 px are omitted. The SVG formats each tick from its original positive value and records each chosen axis scale in Plot IR and JSON. The plot note and axis label identify any log transform."
+#~ msgstr "对数轴刻度是观测数据范围内的 `1, 2, 5 × 10^k` 值；相距不足 56 px 的 x 轴标签会被省略。SVG 使用刻度对应的原始正值生成标签，Plot IR 和 JSON 则记录每个已选轴刻度。图表注释和轴标签会标明对数变换。"
 
 #~ msgid "`PlotDocument::new` always sets `schema_version` to `V1`."
 #~ msgstr "`PlotDocument::new` 总是把 `schema_version` 设为 `V1`。"
