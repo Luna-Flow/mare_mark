@@ -234,6 +234,17 @@ async fn[Scale, Input, Prepared, Output, Context] validation_sequence(
     prepared,
     @fixture.ResetContext::new(-1, implementation.id),
   )
+  run_sequence(implementation, prepared, steps)
+}
+
+///|
+/// Runs `steps` operations of `implementation` on `prepared`, threading the
+/// sticky context, and stops early when an operation returns no context.
+async fn[Prepared, Output, Context] run_sequence(
+  implementation : Implementation[Prepared, Output, Context],
+  prepared : Prepared,
+  steps : Int,
+) -> Array[@model.OperationResult[Output, Context]] {
   let results = []
   let mut context = (implementation.initial_context)()
   for step_id = 0; step_id < steps; step_id = step_id + 1 {
@@ -245,6 +256,38 @@ async fn[Scale, Input, Prepared, Output, Context] validation_sequence(
     }
   }
   results
+}
+
+///|
+/// Validation run for `ValidationCoverage::EveryMeasurement`: the sequence
+/// runs on the prepared value the next measured batch will use (the cached
+/// value for long-lived setup, a value prepared with the batch's sample
+/// context otherwise) and that value is reset afterwards, outside any timed
+/// region. Returns the results and the updated long-lived cache.
+async fn[Scale, Input, Prepared, Output, Context] measurement_validation_sequence(
+  fixture : @fixture.Fixture[Scale, Input, Prepared],
+  input : Input,
+  implementation : Implementation[Prepared, Output, Context],
+  steps : Int,
+  sample_id : Int,
+  cached_prepared : Prepared?,
+) -> (Array[@model.OperationResult[Output, Context]], Prepared?) {
+  let long_lived = is_long_lived(fixture.setup_policy.frequency)
+  let prepared = match cached_prepared {
+    Some(prepared) if long_lived => prepared
+    _ =>
+      (fixture.prepare)(
+        (fixture.clone_input)(input),
+        implementation.id,
+        @fixture.SampleContext::new(sample_id, implementation.id, sample_id),
+      )
+  }
+  let results = run_sequence(implementation, prepared, steps)
+  (fixture.reset)(
+    prepared,
+    @fixture.ResetContext::new(sample_id, implementation.id),
+  )
+  (results, if long_lived { Some(prepared) } else { cached_prepared })
 }
 
 ///|
@@ -304,6 +347,7 @@ fn[Input, Prepared, Expected, Output, Context] detailed_reference_validation(
   output_text : (Output) -> String,
   context_text : (Context) -> String,
   replay : @model.ReplaySpec,
+  measurement : @model.MeasurementKey?,
 ) -> @model.Validation {
   let status = match status_from_outcome(actual.outcome) {
     Some(status) => status
@@ -339,6 +383,7 @@ fn[Input, Prepared, Expected, Output, Context] detailed_reference_validation(
       implementation_version: implementation.version,
       replay,
     },
+    measurement?,
   )
 }
 
@@ -456,18 +501,41 @@ async fn[Scale, Input, Prepared, Output, Context] minimize_relational_failure(
 }
 
 ///|
-fn count_status(
-  status : @model.ValidationStatus,
-  passed : Ref[Int],
-  failed : Ref[Int],
-  unsupported : Ref[Int],
-  expected_difference : Ref[Int],
+priv struct ValidationTally {
+  mut total : Int
+  mut measurement : Int
+  mut passed : Int
+  mut failed : Int
+  mut unsupported : Int
+  mut expected_difference : Int
+}
+
+///|
+fn ValidationTally::new() -> ValidationTally {
+  {
+    total: 0,
+    measurement: 0,
+    passed: 0,
+    failed: 0,
+    unsupported: 0,
+    expected_difference: 0,
+  }
+}
+
+///|
+fn ValidationTally::count(
+  self : ValidationTally,
+  validation : @model.Validation,
 ) -> Unit {
-  match status {
-    Valid => passed.val += 1
-    Invalid(_) | InfrastructureFailure(_) => failed.val += 1
-    Unsupported(_) | Skipped(_) => unsupported.val += 1
-    ExpectedDifference(_) => expected_difference.val += 1
+  self.total += 1
+  if validation.measurement is Some(_) {
+    self.measurement += 1
+  }
+  match validation.status {
+    Valid => self.passed += 1
+    Invalid(_) | InfrastructureFailure(_) => self.failed += 1
+    Unsupported(_) | Skipped(_) => self.unsupported += 1
+    ExpectedDifference(_) => self.expected_difference += 1
   }
 }
 
@@ -682,6 +750,214 @@ fn measurement_order(
 }
 
 ///|
+/// Number of datasets materialized for each scale:
+/// `FixedDatasetRepeatedMeasurements` uses one, `MultipleDatasetsSingleMeasurement`
+/// one per block and `HierarchicalDatasetsAndRepeats` one per
+/// `repeats_per_dataset` consecutive blocks.
+fn datasets_per_scale(protocol : @model.RunProtocol) -> Int {
+  let blocks = protocol.exploratory_samples + protocol.confirmatory_samples
+  (blocks / blocks_per_dataset(protocol).max(1)).max(1)
+}
+
+///|
+/// Number of consecutive blocks (exploratory first, then confirmatory) that
+/// measure the same dataset.
+fn blocks_per_dataset(protocol : @model.RunProtocol) -> Int {
+  match protocol.experiment_design {
+    FixedDatasetRepeatedMeasurements =>
+      protocol.exploratory_samples + protocol.confirmatory_samples
+    MultipleDatasetsSingleMeasurement => 1
+    HierarchicalDatasetsAndRepeats => protocol.repeats_per_dataset
+  }
+}
+
+///|
+/// Emits one validation per comparable step of `actual` against the reference
+/// `expected`, counts it and, on failure, emits a minimized
+/// `ValidationFailure`.
+async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] emit_reference_validations(
+  case : DifferentialCase[
+    Scale,
+    Input,
+    Prepared,
+    Expected,
+    Output,
+    Context,
+    State,
+    SinkValue,
+  ],
+  reference : @experiment.ReferenceOracle[Input, Expected, Output, Context],
+  sink : @event.ObservationSink,
+  tally : ValidationTally,
+  seed : UInt64,
+  input : Input,
+  dataset_id : Int,
+  scale_text : String,
+  fingerprint : String,
+  implementation : Implementation[Prepared, Output, Context],
+  expected : Array[@model.OperationResult[Expected, Context]],
+  actual : Array[@model.OperationResult[Output, Context]],
+  measurement : @model.MeasurementKey?,
+) -> Unit {
+  let comparable_steps = expected.length().min(actual.length())
+  for step_id = 0; step_id < comparable_steps; step_id = step_id + 1 {
+    let validation = detailed_reference_validation(
+      case.id,
+      input,
+      dataset_id,
+      scale_text,
+      fingerprint,
+      implementation,
+      reference,
+      step_id,
+      expected[step_id],
+      actual[step_id],
+      (case.describe)(input, step_id),
+      case.output_text,
+      case.context_text,
+      (case.replay)(input, implementation.id),
+      measurement,
+    )
+    (sink.emit_validation)(validation)
+    tally.count(validation)
+    if status_is_failure(validation.status) {
+      let (minimal_input, shrink_path) = match case.shrinker {
+        Some(shrinker) =>
+          minimize_failure(
+            case.fixture,
+            implementation,
+            reference,
+            shrinker,
+            input,
+            step_id,
+          )
+        None => (input, [])
+      }
+      (sink.emit_failure)(
+        @model.ValidationFailure::new(
+          validation,
+          seed,
+          scale_text,
+          fingerprint,
+          (case.fixture.fingerprint)(minimal_input),
+          shrink_path,
+          (case.input_text)(minimal_input),
+        ),
+      )
+    }
+  }
+}
+
+///|
+/// Emits one relational validation per comparable step of the `left` and
+/// `right` sequences, attributed to the right-hand implementation, counts it
+/// and, on failure, emits a minimized `ValidationFailure`.
+async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] emit_relational_validations(
+  case : DifferentialCase[
+    Scale,
+    Input,
+    Prepared,
+    Expected,
+    Output,
+    Context,
+    State,
+    SinkValue,
+  ],
+  relational : @experiment.RelationalOracle[Input, Output],
+  sink : @event.ObservationSink,
+  tally : ValidationTally,
+  seed : UInt64,
+  input : Input,
+  dataset_id : Int,
+  scale_text : String,
+  fingerprint : String,
+  left_index : Int,
+  left : Array[@model.OperationResult[Output, Context]],
+  right_index : Int,
+  right : Array[@model.OperationResult[Output, Context]],
+  measurement : @model.MeasurementKey?,
+) -> Unit {
+  let left_implementation = case.implementations[left_index]
+  let right_implementation = case.implementations[right_index]
+  let comparable_steps = left.length().min(right.length())
+  for step_id = 0; step_id < comparable_steps; step_id = step_id + 1 {
+    let status = match status_from_outcome(right[step_id].outcome) {
+      Some(status) => status
+      None =>
+        (relational.validate_pair)(
+          input,
+          step_id,
+          left_implementation.id,
+          left[step_id].outcome,
+          right_implementation.id,
+          right[step_id].outcome,
+        )
+    }
+    let descriptor = (case.describe)(input, step_id)
+    let right_context = match right[step_id].next_context {
+      Some(context) => (case.context_text)(context)
+      None => descriptor.context
+    }
+    let validation = @model.Validation::detailed(
+      status,
+      relational.id,
+      right_implementation.id,
+      scale_text,
+      {
+        case_id: case.id,
+        dataset_id,
+        step_id,
+        operation: descriptor.operation,
+        operands: descriptor.operands,
+        context: right_context,
+        rounding: descriptor.rounding,
+        expected: outcome_text(left[step_id].outcome, case.output_text),
+        actual: outcome_text(right[step_id].outcome, case.output_text),
+        expected_kind: left[step_id].outcome.kind(),
+        actual_kind: right[step_id].outcome.kind(),
+        expected_flags: left[step_id].outcome.flags(),
+        actual_flags: right[step_id].outcome.flags(),
+        trap: trap_text(right[step_id].outcome),
+        stderr: right[step_id].stderr,
+        exit_code: right[step_id].exit_code,
+        fingerprint,
+        implementation_version: right_implementation.version,
+        replay: (case.replay)(input, right_implementation.id),
+      },
+      measurement?,
+    )
+    (sink.emit_validation)(validation)
+    tally.count(validation)
+    if status_is_failure(status) {
+      let (minimal_input, shrink_path) = match case.shrinker {
+        Some(shrinker) =>
+          minimize_relational_failure(
+            case.fixture,
+            left_implementation,
+            right_implementation,
+            relational,
+            shrinker,
+            input,
+            step_id,
+          )
+        None => (input, [])
+      }
+      (sink.emit_failure)(
+        @model.ValidationFailure::new(
+          validation,
+          seed,
+          scale_text,
+          fingerprint,
+          (case.fixture.fingerprint)(minimal_input),
+          shrink_path,
+          (case.input_text)(minimal_input),
+        ),
+      )
+    }
+  }
+}
+
+///|
 async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] run_case_internal(
   case : DifferentialCase[
     Scale,
@@ -701,396 +977,347 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] ru
   let bench = @bench.Bench()
   let mut observation_count = 0
   let mut calibration_count = 0
-  let mut validation_count = 0
-  let passed_count = Ref(0)
-  let failed_count = Ref(0)
-  let unsupported_count = Ref(0)
-  let expected_difference_count = Ref(0)
+  let tally = ValidationTally::new()
+  let setup_policy = case.fixture.setup_policy
+  let implementation_count = case.implementations.length()
+  let steps = case.sequence_length
+  let dataset_count = datasets_per_scale(protocol)
+  let dataset_blocks = blocks_per_dataset(protocol)
   for scale_index = 0
       scale_index < case.scales.length()
       scale_index = scale_index + 1 {
     let scale = case.scales[scale_index]
     let scale_text = (case.scale_text)(scale)
-    let key = @model.DatasetKey::new(scale, scale_index)
-    let generation_context = @model.GenerationContext::new(
-      seed,
-      "default",
-      case.id,
-      key,
-      case.fixture.id,
-      case.fixture.version,
-    )
-    let input = (case.fixture.materialize)(generation_context)
-    let fingerprint = (case.fixture.fingerprint)(input)
-    let steps = case.sequence_length
-    let actual_sequences = []
-    for implementation in case.implementations {
-      actual_sequences.push(
-        validation_sequence(case.fixture, input, implementation, steps),
+    let batch_iterations = Array::makei(implementation_count, _ => {
+      protocol.calibration.min_batch_iterations.max(1)
+    })
+    for dataset_index = 0
+        dataset_index < dataset_count
+        dataset_index = dataset_index + 1 {
+      // Dataset ids are unique within the run; with one dataset per scale
+      // (FixedDatasetRepeatedMeasurements) the id is the scale index.
+      let dataset_id = scale_index * dataset_count + dataset_index
+      let first_block = dataset_index * dataset_blocks
+      let end_block = first_block + dataset_blocks
+      let key = @model.DatasetKey::new(scale, dataset_id)
+      let generation_context = @model.GenerationContext::new(
+        seed,
+        "default",
+        case.id,
+        key,
+        case.fixture.id,
+        case.fixture.version,
       )
-    }
-    match case.oracle {
-      Reference(reference) | ReferenceAndRelational(reference, _) => {
-        let expected = reference_expected_sequence(reference, input, steps)
-        for implementation_index = 0
-            implementation_index < case.implementations.length()
-            implementation_index = implementation_index + 1 {
-          let implementation = case.implementations[implementation_index]
-          let actual = actual_sequences[implementation_index]
-          let comparable_steps = expected.length().min(actual.length())
-          for step_id = 0; step_id < comparable_steps; step_id = step_id + 1 {
-            let validation = detailed_reference_validation(
-              case.id,
-              input,
-              scale_index,
-              scale_text,
-              fingerprint,
-              implementation,
-              reference,
-              step_id,
-              expected[step_id],
-              actual[step_id],
-              (case.describe)(input, step_id),
-              case.output_text,
-              case.context_text,
-              (case.replay)(input, implementation.id),
+      let input = (case.fixture.materialize)(generation_context)
+      let fingerprint = (case.fixture.fingerprint)(input)
+      let validate_dataset = match protocol.validation_coverage {
+        EveryDataset | EveryMeasurement => true
+        ConfirmatoryOnly => end_block > protocol.exploratory_samples
+      }
+      let expected_sequence : Array[@model.OperationResult[Expected, Context]] = []
+      let actual_sequences = []
+      if validate_dataset {
+        for implementation in case.implementations {
+          actual_sequences.push(
+            validation_sequence(case.fixture, input, implementation, steps),
+          )
+        }
+        match case.oracle {
+          Reference(reference) | ReferenceAndRelational(reference, _) => {
+            expected_sequence.append(
+              reference_expected_sequence(reference, input, steps),
             )
-            (sink.emit_validation)(validation)
-            validation_count += 1
-            count_status(
-              validation.status,
-              passed_count,
-              failed_count,
-              unsupported_count,
-              expected_difference_count,
-            )
-            if status_is_failure(validation.status) {
-              let (minimal_input, shrink_path) = match case.shrinker {
-                Some(shrinker) =>
-                  minimize_failure(
-                    case.fixture,
-                    implementation,
-                    reference,
-                    shrinker,
-                    input,
-                    step_id,
-                  )
-                None => (input, [])
-              }
-              (sink.emit_failure)(
-                @model.ValidationFailure::new(
-                  validation,
-                  seed,
-                  scale_text,
-                  fingerprint,
-                  (case.fixture.fingerprint)(minimal_input),
-                  shrink_path,
-                  (case.input_text)(minimal_input),
-                ),
+            for implementation_index = 0
+                implementation_index < implementation_count
+                implementation_index = implementation_index + 1 {
+              emit_reference_validations(
+                case,
+                reference,
+                sink,
+                tally,
+                seed,
+                input,
+                dataset_id,
+                scale_text,
+                fingerprint,
+                case.implementations[implementation_index],
+                expected_sequence,
+                actual_sequences[implementation_index],
+                None,
               )
             }
           }
+          Relational(_) => ()
         }
-      }
-      Relational(_) => ()
-    }
-    match case.oracle {
-      Relational(relational) | ReferenceAndRelational(_, relational) =>
-        for left_index = 0
-            left_index < case.implementations.length()
-            left_index = left_index + 1 {
-          for right_index = left_index + 1
-              right_index < case.implementations.length()
-              right_index = right_index + 1 {
-            let left = actual_sequences[left_index]
-            let right = actual_sequences[right_index]
-            let comparable_steps = left.length().min(right.length())
-            for step_id = 0; step_id < comparable_steps; step_id = step_id + 1 {
-              let status = match status_from_outcome(right[step_id].outcome) {
-                Some(status) => status
-                None =>
-                  (relational.validate_pair)(
-                    input,
-                    step_id,
-                    case.implementations[left_index].id,
-                    left[step_id].outcome,
-                    case.implementations[right_index].id,
-                    right[step_id].outcome,
-                  )
-              }
-              let descriptor = (case.describe)(input, step_id)
-              let right_context = match right[step_id].next_context {
-                Some(context) => (case.context_text)(context)
-                None => descriptor.context
-              }
-              let validation = @model.Validation::detailed(
-                status,
-                relational.id,
-                case.implementations[right_index].id,
-                scale_text,
-                {
-                  case_id: case.id,
-                  dataset_id: scale_index,
-                  step_id,
-                  operation: descriptor.operation,
-                  operands: descriptor.operands,
-                  context: right_context,
-                  rounding: descriptor.rounding,
-                  expected: outcome_text(
-                    left[step_id].outcome,
-                    case.output_text,
-                  ),
-                  actual: outcome_text(right[step_id].outcome, case.output_text),
-                  expected_kind: left[step_id].outcome.kind(),
-                  actual_kind: right[step_id].outcome.kind(),
-                  expected_flags: left[step_id].outcome.flags(),
-                  actual_flags: right[step_id].outcome.flags(),
-                  trap: trap_text(right[step_id].outcome),
-                  stderr: right[step_id].stderr,
-                  exit_code: right[step_id].exit_code,
+        match case.oracle {
+          Relational(relational) | ReferenceAndRelational(_, relational) =>
+            for left_index = 0
+                left_index < implementation_count
+                left_index = left_index + 1 {
+              for right_index = left_index + 1
+                  right_index < implementation_count
+                  right_index = right_index + 1 {
+                emit_relational_validations(
+                  case,
+                  relational,
+                  sink,
+                  tally,
+                  seed,
+                  input,
+                  dataset_id,
+                  scale_text,
                   fingerprint,
-                  implementation_version: case.implementations[right_index].version,
-                  replay: (case.replay)(
-                    input,
-                    case.implementations[right_index].id,
-                  ),
-                },
-              )
-              (sink.emit_validation)(validation)
-              validation_count += 1
-              count_status(
-                status, passed_count, failed_count, unsupported_count, expected_difference_count,
-              )
-              if status_is_failure(status) {
-                let (minimal_input, shrink_path) = match case.shrinker {
-                  Some(shrinker) =>
-                    minimize_relational_failure(
-                      case.fixture,
-                      case.implementations[left_index],
-                      case.implementations[right_index],
-                      relational,
-                      shrinker,
-                      input,
-                      step_id,
-                    )
-                  None => (input, [])
-                }
-                (sink.emit_failure)(
-                  @model.ValidationFailure::new(
-                    validation,
-                    seed,
-                    scale_text,
-                    fingerprint,
-                    (case.fixture.fingerprint)(minimal_input),
-                    shrink_path,
-                    (case.input_text)(minimal_input),
-                  ),
+                  left_index,
+                  actual_sequences[left_index],
+                  right_index,
+                  actual_sequences[right_index],
+                  None,
                 )
               }
             }
-          }
+          Reference(_) => ()
         }
-      Reference(_) => ()
-    }
-    let prepared_cache : Array[Prepared?] = Array::makei(
-      case.implementations.length(),
-      _ => None,
-    )
-    let batch_iterations = Array::makei(case.implementations.length(), _ => {
-      protocol.calibration.min_batch_iterations.max(1)
-    })
-    for implementation_index = 0
-        implementation_index < case.implementations.length()
-        implementation_index = implementation_index + 1 {
-      let implementation = case.implementations[implementation_index]
-      let mut warmup_id = 0
-      let mut warmup_elapsed_us = 0.0
-      let warmup_target_us = protocol.warmup_time_us.unwrap_or(0.0)
-      let warmup_limit = protocol.warmup_iterations.max(
-        protocol.calibration.max_batch_iterations.max(1),
-      )
-      while (
-              warmup_id < protocol.warmup_iterations ||
-              warmup_elapsed_us < warmup_target_us
-            ) &&
-            warmup_id < warmup_limit {
-        let batch = run_batch(
-          case.fixture,
-          input,
-          implementation,
-          case.output_sink,
-          1,
-          -1000 - warmup_id,
-          prepared_cache[implementation_index],
-          bench,
-        )
-        prepared_cache[implementation_index] = batch.cached_prepared
-        warmup_elapsed_us += batch.elapsed_us
-        warmup_id += 1
       }
-      match prepared_cache[implementation_index] {
-        Some(prepared) =>
-          (case.fixture.reset)(
-            prepared,
-            @fixture.ResetContext::new(-3, implementation.id),
+      // The prepared cache belongs to this dataset: `prepare` is keyed by
+      // input and implementation, so long-lived setup is redone per dataset.
+      let prepared_cache : Array[Prepared?] = Array::makei(
+        implementation_count,
+        _ => None,
+      )
+      if dataset_index == 0 {
+        // Warmup and calibration run once per scale, on its first dataset.
+        for implementation_index = 0
+            implementation_index < implementation_count
+            implementation_index = implementation_index + 1 {
+          let implementation = case.implementations[implementation_index]
+          let mut warmup_id = 0
+          let mut warmup_elapsed_us = 0.0
+          let warmup_target_us = protocol.warmup_time_us.unwrap_or(0.0)
+          let warmup_limit = protocol.warmup_iterations.max(
+            protocol.calibration.max_batch_iterations.max(1),
           )
-        None => ()
-      }
-      let (calibration, calibration_iterations, retries) = calibrate_batch(
-        case.fixture,
-        input,
-        implementation,
-        case.output_sink,
-        protocol.calibration,
-        prepared_cache[implementation_index],
-        bench,
-      )
-      batch_iterations[implementation_index] = calibration_iterations
-      prepared_cache[implementation_index] = calibration.cached_prepared
-      match prepared_cache[implementation_index] {
-        Some(prepared) =>
-          (case.fixture.reset)(
-            prepared,
-            @fixture.ResetContext::new(-2, implementation.id),
+          while (
+                  warmup_id < protocol.warmup_iterations ||
+                  warmup_elapsed_us < warmup_target_us
+                ) &&
+                warmup_id < warmup_limit {
+            let batch = run_batch(
+              case.fixture,
+              input,
+              implementation,
+              case.output_sink,
+              1,
+              -1000 - warmup_id,
+              prepared_cache[implementation_index],
+              bench,
+            )
+            prepared_cache[implementation_index] = batch.cached_prepared
+            warmup_elapsed_us += batch.elapsed_us
+            warmup_id += 1
+          }
+          match prepared_cache[implementation_index] {
+            Some(prepared) =>
+              (case.fixture.reset)(
+                prepared,
+                @fixture.ResetContext::new(-3, implementation.id),
+              )
+            None => ()
+          }
+          let (calibration, calibration_iterations, retries) = calibrate_batch(
+            case.fixture,
+            input,
+            implementation,
+            case.output_sink,
+            protocol.calibration,
+            prepared_cache[implementation_index],
+            bench,
           )
-        None => ()
-      }
-      (sink.emit_calibration)(
-        @model.CalibrationEvent::new(
-          implementation.id,
-          scale_index,
-          calibration_iterations,
-          calibration.elapsed_us,
-          protocol.calibration.target_batch_time_us,
-          retries,
-        ),
-      )
-      calibration_count += 1
-    }
-    if protocol.calibration.batch_policy is @model.BatchPolicy::SharedBatchSize &&
-      !batch_iterations.is_empty() {
-      let mut shared_iterations = batch_iterations[0]
-      for iterations in batch_iterations {
-        shared_iterations = shared_iterations.min(iterations)
-      }
-      for index = 0; index < batch_iterations.length(); index = index + 1 {
-        batch_iterations[index] = shared_iterations
-      }
-    }
-    for repetition_id = 0
-        repetition_id < protocol.exploratory_samples
-        repetition_id = repetition_id + 1 {
-      let order = measurement_order(
-        protocol.order_policy,
-        case.implementations.length(),
-        repetition_id,
-        seed,
-      )
-      for position = 0; position < order.length(); position = position + 1 {
-        let implementation_index = order[position]
-        let implementation = case.implementations[implementation_index]
-        let iterations = batch_iterations[implementation_index]
-        let batch = run_batch(
-          case.fixture,
-          input,
-          implementation,
-          case.output_sink,
-          iterations,
-          -100000 - repetition_id,
-          prepared_cache[implementation_index],
-          bench,
-        )
-        prepared_cache[implementation_index] = batch.cached_prepared
-        (sink.emit_observation)(
-          @model.Observation::new(
-            case.id,
-            implementation.id,
-            implementation.version,
-            scale_index,
-            repetition_id,
-            repetition_id,
-            @model.ObservationPhase::Exploratory,
-            batch.elapsed_us / iterations.to_double(),
-            iterations,
-            @model.BatchSinkStatus::Kept,
-            case.fixture.setup_policy.timing,
-            batch.valid,
-          ),
-        )
-        observation_count += 1
-      }
-    }
-    for repetition_id = 0
-        repetition_id < protocol.confirmatory_samples
-        repetition_id = repetition_id + 1 {
-      let block_id = protocol.exploratory_samples + repetition_id
-      let order = measurement_order(
-        protocol.order_policy,
-        case.implementations.length(),
-        block_id,
-        seed,
-      )
-      for position = 0; position < order.length(); position = position + 1 {
-        let implementation_index = order[position]
-        let implementation = case.implementations[implementation_index]
-        let iterations = batch_iterations[implementation_index]
-        let batch = run_batch(
-          case.fixture,
-          input,
-          implementation,
-          case.output_sink,
-          iterations,
-          repetition_id,
-          prepared_cache[implementation_index],
-          bench,
-        )
-        prepared_cache[implementation_index] = batch.cached_prepared
-        (sink.emit_observation)(
-          @model.Observation::new(
-            case.id,
-            implementation.id,
-            implementation.version,
-            scale_index,
-            repetition_id,
-            block_id,
-            @model.ObservationPhase::Confirmatory,
-            batch.elapsed_us / iterations.to_double(),
-            iterations,
-            @model.BatchSinkStatus::Kept,
-            case.fixture.setup_policy.timing,
-            batch.valid,
-          ),
-        )
-        observation_count += 1
-      }
-    }
-    for implementation_index = 0
-        implementation_index < case.implementations.length()
-        implementation_index = implementation_index + 1 {
-      match prepared_cache[implementation_index] {
-        Some(prepared) =>
-          (case.fixture.reset)(
-            prepared,
-            @fixture.ResetContext::new(
-              protocol.confirmatory_samples,
-              case.implementations[implementation_index].id,
+          batch_iterations[implementation_index] = calibration_iterations
+          prepared_cache[implementation_index] = calibration.cached_prepared
+          match prepared_cache[implementation_index] {
+            Some(prepared) =>
+              (case.fixture.reset)(
+                prepared,
+                @fixture.ResetContext::new(-2, implementation.id),
+              )
+            None => ()
+          }
+          (sink.emit_calibration)(
+            @model.CalibrationEvent::new(
+              implementation.id,
+              dataset_id,
+              calibration_iterations,
+              calibration.elapsed_us,
+              protocol.calibration.target_batch_time_us,
+              retries,
             ),
           )
-        None => ()
+          calibration_count += 1
+        }
+        if protocol.calibration.batch_policy
+          is @model.BatchPolicy::SharedBatchSize &&
+          !batch_iterations.is_empty() {
+          let mut shared_iterations = batch_iterations[0]
+          for iterations in batch_iterations {
+            shared_iterations = shared_iterations.min(iterations)
+          }
+          for index = 0; index < batch_iterations.length(); index = index + 1 {
+            batch_iterations[index] = shared_iterations
+          }
+        }
+      } else if is_long_lived(setup_policy.frequency) {
+        // Later datasets prepare long-lived setup before their first block,
+        // outside every timed region, as warmup and calibration do for the
+        // first dataset.
+        for implementation_index = 0
+            implementation_index < implementation_count
+            implementation_index = implementation_index + 1 {
+          let implementation = case.implementations[implementation_index]
+          prepared_cache[implementation_index] = Some(
+            (case.fixture.prepare)(
+              (case.fixture.clone_input)(input),
+              implementation.id,
+              @fixture.SampleContext::new(-4, implementation.id, -4),
+            ),
+          )
+        }
+      }
+      for block_id = first_block; block_id < end_block; block_id = block_id + 1 {
+        let exploratory = block_id < protocol.exploratory_samples
+        let repetition_id = if exploratory {
+          block_id
+        } else {
+          block_id - protocol.exploratory_samples
+        }
+        let sample_id = if exploratory {
+          -100000 - repetition_id
+        } else {
+          repetition_id
+        }
+        let phase = if exploratory {
+          @model.ObservationPhase::Exploratory
+        } else {
+          @model.ObservationPhase::Confirmatory
+        }
+        let order = measurement_order(
+          protocol.order_policy,
+          implementation_count,
+          block_id,
+          seed,
+        )
+        for position = 0; position < order.length(); position = position + 1 {
+          let implementation_index = order[position]
+          let implementation = case.implementations[implementation_index]
+          if protocol.validation_coverage is EveryMeasurement {
+            let (actual, cached_prepared) = measurement_validation_sequence(
+              case.fixture,
+              input,
+              implementation,
+              steps,
+              sample_id,
+              prepared_cache[implementation_index],
+            )
+            prepared_cache[implementation_index] = cached_prepared
+            let measurement = Some(
+              @model.MeasurementKey::new(dataset_id, repetition_id, block_id),
+            )
+            match case.oracle {
+              Reference(reference) | ReferenceAndRelational(reference, _) =>
+                emit_reference_validations(
+                  case, reference, sink, tally, seed, input, dataset_id, scale_text,
+                  fingerprint, implementation, expected_sequence, actual, measurement,
+                )
+              Relational(_) => ()
+            }
+            match case.oracle {
+              Relational(relational) | ReferenceAndRelational(_, relational) =>
+                for other_index = 0
+                    other_index < implementation_count
+                    other_index = other_index + 1 {
+                  if other_index != implementation_index {
+                    emit_relational_validations(
+                      case,
+                      relational,
+                      sink,
+                      tally,
+                      seed,
+                      input,
+                      dataset_id,
+                      scale_text,
+                      fingerprint,
+                      other_index,
+                      actual_sequences[other_index],
+                      implementation_index,
+                      actual,
+                      measurement,
+                    )
+                  }
+                }
+              Reference(_) => ()
+            }
+          }
+          let iterations = batch_iterations[implementation_index]
+          let batch = run_batch(
+            case.fixture,
+            input,
+            implementation,
+            case.output_sink,
+            iterations,
+            sample_id,
+            prepared_cache[implementation_index],
+            bench,
+          )
+          prepared_cache[implementation_index] = batch.cached_prepared
+          (sink.emit_observation)(
+            @model.Observation::new(
+              case.id,
+              implementation.id,
+              implementation.version,
+              dataset_id,
+              repetition_id,
+              block_id,
+              phase,
+              batch.elapsed_us / iterations.to_double(),
+              iterations,
+              @model.BatchSinkStatus::Kept,
+              setup_policy.timing,
+              batch.valid,
+              setup_frequency=setup_policy.frequency,
+              workspace_scope=setup_policy.workspace_scope,
+            ),
+          )
+          observation_count += 1
+        }
+      }
+      for implementation_index = 0
+          implementation_index < implementation_count
+          implementation_index = implementation_index + 1 {
+        match prepared_cache[implementation_index] {
+          Some(prepared) =>
+            (case.fixture.reset)(
+              prepared,
+              @fixture.ResetContext::new(
+                protocol.confirmatory_samples,
+                case.implementations[implementation_index].id,
+              ),
+            )
+          None => ()
+        }
       }
     }
   }
   let summary = @model.RunSummary::new(
     @model.run_identity(case.id, protocol, seed, environment.provenance),
     observation_count,
-    validation_count,
+    tally.total,
     calibration_count,
     true,
     None,
-    passed_count=passed_count.val,
-    failed_count=failed_count.val,
-    unsupported_count=unsupported_count.val,
-    expected_difference_count=expected_difference_count.val,
+    passed_count=tally.passed,
+    failed_count=tally.failed,
+    unsupported_count=tally.unsupported,
+    expected_difference_count=tally.expected_difference,
+    measurement_validation_count=tally.measurement,
     environment~,
     protocol~,
     seed~,
@@ -1107,6 +1334,7 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] ru
     failed_count=summary.failed_count,
     unsupported_count=summary.unsupported_count,
     expected_difference_count=summary.expected_difference_count,
+    measurement_validation_count=summary.measurement_validation_count,
     environment~,
     protocol~,
     seed~,
@@ -1136,6 +1364,10 @@ pub async fn[
   ],
   context : RunContext,
 ) -> @model.RunSummary {
+  let errors = setup_errors(plan.case, Some(context.protocol.protocol))
+  if !errors.is_empty() {
+    raise RunConfigError(errors)
+  }
   run_case_internal(
     plan.case,
     context.protocol.protocol,

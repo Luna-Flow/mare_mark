@@ -91,6 +91,44 @@ All notable changes to mare_mark are documented in this file.
   `RunSummary` gains `protocol` and `seed` (optional labelled arguments of
   `RunSummary::new`). The fields are additive within `mmka_1`; readers that
   ignore unknown fields are unaffected (#3).
+- `runner.run` no longer ignores `RunProtocol.experiment_design`,
+  `validation_coverage` and the fixture's setup frequency and workspace scope
+  (#4):
+  - `MultipleDatasetsSingleMeasurement` materializes a fresh dataset for every
+    block and `HierarchicalDatasetsAndRepeats` one for every
+    `repeats_per_dataset` consecutive blocks. `dataset_id` is unique within a
+    run (`scale_index * datasets_per_scale + index`); warmup and calibration
+    run once per scale on its first dataset. `FixedDatasetRepeatedMeasurements`
+    produces the same datasets, seeds and events as before.
+  - New optional `RunProtocol::new(..., repeats_per_dataset~)` (default `1`).
+    `validate_protocol` rejects a value below `1`
+    (`InvalidInteger("repeats_per_dataset", _)`), sample counts it does not
+    divide under the hierarchical design (`IndivisibleSamples`), and any value
+    other than `1` under the other designs (`UnusedRepeatsPerDataset`). The
+    `RegressionGate` preset uses `5`.
+  - `ConfirmatoryOnly` validates only the datasets measured by confirmatory
+    blocks; `EveryDataset` validates every measured dataset; `EveryMeasurement`
+    also validates, outside the timed region, before every exploratory and
+    confirmatory batch on the input and prepared value that batch uses, then
+    resets it. These validations carry `Validation.measurement`, and
+    `RunSummary.measurement_validation_count` counts them (they are included in
+    `validation_count`).
+  - Long-lived setup (`PerRun`, `PerDataset`, `PerImplementation`) is prepared
+    once per (dataset, implementation) and cached across that dataset's
+    warmup, calibration and blocks. `PerRun` is rejected with
+    `BenchConfigError::PerRunSetupWithMultipleDatasets` when the case has more
+    than one dataset: by `BenchSpec::compile` (counting scales, or the
+    datasets of the new optional `protocol~` argument) and by `run`, which
+    raises `RunConfigError`.
+  - JSONL observations carry `setup_frequency` and `workspace_scope`;
+    measurement validations carry `validation_scope: "measurement"`,
+    `repetition_id` and `block_id`; summaries carry
+    `measurement_validation_count`. All are additive within `mmka_1`.
+    `Observation::new` takes optional `setup_frequency~` and
+    `workspace_scope~`, and `Validation::new` / `Validation::detailed` an
+    optional `measurement~`.
+  - `outlier_policy` and `practical_delta_pct` remain analysis-time settings
+    and do not change what the runner measures.
 
 ## 0.3.0 - 2026-07-15
 
