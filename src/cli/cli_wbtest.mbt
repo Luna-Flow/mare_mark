@@ -196,3 +196,40 @@ test "report prints the comparison table unless quiet" {
   let single = @report.document_from_jsonl(lines[0]).unwrap()
   assert_true(report_comparison_output(single, "out.html", false) is None)
 }
+
+///|
+test "--baseline does not swallow the next option (#28)" {
+  let request = parse_args([
+    "mare-mark", "report", "in.jsonl", "--baseline", "--quiet",
+  ])
+  assert_true(request.baseline is None)
+  assert_true(request.quiet)
+  assert_true(
+    request.error is Some("option '--baseline' requires an implementation id"),
+  )
+  let stdin = parse_args(["mare-mark", "report", "--baseline", "-", "out.html"])
+  assert_true(stdin.baseline is None)
+  assert_true(stdin.input is Some("-"))
+  assert_true(
+    stdin.error is Some("option '--baseline' requires an implementation id"),
+  )
+  let dashed = parse_args(["mare-mark", "report", "--baseline=-x", "in.jsonl"])
+  assert_true(dashed.baseline is Some("-x"))
+  assert_true(dashed.error is None)
+  let empty = parse_args(["mare-mark", "report", "--baseline=", "in.jsonl"])
+  assert_true(empty.baseline is None)
+  assert_true(
+    empty.error is Some("option '--baseline' requires an implementation id"),
+  )
+}
+
+///|
+test "the first usage error wins (#28)" {
+  let request = parse_args(["mare-mark", "report", "--bad", "--worse"])
+  assert_true(request.error is Some("unknown option '--bad'"))
+  let missing_first = parse_args(["mare-mark", "report", "--baseline=", "--bad"])
+  assert_true(
+    missing_first.error
+    is Some("option '--baseline' requires an implementation id"),
+  )
+}
