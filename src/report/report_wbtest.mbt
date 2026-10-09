@@ -248,7 +248,15 @@ test "confirmatory timings group by case, scale and implementation" {
     phase : String,
     scale : String?,
     elapsed_us : Double,
-  ) => { case_id, implementation, dataset_id, phase, scale, elapsed_us, }
+  ) => {
+    case_id,
+    implementation,
+    dataset_id,
+    phase,
+    scale,
+    block_id: None,
+    elapsed_us,
+  }
   let observations = [
     observation("a", "x", 0, "confirmatory", Some("8"), 1.0),
     observation("a", "y", 0, "confirmatory", Some("8"), 2.0),

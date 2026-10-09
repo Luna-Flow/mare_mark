@@ -6,7 +6,9 @@ import {
 }
 
 // Values
-pub fn document_from_jsonl(String, target? : String) -> Result[@ir_model.PlotDocument, String]
+pub fn comparisons_text(@ir_model.PlotDocument) -> String
+
+pub fn document_from_jsonl(String, target? : String, baseline? : String) -> Result[@ir_model.PlotDocument, String]
 
 pub fn html(@ir_model.PlotDocument) -> String
 
