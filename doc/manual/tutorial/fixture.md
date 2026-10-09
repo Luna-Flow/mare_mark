@@ -86,7 +86,8 @@ test "layout per implementation" {
 }
 ```
 
-The transposition happens once per implementation and outside the clock.
+The transposition happens once per implementation and dataset, outside the
+clock, and the transposed value is reused by every block of that dataset.
 
 ### Include setup on purpose
 
@@ -133,6 +134,10 @@ reader knows the number contains the allocation.
   calibrated batch size.
 - **Resetting by dropping a long-lived value.** The runner reuses it after
   reset.
+- **`PerRun` with several datasets.** A run-wide value can come from only one
+  dataset's input, so `BenchSpec::compile` and `runner.run` reject `PerRun`
+  when a run has several scales or a design with several datasets per scale.
+  Use `PerDataset`.
 
 ## Next steps
 

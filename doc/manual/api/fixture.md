@@ -52,6 +52,12 @@ pub struct Fixture[Scale, Input, Prepared] {
 | `reset` | after the prepared value is used | release or restore it |
 | `setup_policy` | | how often `prepare` runs and whether it is timed |
 
+With a long-lived frequency (`PerRun`, `PerDataset`, `PerImplementation`) the
+runner calls `prepare` once per dataset and implementation and reuses the
+value for every block of that dataset; `PerRun` is accepted only when the run
+has a single dataset. With `PerSample`, `PerBatch` or `PerIteration` it
+prepares a fresh value for every batch or operation.
+
 ### `Fixture::new`
 
 `Fixture::new` builds a fixture from all of its parts.
