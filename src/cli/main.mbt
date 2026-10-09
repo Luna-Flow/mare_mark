@@ -43,9 +43,20 @@ fn replay_usage_error(request : CliRequest) -> (String, String)? {
 }
 
 ///|
-/// Formats a duration measured in microseconds as milliseconds.
+/// Formats a duration measured in microseconds as milliseconds with three
+/// decimals, the resolution of the microsecond clock. Non-finite or negative
+/// durations, which a monotonic clock does not produce, are printed as they are.
 fn elapsed_text(elapsed_us : Double) -> String {
-  (elapsed_us / 1000.0).to_string() + "ms"
+  if elapsed_us.is_nan() || elapsed_us.is_inf() || elapsed_us < 0.0 {
+    return (elapsed_us / 1000.0).to_string() + "ms"
+  }
+  let micros = elapsed_us.round().to_int64()
+  let fraction = (micros % 1000L).to_string()
+  (micros / 1000L).to_string() +
+  "." +
+  "0".repeat(3 - fraction.length()) +
+  fraction +
+  "ms"
 }
 
 ///|
