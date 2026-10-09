@@ -21,19 +21,23 @@ import {
   "Luna-Flow/mare_mark/model",
   "Luna-Flow/mare_mark/event",
   "Luna-Flow/mare_mark/runner",
+  "Luna-Flow/mare_mark/fixture",
+  "Luna-Flow/mare_mark/experiment",
   "moonbitlang/async",
 }
 ```
 
 The examples on this page call them through their default aliases (`@model`,
-`@event`, `@runner`, `@async`).
+`@event`, `@runner`, `@fixture`, `@experiment`, `@async`); `fixture` and
+`experiment` are needed only to build a case with `BenchSpec::advanced`.
 
 ## Asynchrony and type parameters
 
 `run` and `execute_operation` are `async`. Call them from an `async fn main`
 or an `async test`; the `moonbitlang/async` runtime that drives them is
 available on the native, JS and wasm targets, not on wasm-gc. Subprocess
-workers need the native target.
+workers need the native target. Like every `async` function, `run` may raise;
+the error it raises itself is `RunConfigError`.
 
 The type parameters recur throughout the package:
 
@@ -57,19 +61,41 @@ The type parameters recur throughout the package:
 pub async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] run(ValidatedBenchPlan[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], RunContext) -> @model.RunSummary
 ```
 
-For every scale, in order, the runner materializes the input once, validates
-every implementation against the oracle, warms up and calibrates every
-implementation, then measures `exploratory_samples` and `confirmatory_samples`
-blocks in balanced order. Every validation, failure, calibration and
-observation is sent to the sink as it happens; the summary is sent last, and
-the location string returned by the sink's `finish` becomes
-`artifact_location` of the returned summary.
+Before anything runs, `run` checks the plan against the protocol of the
+context and raises `RunConfigError` when they do not fit together (a
+`PerRun` fixture with more than one dataset, see `BenchSpec::compile`);
+nothing is emitted in that case.
+
+For every scale, in the order of the case, the runner goes through the
+datasets of that scale. The protocol's `experiment_design` decides how many
+there are and which blocks measure each. With $E$ = `exploratory_samples`,
+$C$ = `confirmatory_samples` and $r$ = `repeats_per_dataset`, the blocks of a
+scale are numbered $b = 0, \dots, E + C - 1$ (exploratory first) and
+
+| `experiment_design` | Datasets per scale $D$ | Dataset index of block $b$ |
+| --- | --- | --- |
+| `FixedDatasetRepeatedMeasurements` | $1$ | $0$ |
+| `MultipleDatasetsSingleMeasurement` | $E + C$ | $b$ |
+| `HierarchicalDatasetsAndRepeats` | $(E + C) / r$ | $\lfloor b / r \rfloor$ |
+
+The dataset with index $j$ of the scale at position $s$ has
+`dataset_id` $= s \cdot D + j$, unique within the run. For each dataset the
+runner materializes the input, validates the implementations against the
+oracle if `validation_coverage` asks for it, warms up and calibrates every
+implementation if it is the first dataset of the scale (the batch sizes then
+apply to all datasets of the scale), and measures the dataset's blocks: one
+batch per implementation per block, in the order of `balanced_order`. Every
+validation, failure, calibration and observation is sent to the sink as it
+happens; the summary is sent last, and the location string returned by the
+sink's `finish` becomes `artifact_location` of the returned summary.
 
 The returned `RunSummary` has `complete == true`, the event counts, the
 validation tallies (`passed_count`, `failed_count`, `unsupported_count`,
-`expected_difference_count`) and the environment. Its `run_id` is
-`protocol_identity(protocol) + ":" + case_id`; it identifies the protocol and
-case, not one execution, so put a unique id in the environment's provenance.
+`expected_difference_count`, `measurement_validation_count`), the
+environment, the protocol and the seed. Its `run_id` is
+`@model.run_identity(case_id, protocol, seed, environment.provenance)`, so it
+is unique when the environment's provenance `run_id` is
+(`@env_detect.detect` makes a fresh one).
 
 A validation failure does not stop the measurement: the implementation is
 still timed and the failure is reported, so that a report can show the
@@ -104,15 +130,18 @@ async test "run a plan" {
       @runner.ProtocolPreset::QuickCheck.validated(),
     ),
   )
-  inspect(summary.run_id, content="mmkp_1:1:3:1:square")
+  inspect(summary.run_id, content="square|mmkp_2:a8272a0d9e84b872|42|run-1|2026-10-08T00:00:00Z")
   inspect(summary.passed_count, content="2")
   inspect(summary.observation_count, content="8")
-  inspect(summary.artifact_location.unwrap(), content="memory://run/mmkp_1:1:3:1:square")
+  debug_inspect(summary.seed, content="Some(42)")
+  inspect(summary.artifact_location.unwrap(), content="memory://run/square|mmkp_2:a8272a0d9e84b872|42|run-1|2026-10-08T00:00:00Z")
 }
 ```
 
 With `QuickCheck` there is one exploratory and three confirmatory block per
-scale, so two scales and one implementation give eight observations.
+scale, so two scales and one implementation give eight observations. The
+example writes the environment by hand so that the run id is the same every
+time; a real run would use `@env_detect.detect`.
 
 ### `RunContext`
 
@@ -130,8 +159,8 @@ pub fn RunContext::new(@model.EnvironmentSnapshot, @event.ObservationSink, UInt6
 
 Note the argument order of `RunContext::new`: environment, sink, seed,
 protocol. The seed is passed unchanged to the fixture through
-`GenerationContext.seed` and is mixed into the block order (see
-`balanced_order`).
+`GenerationContext.seed`, is mixed into the block order (see
+`balanced_order`), and is recorded in `RunSummary.seed` and the run id.
 
 ### `balanced_order`
 
@@ -191,8 +220,16 @@ pub fn validate_protocol(@model.RunProtocol) -> Result[ValidatedProtocol, Array[
 | `target_batch_time_us <= max_sample_time_us` | `InvalidDuration("target_batch_time_us", t)` |
 | `0 < min_batch_iterations <= max_batch_iterations` | `InvalidIterationRange(min, max)` |
 | `practical_delta_pct` finite and `>= 0` | `InvalidPracticalDelta(pct)` |
+| `repeats_per_dataset >= 1` | `InvalidInteger("repeats_per_dataset", r)` |
+| under `HierarchicalDatasetsAndRepeats`, $r$ divides `exploratory_samples` | `IndivisibleSamples("exploratory_samples", n, r)` |
+| under `HierarchicalDatasetsAndRepeats`, $r$ divides `confirmatory_samples` | `IndivisibleSamples("confirmatory_samples", n, r)` |
+| under the other designs, `repeats_per_dataset == 1` | `UnusedRepeatsPerDataset(r)` |
 
-All rules are checked; the errors are returned together, in this order.
+All rules are checked; the errors are returned together, in this order. The
+divisibility rules are checked only when `repeats_per_dataset >= 1`. They make
+every dataset of a hierarchical design belong to exactly one phase: with $r$
+dividing $E$, blocks $0, \dots, E-1$ fill whole datasets, so no dataset is
+measured partly by exploratory and partly by confirmatory blocks.
 
 "Finite" excludes `NaN` and both infinities. Without that requirement a `NaN`
 would pass every rule, because every comparison with `NaN` is false: a `NaN`
@@ -222,6 +259,24 @@ test "protocol validation reports every problem" {
   inspect(errors[1] is InvalidInteger("confirmatory_samples", 0), content="true")
   inspect(errors[2] is InvalidIterationRange(10, 5), content="true")
 }
+
+test "repeats per dataset must fit the design" {
+  let hierarchical = @model.RunProtocol::new(
+    @model.ExperimentDesign::HierarchicalDatasetsAndRepeats,
+    1,
+    None,
+    @model.CalibrationProtocol::new(1000.0, 1, 1000, 100000.0, @model.BatchPolicy::PerImplementation),
+    1.0,
+    @model.OrderPolicy::BalancedBlocks(1UL),
+    @model.OutlierPolicy::ReportOnly,
+    @model.ValidationCoverage::EveryDataset,
+    3,
+    10,
+    repeats_per_dataset=2,
+  )
+  guard @runner.validate_protocol(hierarchical) is Err(errors) else { fail("expected errors") }
+  inspect(errors is [IndivisibleSamples("exploratory_samples", 3, 2)], content="true")
+}
 ```
 
 ### `ProtocolConfigError`
@@ -234,10 +289,16 @@ pub(all) enum ProtocolConfigError {
   InvalidDuration(String, Double)
   InvalidIterationRange(Int, Int)
   InvalidPracticalDelta(Double)
+  IndivisibleSamples(String, Int, Int)
+  UnusedRepeatsPerDataset(Int)
 }
 ```
 
 The `String` payload is the field name; the number is the rejected value.
+`IndivisibleSamples(field, samples, repeats)` carries the sample count and the
+`repeats_per_dataset` that does not divide it; `UnusedRepeatsPerDataset(r)`
+carries a `repeats_per_dataset` other than `1` under a design that does not
+use it.
 
 ### `ProtocolPreset`
 
@@ -271,11 +332,15 @@ presets are:
 | `validation_coverage` | `ConfirmatoryOnly` | `EveryDataset` | `EveryMeasurement` |
 | `exploratory_samples` | 1 | 3 | 5 |
 | `confirmatory_samples` | 3 | 10 | 20 |
+| `repeats_per_dataset` | 1 | 1 | 5 |
+| datasets per scale | 1 | 1 | 5 (1 exploratory, 4 confirmatory) |
 
-The runner acts on the warmup, calibration, order and sample fields.
-`experiment_design`, `outlier_policy`, `validation_coverage` and
-`practical_delta_pct` are recorded intent: validation always runs once per
-dataset before timing, and outlier filtering and decisions happen in `stats`.
+The runner acts on every field except `outlier_policy` and
+`practical_delta_pct`, which are analysis settings: they are recorded in the
+summary, and `report.document_from_jsonl` applies them when it compares
+implementations. `RegressionGate` measures five datasets per scale, five
+consecutive blocks each, and validates every measured batch; its first
+dataset is measured only by the exploratory blocks.
 
 ## Implementations
 
@@ -528,10 +593,13 @@ pub fn[Scale, Input, Expected, Output] ComparedSingleStepCase::against_equal(Sel
 
 `against_equal(reference, comparator)` adds a reference oracle named
 `id + "-reference"` built with `@experiment.ReferenceOracle::equal`, an
-`OutputSink::keep_last` sink, a sequence length of 1, and placeholder text
-functions (`"<scale>"`, `"<input>"`, `"<output>"`). Its replay spec has an
-empty command and the implementation id as the only argument. Use
-`BenchSpec::advanced` when you need real text in events and replay artifacts.
+`OutputSink::keep_last` sink, a sequence length of 1, an empty scale text,
+and placeholder texts for inputs and outputs (`"<input>"`, `"<output>"`). Its
+replay spec has an empty command and the implementation id as the only
+argument. With an empty scale text, validations carry `"scale":""` and
+observations no `scale`, so the report places such runs by `dataset_id`. Use
+`BenchSpec::advanced` when you need real text in events and replay artifacts,
+in particular the scale.
 
 ### `BenchSpec`
 
@@ -559,7 +627,7 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Benc
 | `output_sink` | folds outputs inside timed batches |
 | `oracle` | reference and/or relational validation |
 | `scales` | one dataset per scale, in this order (copied) |
-| `scale_text` | text of a scale in validation events |
+| `scale_text` | text of a scale in validation and observation events; the report's x axis |
 | `sequence_length` | number of operations validated per implementation and dataset |
 | `describe` | operation, operands, context and rounding of step $i$ for evidence |
 | `input_text`, `output_text`, `context_text` | text forms used in evidence and failure artifacts |
@@ -579,12 +647,17 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Benc
 `compile` validates a spec and returns a plan or every configuration error.
 
 ```mbti
-pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::compile(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]) -> Result[ValidatedBenchPlan[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Array[BenchConfigError]]
+pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::compile(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], protocol? : ValidatedProtocol) -> Result[ValidatedBenchPlan[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Array[BenchConfigError]]
 ```
 
 It checks, in order: a non-empty case id, at least one scale, at least one
-implementation, a positive sequence length, and non-empty, unique
-implementation ids.
+implementation, a positive sequence length, non-empty, unique implementation
+ids, and that a fixture with `SetupFrequency::PerRun` serves a single
+dataset. Without `protocol` every scale counts as one dataset, the fewest any
+design materializes; with it, the datasets the protocol's design
+materializes are counted. `run` repeats the setup check with the protocol of
+its context, so a plan compiled without a protocol cannot run a `PerRun`
+fixture over several datasets either.
 
 ```moonbit
 test "compile collects every configuration error" {
@@ -622,6 +695,7 @@ pub(all) enum BenchConfigError {
   InvalidSequenceLength(Int)
   InvalidOracleSequenceLength(Int)
   OracleSequenceLengthMismatch(Int, Int)
+  PerRunSetupWithMultipleDatasets(Int)
 }
 ```
 
@@ -629,9 +703,79 @@ pub(all) enum BenchConfigError {
 `DuplicateImplementationId` the repeated id, `InvalidSequenceLength` the
 rejected case length. `InvalidOracleSequenceLength` carries a non-positive
 length returned by a reference oracle; `OracleSequenceLengthMismatch` carries
-the configured case length and the oracle length, in that order. The `Missing*` constructors come from
+the configured case length and the oracle length, in that order. 
+`PerRunSetupWithMultipleDatasets` carries the number of datasets
+of the run. A `PerRun` setup prepares one value for the whole run, but a
+prepared value is derived from one dataset's input, so it cannot serve several
+datasets; use `PerDataset` instead. The `Missing*` constructors come from
 `SingleStepCase::compile`; `MissingSerializer` is reserved and not produced by
 the current code.
+
+### `RunConfigError`
+
+`RunConfigError` is raised by `run` when the plan and the protocol of the run
+context are incompatible.
+
+```mbti
+pub(all) suberror RunConfigError {
+  RunConfigError(Array[BenchConfigError])
+}
+```
+
+The payload lists the problems, currently `PerRunSetupWithMultipleDatasets`.
+`run` raises it before it emits any event.
+
+```moonbit
+fn per_run_spec(scales : Array[Int]) -> @runner.BenchSpec[Int, Int, Int, Int, Int, Unit, Int?, Int?] {
+  let fixture = @fixture.Fixture::new(
+    "shared",
+    "1",
+    (context : @model.GenerationContext[Int]) => context.dataset_key.scale,
+    x => x.to_string(),
+    x => x,
+    (x, _, _) => x,
+    (_, _) => (),
+    @model.SetupPolicy::new(PerRun, ExcludedFromMeasurement, RunWorkspace),
+  )
+  @runner.BenchSpec::advanced(
+    "per-run",
+    fixture,
+    [@runner.Implementation::stateless("id", "1", x => @model.OperationResult::completed(x, ()))],
+    @runner.OutputSink::keep_last(),
+    @experiment.OracleSpec::Reference(@experiment.ReferenceOracle::equal("id", x => x, (e, a) => e == a)),
+    scales,
+    n => n.to_string(),
+    1,
+    (x, _) => @model.CaseDescriptor::new("id", [x.to_string()], "", ""),
+    x => x.to_string(),
+    x => x.to_string(),
+    _ => "",
+    (x, id) => @model.ReplaySpec::new("", [id, x.to_string()]),
+  )
+}
+
+async test "a per-run setup serves one dataset" {
+  let two_scales = per_run_spec([1, 2]).compile()
+  inspect(two_scales is Err([PerRunSetupWithMultipleDatasets(2)]), content="true")
+  let gate = @runner.ProtocolPreset::RegressionGate.validated()
+  let one_scale = per_run_spec([1]).compile(protocol=gate)
+  inspect(one_scale is Err([PerRunSetupWithMultipleDatasets(5)]), content="true")
+  let plan = per_run_spec([1]).compile().unwrap()
+  let environment = @model.EnvironmentSnapshot::new(
+    @model.SemanticEnvironment::new(@model.ExecutionTarget::Native, "moonc 0.10", "", "i32"),
+    @model.PerformanceEnvironment::new("native", "laptop", "rc", 1, "monotonic"),
+    @model.ProvenanceEnvironment::new("macos", "host", "2026-10-08T00:00:00Z", "HEAD", "run-2"),
+  )
+  let raised = try {
+    ignore(@runner.run(plan, @runner.RunContext::new(environment, @event.InMemorySink::new().as_sink(), 1UL, gate)))
+    false
+  } catch {
+    @runner.RunConfigError(_) => true
+    _ => false
+  }
+  inspect(raised, content="true")
+}
+```
 
 ### `DifferentialCase`
 
