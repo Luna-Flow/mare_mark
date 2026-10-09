@@ -404,7 +404,8 @@ The input array is never modified. `TukeyFence` and `MADTrim` compute their
 fences from the values that are not `NaN` and never keep a `NaN`; `ReportOnly`
 keeps it. When more than half of the values are equal,
 the MAD is `0` and `MADTrim` keeps only the values equal to the median. Use the
-result for a derived view; keep the raw observations.
+result for a derived view; keep the raw observations. `report` applies the
+policy recorded in a run's protocol to the paired deltas of each comparison.
 
 ```moonbit
 test "outlier views" {
