@@ -20,6 +20,9 @@ pub fn[Scale] single_step(String, Array[Scale]) -> SingleStepCase[Scale]
 pub fn validate_protocol(@model.RunProtocol) -> Result[ValidatedProtocol, Array[ProtocolConfigError]]
 
 // Errors
+pub(all) suberror RunConfigError {
+  RunConfigError(Array[BenchConfigError])
+}
 
 // Types and methods
 pub(all) enum BenchConfigError {
@@ -33,13 +36,14 @@ pub(all) enum BenchConfigError {
   EmptyImplementationId(Int)
   DuplicateImplementationId(String)
   InvalidSequenceLength(Int)
+  PerRunSetupWithMultipleDatasets(Int)
 }
 
 pub struct BenchSpec[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] {
   case : DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
 }
 pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::advanced(String, @fixture.Fixture[Scale, Input, Prepared], Array[Implementation[Prepared, Output, Context]], OutputSink[Output, State, SinkValue], @experiment.OracleSpec[Input, Expected, Output, Context], Array[Scale], (Scale) -> String, Int, (Input, Int) -> @model.CaseDescriptor, (Input) -> String, (Output) -> String, (Context) -> String, (Input, String) -> @model.ReplaySpec, shrinker? : @experiment.Shrinker[Input]) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
-pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::compile(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]) -> Result[ValidatedBenchPlan[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Array[BenchConfigError]]
+pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::compile(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], protocol? : ValidatedProtocol) -> Result[ValidatedBenchPlan[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Array[BenchConfigError]]
 pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::with_sequence_length(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Int) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
 
 pub(all) enum Case {
@@ -108,6 +112,8 @@ pub(all) enum ProtocolConfigError {
   InvalidDuration(String, Double)
   InvalidIterationRange(Int, Int)
   InvalidPracticalDelta(Double)
+  IndivisibleSamples(String, Int, Int)
+  UnusedRepeatsPerDataset(Int)
 }
 
 pub(all) enum ProtocolPreset {

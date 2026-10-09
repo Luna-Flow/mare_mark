@@ -10,6 +10,15 @@ pub(all) enum BenchConfigError {
   EmptyImplementationId(Int)
   DuplicateImplementationId(String)
   InvalidSequenceLength(Int)
+  PerRunSetupWithMultipleDatasets(Int)
+}
+
+///|
+/// Raised by `run` when the plan and the protocol of the run context are
+/// incompatible, for example `SetupFrequency::PerRun` with a protocol that
+/// materializes more than one dataset.
+pub(all) suberror RunConfigError {
+  RunConfigError(Array[BenchConfigError])
 }
 
 ///|
@@ -18,6 +27,8 @@ pub(all) enum ProtocolConfigError {
   InvalidDuration(String, Double)
   InvalidIterationRange(Int, Int)
   InvalidPracticalDelta(Double)
+  IndivisibleSamples(String, Int, Int)
+  UnusedRepeatsPerDataset(Int)
 }
 
 ///|
@@ -82,6 +93,39 @@ pub fn validate_protocol(
   }
   if !finite(protocol.practical_delta_pct) || protocol.practical_delta_pct < 0.0 {
     errors.push(InvalidPracticalDelta(protocol.practical_delta_pct))
+  }
+  let repeats = protocol.repeats_per_dataset
+  if repeats < 1 {
+    errors.push(InvalidInteger("repeats_per_dataset", repeats))
+  } else {
+    match protocol.experiment_design {
+      HierarchicalDatasetsAndRepeats => {
+        if protocol.exploratory_samples > 0 &&
+          protocol.exploratory_samples % repeats != 0 {
+          errors.push(
+            IndivisibleSamples(
+              "exploratory_samples",
+              protocol.exploratory_samples,
+              repeats,
+            ),
+          )
+        }
+        if protocol.confirmatory_samples > 0 &&
+          protocol.confirmatory_samples % repeats != 0 {
+          errors.push(
+            IndivisibleSamples(
+              "confirmatory_samples",
+              protocol.confirmatory_samples,
+              repeats,
+            ),
+          )
+        }
+      }
+      FixedDatasetRepeatedMeasurements | MultipleDatasetsSingleMeasurement =>
+        if repeats != 1 {
+          errors.push(UnusedRepeatsPerDataset(repeats))
+        }
+    }
   }
   if errors.is_empty() {
     Ok({ protocol, })
@@ -161,6 +205,7 @@ fn regression_gate_protocol() -> @model.RunProtocol {
     @model.ValidationCoverage::EveryMeasurement,
     5,
     20,
+    repeats_per_dataset=5,
   )
 }
 
@@ -278,6 +323,7 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Benc
     State,
     SinkValue,
   ],
+  protocol? : ValidatedProtocol,
 ) -> Result[
   ValidatedBenchPlan[
     Scale,
@@ -314,10 +360,41 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Benc
       ids[implementation.id] = true
     }
   }
+  errors.append(
+    setup_errors(self.case, protocol.map(validated => validated.protocol)),
+  )
   if errors.is_empty() {
     Ok({ case: self.case, })
   } else {
     Err(errors)
+  }
+}
+
+///|
+/// Setup-policy errors of `case` under `protocol`. Without a protocol every
+/// scale counts as one dataset, which is the fewest any design materializes.
+fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] setup_errors(
+  case : DifferentialCase[
+    Scale,
+    Input,
+    Prepared,
+    Expected,
+    Output,
+    Context,
+    State,
+    SinkValue,
+  ],
+  protocol : @model.RunProtocol?,
+) -> Array[BenchConfigError] {
+  let per_scale = match protocol {
+    Some(protocol) => datasets_per_scale(protocol)
+    None => 1
+  }
+  let dataset_count = case.scales.length() * per_scale
+  if case.fixture.setup_policy.frequency is PerRun && dataset_count > 1 {
+    [PerRunSetupWithMultipleDatasets(dataset_count)]
+  } else {
+    []
   }
 }
 
