@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/mare_mark/env_detect"
+
+import {
+  "Luna-Flow/mare_mark/model",
+}
+
+// Values
+pub const DEFAULT_CLOCK : String = "monotonic"
+
+pub const DEFAULT_DEVICE : String = "host"
+
+pub const DEFAULT_FREQUENCY_POLICY : String = "uncontrolled"
+
+pub const UNKNOWN : String = "unknown"
+
+pub const UNKNOWN_CONCURRENCY : Int = 0
+
+pub async fn detect(target? : @model.ExecutionTarget, toolchain? : String, compiler_flags? : String, dtype_abi? : String, runtime? : String, cpu? : String, gc? : String, concurrency? : Int, clock? : String, device? : String, frequency_policy? : String, os? : String, hostname? : String, timestamp? : String, revision? : String, run_id? : String) -> DetectedEnvironment
+
+pub fn new_run_id(UInt64) -> String
+
+// Errors
+
+// Types and methods
+pub struct DetectedEnvironment {
+  snapshot : @model.EnvironmentSnapshot
+  undetected : Array[String]
+}
+
+// Type aliases
+
+// Traits
