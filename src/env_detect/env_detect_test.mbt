@@ -90,12 +90,13 @@ async test "detect reports undetected fields with their fallbacks" {
   // Never detectable: always reported unless overridden.
   for
     field in [
-      "compiler_flags", "dtype_abi", "clock", "device", "frequency_policy",
+      "compiler_flags", "dtype_abi", "concurrency", "clock", "device", "frequency_policy",
     ] {
     assert_true(detected.undetected.contains(field), msg=field)
   }
   assert_eq(snapshot.semantic.compiler_flags, @env_detect.UNKNOWN)
   assert_eq(snapshot.semantic.dtype_abi, @env_detect.UNKNOWN)
+  assert_eq(snapshot.performance.concurrency, @env_detect.UNKNOWN_CONCURRENCY)
   assert_eq(snapshot.performance.clock, @env_detect.DEFAULT_CLOCK)
   assert_eq(snapshot.performance.device, @env_detect.DEFAULT_DEVICE)
   assert_eq(
@@ -124,11 +125,6 @@ async test "detect reports undetected fields with their fallbacks" {
       msg=field + "=" + value,
     )
   }
-  assert_eq(
-    detected.undetected.contains("concurrency"),
-    snapshot.performance.concurrency == @env_detect.UNKNOWN_CONCURRENCY,
-  )
-  assert_true(snapshot.performance.concurrency >= 0)
 }
 
 ///|
@@ -173,7 +169,13 @@ async test "overrides win and are not reported" {
 
 ///|
 async test "a partial override keeps the other fields detected" {
-  let detected = @env_detect.detect(compiler_flags="release", clock="tsc")
+  let detected = @env_detect.detect(
+    compiler_flags="release",
+    concurrency=1,
+    clock="tsc",
+  )
+  assert_eq(detected.snapshot.performance.concurrency, 1)
+  assert_false(detected.undetected.contains("concurrency"))
   assert_eq(detected.snapshot.semantic.compiler_flags, "release")
   assert_eq(detected.snapshot.performance.clock, "tsc")
   assert_false(detected.undetected.contains("compiler_flags"))

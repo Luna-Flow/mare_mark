@@ -39,10 +39,11 @@ All notable changes to mare_mark are documented in this file.
 ### Added
 
 - `env_detect` package: `detect()` builds a `model.EnvironmentSnapshot` from
-  the running process (execution target, runtime, GC, OS, hostname, CPU model,
-  logical cores, UTC timestamp, git revision from `GITHUB_SHA` /
+  the running process (execution target, runtime, GC, OS, hostname, CPU model
+  with its logical core count, UTC timestamp, git revision from `GITHUB_SHA` /
   `CI_COMMIT_SHA` / `GIT_COMMIT` or `git rev-parse HEAD` on native, toolchain
-  from `MARE_MARK_TOOLCHAIN`, and a fresh run id from `new_run_id`). Fields
+  from `MARE_MARK_TOOLCHAIN`, and a fresh run id from `new_run_id`).
+  `concurrency`, the benchmark's own parallelism, is never detected. Fields
   that cannot be detected are `"unknown"` (or a documented default) and are
   listed in `DetectedEnvironment.undetected`; every field can be overridden by
   a labelled argument (#19).

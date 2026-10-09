@@ -3,8 +3,8 @@
 pub const UNKNOWN : String = "unknown"
 
 ///|
-/// `concurrency` value when the logical core count could not be detected and
-/// was not overridden.
+/// `concurrency` value when it is not overridden. `concurrency` is the
+/// benchmark's own degree of parallelism, which the process cannot detect.
 pub const UNKNOWN_CONCURRENCY : Int = 0
 
 ///|
@@ -57,9 +57,16 @@ pub struct DetectedEnvironment {
 /// - `runtime`: `"native"` on native and LLVM, `"node <version>"` on Node.js.
 /// - `toolchain`: the `MARE_MARK_TOOLCHAIN` environment variable.
 /// - `compiler_flags`, `dtype_abi`: never detected.
-/// - `os`, `hostname`, `cpu`, `concurrency` (logical cores): from the host on
-///   native and Node.js, else from `OS`, `HOSTNAME` / `COMPUTERNAME`,
-///   `PROCESSOR_IDENTIFIER` and `NUMBER_OF_PROCESSORS`.
+/// - `os`, `hostname`: from the host on native and Node.js, else from `OS`,
+///   `HOSTNAME` / `COMPUTERNAME`.
+/// - `cpu`: the CPU model (host probe, else `PROCESSOR_IDENTIFIER`) followed
+///   by the logical core count (host probe, else `NUMBER_OF_PROCESSORS`), for
+///   example `"Apple M4 (10 logical cores)"`. With only the core count it is
+///   `"unknown (10 logical cores)"`, with only the model just the model; it is
+///   reported as undetected only when neither is known.
+/// - `concurrency`: the benchmark's own degree of parallelism, never
+///   detected (the core count goes into `cpu`); `UNKNOWN_CONCURRENCY` unless
+///   overridden.
 /// - `clock`, `device`, `frequency_policy`: never detected; they default to
 ///   `DEFAULT_CLOCK`, `DEFAULT_DEVICE` and `DEFAULT_FREQUENCY_POLICY`.
 /// - `timestamp`: the current UTC time as `YYYY-MM-DDTHH:MM:SSZ`.
@@ -109,29 +116,21 @@ pub async fn detect(
   }
   let cpu = match cpu {
     Some(value) => value
-    None =>
-      settle(
-        undetected,
-        "cpu",
-        or_env(probe_cpu(), ["PROCESSOR_IDENTIFIER"]),
-        UNKNOWN,
-      )
+    None => {
+      let model = or_env(probe_cpu(), ["PROCESSOR_IDENTIFIER"])
+      let cores = match probe_logical_cores() {
+        Some(count) => Some(count)
+        None => env_value(["NUMBER_OF_PROCESSORS"]).bind(positive_int)
+      }
+      settle(undetected, "cpu", describe_cpu(model, cores), UNKNOWN)
+    }
   }
   let gc = gc.unwrap_or(target_gc())
   let concurrency = match concurrency {
     Some(value) => value
     None => {
-      let detected = match probe_logical_cores() {
-        Some(count) => Some(count)
-        None => env_value(["NUMBER_OF_PROCESSORS"]).bind(positive_int)
-      }
-      match detected {
-        Some(count) => count
-        None => {
-          undetected.push("concurrency")
-          UNKNOWN_CONCURRENCY
-        }
-      }
+      undetected.push("concurrency")
+      UNKNOWN_CONCURRENCY
     }
   }
   let clock = match clock {
@@ -356,5 +355,21 @@ fn or_env(detected : String?, names : Array[String]) -> String? {
   match detected {
     Some(value) => Some(value)
     None => env_value(names)
+  }
+}
+
+///|
+/// CPU text from the model and the logical core count; `None` when neither
+/// is known.
+fn describe_cpu(model : String?, cores : Int?) -> String? {
+  match (model, cores) {
+    (None, None) => None
+    (Some(model), None) => Some(model)
+    (model, Some(count)) => {
+      let unit = if count == 1 { "logical core" } else { "logical cores" }
+      Some(
+        model.unwrap_or(UNKNOWN) + " (" + count.to_string() + " " + unit + ")",
+      )
+    }
   }
 }
