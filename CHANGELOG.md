@@ -36,7 +36,7 @@ All notable changes to mare_mark are documented in this file.
 - Qualify package names in blackbox tests (`@experiment.`, `@stats.`,
   `@tune.`, `@tune_gemm.`).
 - Documentation rewritten: an API page, a tutorial and a design page for every
-  package (13 packages), with derivations of the statistics, the experimental
+  package (14 packages), with derivations of the statistics, the experimental
   design, calibration, seed derivation and the tuning policy, a Typst
   attachment on the percentile bootstrap, and compiled examples. The former
   package reference is folded into the package pages. Chinese and Japanese

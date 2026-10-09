@@ -29,7 +29,7 @@ Output:
 ```text
 report written: /path/to/mare_mark/report.html
 events: 62
-elapsed: 11.138167ms
+elapsed: 11.138ms
 Comparisons
 Decision threshold ±2 % and outlier policy tukey_fence (applied to the paired deltas) from the recorded protocol; run seed 42 from the record. Each row pairs the confirmatory observations of one block, needs at least 3 usable blocks, and reports a 95 % percentile bootstrap interval of the median paired delta with 10000 resamples (report defaults), seeded from the run seed, case, scale, baseline and candidate; with few blocks its actual coverage can be well below the nominal level.
 case        scale  baseline  candidate  baseline µs/op  candidate µs/op  delta      95 % interval           decision    blocks used / incomplete / outliers  seed                  reason
