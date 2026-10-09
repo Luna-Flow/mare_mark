@@ -126,8 +126,12 @@ test "replay without an artifact is a usage error, also with --dry-run" {
 ///|
 #cfg(target="native")
 test "report elapsed time converts microseconds to milliseconds" {
-  assert_eq(elapsed_text(1177.958), "1.177958ms")
-  assert_eq(elapsed_text(2500.0), "2.5ms")
+  assert_eq(elapsed_text(1177.958), "1.178ms")
+  assert_eq(elapsed_text(2500.0), "2.500ms")
+  assert_eq(elapsed_text(11126.833000000001), "11.127ms")
+  assert_eq(elapsed_text(0.0), "0.000ms")
+  assert_eq(elapsed_text(7.4), "0.007ms")
+  assert_eq(elapsed_text(1333542.0), "1333.542ms")
 }
 
 ///|

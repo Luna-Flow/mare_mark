@@ -82,6 +82,10 @@ All notable changes to mare_mark are documented in this file.
 
 ### Fixed
 
+- `mare-mark report` prints its elapsed time with three decimals of a
+  millisecond (`elapsed: 11.127ms`), the resolution of the microsecond
+  clock, instead of the raw `Double` text with floating-point noise
+  (`11.126833000000001ms`) (#25).
 - `stats.compare_paired` and `experiment.comparator_label` no longer report an
   exact tie as `Faster` / `"A"` at a zero threshold; a tie is `Equivalent` /
   `"Unknown"` for every threshold. A threshold that is `NaN`, infinite or
