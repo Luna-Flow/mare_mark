@@ -17,7 +17,7 @@ policy derived from results. Every example is a complete test.
 ## Quick start
 
 ```sh
-moon add Luna-Flow/mare_mark@0.3.0
+moon add Luna-Flow/mare_mark@0.4.0
 ```
 
 ```moonbit nocheck
