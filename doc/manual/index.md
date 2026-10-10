@@ -29,7 +29,7 @@ The release centers on four ideas:
 ## Install
 
 ```bash
-moon add Luna-Flow/mare_mark@0.3.0
+moon add Luna-Flow/mare_mark@0.4.0
 ```
 
 Then import the packages you need in your `moon.pkg`, for example:

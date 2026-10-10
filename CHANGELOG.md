@@ -4,6 +4,8 @@ All notable changes to mare_mark are documented in this file.
 
 ## Unreleased
 
+## 0.4.0 - 2026-10-10
+
 - **Breaking:** `ReferenceOracle.sequence_length` now determines the expected
   and candidate validation sequence length per input and must be positive and
   equal the case length, otherwise `run` raises `RunConfigError` when it

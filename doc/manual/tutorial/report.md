@@ -20,7 +20,7 @@ complete tests; file writing is left to your program or to the
 ## Quick start
 
 ```sh
-moon add Luna-Flow/mare_mark@0.3.0
+moon add Luna-Flow/mare_mark@0.4.0
 ```
 
 ```moonbit nocheck

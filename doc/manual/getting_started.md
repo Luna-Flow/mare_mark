@@ -9,7 +9,7 @@ command-line tools on the fixtures shipped with the repository.
 You need MoonBit with `moonc` 0.10 or later.
 
 ```sh
-moon add Luna-Flow/mare_mark@0.3.0
+moon add Luna-Flow/mare_mark@0.4.0
 ```
 
 In the `moon.pkg` of the package that holds your benchmarks:

@@ -13,7 +13,7 @@ replayed, re-analysed and audited from its record.
 ## Installation
 
 ```sh
-moon add Luna-Flow/mare_mark@0.3.0
+moon add Luna-Flow/mare_mark@0.4.0
 ```
 
 Requires MoonBit with `moonc` 0.10 or later.
