@@ -3,7 +3,7 @@ pub struct WorkerSpec[Prepared, Output, Context] {
   command : String
   build_arguments : (Prepared, Context) -> Array[String]
   decode : (String) -> @model.OperationResult[Output, Context]
-  timeout_ms : Int
+  timeout_ms : Int32
   cwd : String?
 }
 
@@ -12,7 +12,7 @@ pub fn[Prepared, Output, Context] WorkerSpec::new(
   command : String,
   build_arguments : (Prepared, Context) -> Array[String],
   decode : (String) -> @model.OperationResult[Output, Context],
-  timeout_ms? : Int = 5000,
+  timeout_ms~ : Int32 = 5000,
   cwd? : String,
 ) -> WorkerSpec[Prepared, Output, Context] {
   { command, build_arguments, decode, timeout_ms, cwd, }
@@ -39,7 +39,7 @@ pub fn[Prepared, Output, Context] Implementation::in_process(
   version : String,
   initial_context : () -> Context,
   run : (Prepared, Context) -> @model.OperationResult[Output, Context],
-  synchronize? : () -> Unit = () => (),
+  synchronize~ : () -> Unit = () => (),
 ) -> Implementation[Prepared, Output, Context] {
   { id, version, initial_context, execution: InProcess(run), synchronize, }
 }
@@ -50,7 +50,7 @@ pub fn[Prepared, Output, Context] Implementation::worker(
   version : String,
   initial_context : () -> Context,
   worker : WorkerSpec[Prepared, Output, Context],
-  synchronize? : () -> Unit = () => (),
+  synchronize~ : () -> Unit = () => (),
 ) -> Implementation[Prepared, Output, Context] {
   { id, version, initial_context, execution: Subprocess(worker), synchronize, }
 }
@@ -80,8 +80,8 @@ pub struct DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, S
   oracle : @experiment.OracleSpec[Input, Expected, Output, Context]
   scales : Array[Scale]
   scale_text : (Scale) -> String
-  sequence_length : Int
-  describe : (Input, Int) -> @model.CaseDescriptor
+  sequence_length : Int32
+  describe : (Input, Int32) -> @model.CaseDescriptor
   input_text : (Input) -> String
   output_text : (Output) -> String
   context_text : (Context) -> String
@@ -98,8 +98,8 @@ fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] differen
   oracle : @experiment.OracleSpec[Input, Expected, Output, Context],
   scales : Array[Scale],
   scale_text : (Scale) -> String,
-  sequence_length : Int,
-  describe : (Input, Int) -> @model.CaseDescriptor,
+  sequence_length : Int32,
+  describe : (Input, Int32) -> @model.CaseDescriptor,
   input_text : (Input) -> String,
   output_text : (Output) -> String,
   context_text : (Context) -> String,
@@ -134,7 +134,10 @@ fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] differen
 }
 
 ///|
-pub fn balanced_order(implementation_count : Int, block_id : Int) -> Array[Int] {
+pub fn balanced_order(
+  implementation_count : Int32,
+  block_id : Int32,
+) -> Array[Int32] {
   Array::makei(implementation_count, index => {
     (index + block_id) % implementation_count
   })
@@ -223,7 +226,7 @@ async fn[Scale, Input, Prepared, Output, Context] validation_sequence(
   fixture : @fixture.Fixture[Scale, Input, Prepared],
   input : Input,
   implementation : Implementation[Prepared, Output, Context],
-  steps : Int,
+  steps : Int32,
 ) -> Array[@model.OperationResult[Output, Context]] {
   let prepared = (fixture.prepare)(
     (fixture.clone_input)(input),
@@ -243,7 +246,7 @@ async fn[Scale, Input, Prepared, Output, Context] validation_sequence(
 async fn[Prepared, Output, Context] run_sequence(
   implementation : Implementation[Prepared, Output, Context],
   prepared : Prepared,
-  steps : Int,
+  steps : Int32,
 ) -> Array[@model.OperationResult[Output, Context]] {
   let results = []
   let mut context = (implementation.initial_context)()
@@ -268,8 +271,8 @@ async fn[Scale, Input, Prepared, Output, Context] measurement_validation_sequenc
   fixture : @fixture.Fixture[Scale, Input, Prepared],
   input : Input,
   implementation : Implementation[Prepared, Output, Context],
-  steps : Int,
-  sample_id : Int,
+  steps : Int32,
+  sample_id : Int32,
   cached_prepared : Prepared?,
 ) -> (Array[@model.OperationResult[Output, Context]], Prepared?) {
   let long_lived = is_long_lived(fixture.setup_policy.frequency)
@@ -294,7 +297,7 @@ async fn[Scale, Input, Prepared, Output, Context] measurement_validation_sequenc
 fn[Input, Expected, Output, Context] reference_expected_sequence(
   oracle : @experiment.ReferenceOracle[Input, Expected, Output, Context],
   input : Input,
-  steps : Int,
+  steps : Int32,
 ) -> Array[@model.OperationResult[Expected, Context]] {
   let results = []
   let mut context = (oracle.initial_context)()
@@ -311,10 +314,10 @@ fn[Input, Expected, Output, Context] reference_expected_sequence(
 
 ///|
 fn[Input, Expected, Output, Context] validation_steps(
-  case_steps : Int,
+  case_steps : Int32,
   oracle : @experiment.OracleSpec[Input, Expected, Output, Context],
   input : Input,
-) -> Result[Int, BenchConfigError] {
+) -> Result[Int32, BenchConfigError] {
   match oracle {
     @experiment.OracleSpec::Reference(reference)
     | @experiment.OracleSpec::ReferenceAndRelational(reference, _) => {
@@ -357,12 +360,12 @@ fn[Value] status_from_outcome(
 fn[Input, Prepared, Expected, Output, Context] detailed_reference_validation(
   case_id : String,
   input : Input,
-  dataset_id : Int,
+  dataset_id : Int32,
   scale_text : String,
   fingerprint : String,
   implementation : Implementation[Prepared, Output, Context],
   oracle : @experiment.ReferenceOracle[Input, Expected, Output, Context],
-  step_id : Int,
+  step_id : Int32,
   expected : @model.OperationResult[Expected, Context],
   actual : @model.OperationResult[Output, Context],
   descriptor : @model.CaseDescriptor,
@@ -424,7 +427,7 @@ async fn[Scale, Input, Prepared, Expected, Output, Context] minimize_failure(
   oracle : @experiment.ReferenceOracle[Input, Expected, Output, Context],
   shrinker : @experiment.Shrinker[Input],
   initial : Input,
-  failing_step : Int,
+  failing_step : Int32,
 ) -> (Input, Array[String]) {
   let mut current = initial
   let path = []
@@ -478,7 +481,7 @@ async fn[Scale, Input, Prepared, Output, Context] minimize_relational_failure(
   oracle : @experiment.RelationalOracle[Input, Output],
   shrinker : @experiment.Shrinker[Input],
   initial : Input,
-  failing_step : Int,
+  failing_step : Int32,
 ) -> (Input, Array[String]) {
   let mut current = initial
   let path = []
@@ -527,12 +530,12 @@ async fn[Scale, Input, Prepared, Output, Context] minimize_relational_failure(
 
 ///|
 priv struct ValidationTally {
-  mut total : Int
-  mut measurement : Int
-  mut passed : Int
-  mut failed : Int
-  mut unsupported : Int
-  mut expected_difference : Int
+  mut total : Int32
+  mut measurement : Int32
+  mut passed : Int32
+  mut failed : Int32
+  mut unsupported : Int32
+  mut expected_difference : Int32
 }
 
 ///|
@@ -585,8 +588,8 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] run_batch(
   input : Input,
   implementation : Implementation[Prepared, Output, Context],
   sink : OutputSink[Output, State, SinkValue],
-  iterations : Int,
-  sample_id : Int,
+  iterations : Int32,
+  sample_id : Int32,
   cached_prepared : Prepared?,
   bench : @bench.Bench,
 ) -> BatchResult[Prepared] {
@@ -716,7 +719,7 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] calibrate_ba
   protocol : @model.CalibrationProtocol,
   cached_prepared : Prepared?,
   bench : @bench.Bench,
-) -> (BatchResult[Prepared], Int, Int) {
+) -> (BatchResult[Prepared], Int32, Int32) {
   let maximum = protocol.max_batch_iterations.max(1)
   let mut iterations = protocol.min_batch_iterations.max(1).min(maximum)
   let mut retries = 0
@@ -757,10 +760,10 @@ async fn[Scale, Input, Prepared, Output, Context, State, SinkValue] calibrate_ba
 ///|
 fn measurement_order(
   policy : @model.OrderPolicy,
-  implementation_count : Int,
-  block_id : Int,
+  implementation_count : Int32,
+  block_id : Int32,
   run_seed : UInt64,
-) -> Array[Int] {
+) -> Array[Int32] {
   match policy {
     FixedOrder => Array::makei(implementation_count, index => index)
     BalancedBlocks(order_seed) => {
@@ -779,7 +782,7 @@ fn measurement_order(
 /// `FixedDatasetRepeatedMeasurements` uses one, `MultipleDatasetsSingleMeasurement`
 /// one per block and `HierarchicalDatasetsAndRepeats` one per
 /// `repeats_per_dataset` consecutive blocks.
-fn datasets_per_scale(protocol : @model.RunProtocol) -> Int {
+fn datasets_per_scale(protocol : @model.RunProtocol) -> Int32 {
   let blocks = protocol.exploratory_samples + protocol.confirmatory_samples
   (blocks / blocks_per_dataset(protocol).max(1)).max(1)
 }
@@ -787,7 +790,7 @@ fn datasets_per_scale(protocol : @model.RunProtocol) -> Int {
 ///|
 /// Number of consecutive blocks (exploratory first, then confirmatory) that
 /// measure the same dataset.
-fn blocks_per_dataset(protocol : @model.RunProtocol) -> Int {
+fn blocks_per_dataset(protocol : @model.RunProtocol) -> Int32 {
   match protocol.experiment_design {
     FixedDatasetRepeatedMeasurements =>
       protocol.exploratory_samples + protocol.confirmatory_samples
@@ -818,7 +821,7 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] em
   tally : ValidationTally,
   seed : UInt64,
   input : Input,
-  dataset_id : Int,
+  dataset_id : Int32,
   scale_text : String,
   fingerprint : String,
   implementation : Implementation[Prepared, Output, Context],
@@ -923,7 +926,7 @@ fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] sequence
   ],
   reference : @experiment.ReferenceOracle[Input, Expected, Output, Context],
   input : Input,
-  dataset_id : Int,
+  dataset_id : Int32,
   scale_text : String,
   fingerprint : String,
   implementation : Implementation[Prepared, Output, Context],
@@ -935,7 +938,7 @@ fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] sequence
   let actual_count = actual.length()
   let step_id = expected_count.min(actual_count)
   let descriptor = (case.describe)(input, step_id)
-  let ended = (count : Int) => "sequence ended after \{count} steps"
+  let ended = (count : Int32) => "sequence ended after \{count} steps"
   let (expected_value, expected_kind, expected_flags) = if step_id <
     expected_count {
     let outcome = expected[step_id].outcome
@@ -1012,12 +1015,12 @@ async fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] em
   tally : ValidationTally,
   seed : UInt64,
   input : Input,
-  dataset_id : Int,
+  dataset_id : Int32,
   scale_text : String,
   fingerprint : String,
-  left_index : Int,
+  left_index : Int32,
   left : Array[@model.OperationResult[Output, Context]],
-  right_index : Int,
+  right_index : Int32,
   right : Array[@model.OperationResult[Output, Context]],
   measurement : @model.MeasurementKey?,
 ) -> Unit {

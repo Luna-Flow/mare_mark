@@ -107,7 +107,7 @@ fn decode_int(
   fields : Map[String, Json],
   path : String,
   key : String,
-) -> Int raise ProtocolDecodeError {
+) -> Int32 raise ProtocolDecodeError {
   guard decode_field(fields, path, key) is Number(value, ..) &&
     value >= -2147483648.0 &&
     value <= 2147483647.0 &&

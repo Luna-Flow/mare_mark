@@ -3,11 +3,11 @@ fn observation_line(
   case_id : String,
   implementation : String,
   scale : String,
-  block : Int,
+  block : Int32,
   elapsed_us : Double,
-  dataset? : Int = 0,
-  phase? : String = "confirmatory",
-  valid? : Bool = true,
+  dataset~ : Int32 = 0,
+  phase~ : String = "confirmatory",
+  valid~ : Bool = true,
 ) -> String {
   Json::object({
     "type": Json::string("observation"),
@@ -137,7 +137,7 @@ test "paired blocks keep ascending block order and count incomplete blocks" {
   let group = (
     implementation : String,
     times : Array[Double],
-    blocks : Array[Int?],
+    blocks : Array[Int32?],
   ) => {
     scale: "1",
     scale_source: Recorded,

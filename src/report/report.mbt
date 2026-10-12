@@ -23,7 +23,7 @@ fn escape_xml(value : String) -> String {
 }
 
 ///|
-fn string_index(values : Array[String], value : String) -> Int {
+fn string_index(values : Array[String], value : String) -> Int32 {
   for index = 0; index < values.length(); index = index + 1 {
     if values[index] == value {
       return index
@@ -77,7 +77,7 @@ fn y_bounds(plot : @ir.Plot) -> (Double, Double) {
 }
 
 ///|
-fn x_position(index : Int, count : Int) -> Double {
+fn x_position(index : Int32, count : Int32) -> Double {
   if count <= 1 {
     478.0
   } else {
@@ -195,7 +195,7 @@ fn y_transform(plot : @ir.Plot, value : Double) -> Double {
 ///|
 /// `multiplier × 10^exponent`, correctly rounded, or `0.0` when it is not
 /// representable.
-fn decimal_value(multiplier : Int, exponent : Int) -> Double {
+fn decimal_value(multiplier : Int32, exponent : Int32) -> Double {
   let text = multiplier.to_string() + "e" + exponent.to_string()
   let value = try @string.parse_double(text) catch {
     _ => return 0.0
@@ -312,7 +312,7 @@ fn format_number(value : Double) -> String {
 }
 
 ///|
-fn series_color(index : Int) -> String {
+fn series_color(index : Int32) -> String {
   let colors = [
     "#2563eb", "#dc2626", "#059669", "#7c3aed", "#d97706", "#0891b2", "#db2777",
     "#4f46e5",
@@ -743,7 +743,7 @@ fn json_string(object : Map[String, Json], key : String) -> String {
 }
 
 ///|
-fn json_int(object : Map[String, Json], key : String) -> Int {
+fn json_int(object : Map[String, Json], key : String) -> Int32 {
   match object.get(key) {
     Some(Number(value, ..)) => value.to_int()
     _ => 0
@@ -789,13 +789,13 @@ fn add_capability(
 priv struct ReportObservation {
   case_id : String
   implementation : String
-  dataset_id : Int
+  dataset_id : Int32
   /// The `phase` field, or `""` for records written before it existed.
   phase : String
   /// The `scale` field, or `None` for records written before it existed.
   scale : String?
   /// The `block_id` field, or `None` for records written without it.
-  block_id : Int?
+  block_id : Int32?
   elapsed_us : Double
 }
 
@@ -803,7 +803,7 @@ priv struct ReportObservation {
 priv struct FailedBenchmarkKey {
   case_id : String
   implementation : String
-  dataset_id : Int
+  dataset_id : Int32
 }
 
 ///|
@@ -837,7 +837,7 @@ priv struct TimingGroup {
   /// Confirmatory per-iteration times (`elapsed_us`), in input order.
   elapsed_us : Array[Double]
   /// The block of each entry of `elapsed_us`, `None` where it is not recorded.
-  block_ids : Array[Int?]
+  block_ids : Array[Int32?]
 }
 
 ///|
@@ -849,7 +849,7 @@ priv struct CaseTimings {
   groups : Array[TimingGroup]
   /// Observations left out because their phase is not confirmatory, by phase,
   /// in order of first appearance.
-  excluded_by_phase : Map[String, Int]
+  excluded_by_phase : Map[String, Int32]
 }
 
 ///|
@@ -941,7 +941,7 @@ fn finite_number(text : String) -> Double? {
 }
 
 ///|
-fn excluded_note(excluded_by_phase : Map[String, Int]) -> String {
+fn excluded_note(excluded_by_phase : Map[String, Int32]) -> String {
   if excluded_by_phase.is_empty() {
     return ""
   }
@@ -1045,7 +1045,7 @@ fn scaling_plot(timings : CaseTimings) -> @ir.Plot {
 /// an id that names no observed implementation is an error.
 pub fn document_from_jsonl(
   source : String,
-  target? : String = "unknown",
+  target~ : String = "unknown",
   baseline? : String,
 ) -> Result[@ir.PlotDocument, String] {
   let observations : Array[ReportObservation] = []
@@ -1420,13 +1420,13 @@ pub fn html(document : @ir.PlotDocument) -> String {
 /// Bootstrap resamples per comparison. The stats design asks for at least
 /// 1000 at 95 %; 10000 puts the Monte Carlo error of each endpoint near 0.16
 /// percentage points of the 2.5 % tail mass and costs O(10000 n log n).
-const COMPARISON_RESAMPLES : Int = 10000
+const COMPARISON_RESAMPLES : Int32 = 10000
 
 ///|
 /// Fewest used blocks for which a comparison is decided. With one or two
 /// pairs the median is the mean of the pairs and the percentile interval is
 /// the range of the data, so neither says anything about the spread.
-const COMPARISON_MIN_BLOCKS : Int = 3
+const COMPARISON_MIN_BLOCKS : Int32 = 3
 
 ///|
 /// Confidence of the bootstrap interval, in percent.
@@ -1509,8 +1509,8 @@ fn comparison_seed(
 ///|
 /// The confirmatory times of `group` by block, in order of first appearance.
 /// Entries without a block id are left out.
-fn block_times(group : TimingGroup?) -> Map[Int, Array[Double]] {
-  let blocks : Map[Int, Array[Double]] = Map([])
+fn block_times(group : TimingGroup?) -> Map[Int32, Array[Double]] {
+  let blocks : Map[Int32, Array[Double]] = Map([])
   guard group is Some(group) else { return blocks }
   for index = 0; index < group.elapsed_us.length(); index = index + 1 {
     guard group.block_ids[index] is Some(block) else { continue }
@@ -1530,10 +1530,10 @@ fn block_times(group : TimingGroup?) -> Map[Int, Array[Double]] {
 fn paired_blocks(
   baseline : TimingGroup?,
   candidate : TimingGroup,
-) -> (Array[(Int, Double, Double)], Int) {
+) -> (Array[(Int32, Double, Double)], Int32) {
   let baseline_blocks = block_times(baseline)
   let candidate_blocks = block_times(Some(candidate))
-  let blocks : Array[Int] = []
+  let blocks : Array[Int32] = []
   for block, _ in baseline_blocks {
     blocks.push(block)
   }
@@ -1562,9 +1562,9 @@ fn paired_blocks(
 /// depends only on its delta, and membership in the filtered deltas
 /// identifies the surviving pairs exactly.
 fn filter_pairs(
-  pairs : Array[(Int, Double, Double)],
+  pairs : Array[(Int32, Double, Double)],
   policy : @model.OutlierPolicy,
-) -> Array[(Int, Double, Double)] {
+) -> Array[(Int32, Double, Double)] {
   if policy is ReportOnly {
     return pairs.copy()
   }
@@ -1605,7 +1605,7 @@ fn bootstrap_error_text(error : @stats.BootstrapError) -> String {
 }
 
 ///|
-fn plural(count : Int, singular : String, many : String) -> String {
+fn plural(count : Int32, singular : String, many : String) -> String {
   count.to_string() + " " + (if count == 1 { singular } else { many })
 }
 
@@ -1795,7 +1795,7 @@ fn case_comparisons(
 }
 
 ///|
-fn comparison_note(settings : ComparisonSettings, unpaired : Int) -> String {
+fn comparison_note(settings : ComparisonSettings, unpaired : Int32) -> String {
   let threshold = "threshold ±" +
     format_number(settings.practical_delta_pct) +
     " % and outlier policy " +

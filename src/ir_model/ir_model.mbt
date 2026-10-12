@@ -83,14 +83,14 @@ pub fn MismatchRow::new(
 pub struct CapabilityCell {
   implementation : String
   outcome_kind : String
-  count : Int
+  count : Int32
 }
 
 ///|
 pub fn CapabilityCell::new(
   implementation : String,
   outcome_kind : String,
-  count : Int,
+  count : Int32,
 ) -> CapabilityCell {
   { implementation, outcome_kind, count, }
 }
@@ -117,20 +117,20 @@ pub fn Counterexample::new(
 
 ///|
 pub struct CorpusSummary {
-  total : Int
-  passed : Int
-  failed : Int
-  unsupported : Int
-  expected_difference : Int
+  total : Int32
+  passed : Int32
+  failed : Int32
+  unsupported : Int32
+  expected_difference : Int32
 }
 
 ///|
 pub fn CorpusSummary::new(
-  total : Int,
-  passed : Int,
-  failed : Int,
-  unsupported : Int,
-  expected_difference : Int,
+  total : Int32,
+  passed : Int32,
+  failed : Int32,
+  unsupported : Int32,
+  expected_difference : Int32,
 ) -> CorpusSummary {
   { total, passed, failed, unsupported, expected_difference, }
 }
@@ -170,10 +170,10 @@ pub fn Plot::new(
   unit : String,
   interval_kind : String,
   points : Array[PlotPoint],
-  x_axis? : AxisScale = Categorical,
-  y_axis? : AxisScale = Linear,
-  x_label? : String = "",
-  note? : String = "",
+  x_axis~ : AxisScale = Categorical,
+  y_axis~ : AxisScale = Linear,
+  x_label~ : String = "",
+  note~ : String = "",
 ) -> Plot {
   { kind, title, unit, interval_kind, points, x_axis, y_axis, x_label, note, }
 }
@@ -193,8 +193,8 @@ pub fn PlotDocument::new(
   run_id : String,
   target : String,
   plots : Array[Plot],
-  differential? : DifferentialReport = DifferentialReport::empty(),
-  comparisons? : ComparisonReport = ComparisonReport::empty(),
+  differential~ : DifferentialReport = DifferentialReport::empty(),
+  comparisons~ : ComparisonReport = ComparisonReport::empty(),
 ) -> PlotDocument {
   {
     schema_version: @model.SchemaVersion::V2,
@@ -298,11 +298,11 @@ pub struct ComparisonRow {
   /// `None` when the bootstrap did not run.
   interval : DeltaInterval?
   /// Complete blocks that entered the comparison.
-  blocks_used : Int
+  blocks_used : Int32
   /// Blocks without exactly one observation of both implementations.
-  blocks_incomplete : Int
+  blocks_incomplete : Int32
   /// Complete blocks removed by the outlier policy.
-  blocks_outliers : Int
+  blocks_outliers : Int32
   /// Bootstrap seed of this row.
   seed : UInt64
 }
@@ -317,9 +317,9 @@ pub fn ComparisonRow::new(
   reason : String,
   estimate : PairedEstimate?,
   interval : DeltaInterval?,
-  blocks_used : Int,
-  blocks_incomplete : Int,
-  blocks_outliers : Int,
+  blocks_used : Int32,
+  blocks_incomplete : Int32,
+  blocks_outliers : Int32,
   seed : UInt64,
 ) -> ComparisonRow {
   {
@@ -346,9 +346,9 @@ pub struct ComparisonReport {
   /// `OutlierPolicy::text()` of the policy applied to the paired deltas.
   outlier_policy : String
   confidence_pct : Double
-  resamples : Int
+  resamples : Int32
   /// Fewest used blocks for which a decision is made.
-  min_blocks : Int
+  min_blocks : Int32
   run_seed : UInt64
   /// Whether `practical_delta_pct` and `outlier_policy` come from the record.
   protocol_recorded : Bool
@@ -364,8 +364,8 @@ pub fn ComparisonReport::new(
   practical_delta_pct : Double,
   outlier_policy : String,
   confidence_pct : Double,
-  resamples : Int,
-  min_blocks : Int,
+  resamples : Int32,
+  min_blocks : Int32,
   run_seed : UInt64,
   protocol_recorded : Bool,
   seed_recorded : Bool,

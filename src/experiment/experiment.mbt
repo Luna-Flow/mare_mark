@@ -2,14 +2,14 @@
 pub struct ReferenceOracle[Input, Expected, Output, Context] {
   id : String
   initial_context : () -> Context
-  sequence_length : (Input) -> Int
-  compute_expected : (Input, Int, Context) -> @model.OperationResult[
+  sequence_length : (Input) -> Int32
+  compute_expected : (Input, Int32, Context) -> @model.OperationResult[
     Expected,
     Context,
   ]
   validate : (
     Input,
-    Int,
+    Int32,
     @model.ExecutionOutcome[Expected],
     @model.ExecutionOutcome[Output],
   ) -> @model.ValidationStatus
@@ -20,14 +20,14 @@ pub struct ReferenceOracle[Input, Expected, Output, Context] {
 pub fn[Input, Expected, Output, Context] ReferenceOracle::new(
   id : String,
   initial_context : () -> Context,
-  sequence_length : (Input) -> Int,
-  compute_expected : (Input, Int, Context) -> @model.OperationResult[
+  sequence_length : (Input) -> Int32,
+  compute_expected : (Input, Int32, Context) -> @model.OperationResult[
     Expected,
     Context,
   ],
   validate : (
     Input,
-    Int,
+    Int32,
     @model.ExecutionOutcome[Expected],
     @model.ExecutionOutcome[Output],
   ) -> @model.ValidationStatus,
@@ -77,7 +77,7 @@ pub struct RelationalOracle[Input, Output] {
   id : String
   validate_pair : (
     Input,
-    Int,
+    Int32,
     String,
     @model.ExecutionOutcome[Output],
     String,
@@ -90,7 +90,7 @@ pub fn[Input, Output] RelationalOracle::new(
   id : String,
   validate_pair : (
     Input,
-    Int,
+    Int32,
     String,
     @model.ExecutionOutcome[Output],
     String,
@@ -114,7 +114,7 @@ pub(all) enum OracleSpec[Input, Expected, Output, Context] {
 pub fn[Input, Expected, Output, Context] validate_reference(
   oracle : ReferenceOracle[Input, Expected, Output, Context],
   input : Input,
-  step_id : Int,
+  step_id : Int32,
   expected : @model.ExecutionOutcome[Expected],
   actual : @model.ExecutionOutcome[Output],
   implementation_id : String,
@@ -132,14 +132,14 @@ pub fn[Input, Expected, Output, Context] validate_reference(
 pub struct Shrinker[Input] {
   candidates : (Input) -> Array[Input]
   text : (Input) -> String
-  max_steps : Int
+  max_steps : Int32
 }
 
 ///|
 pub fn[Input] Shrinker::new(
   candidates : (Input) -> Array[Input],
   text : (Input) -> String,
-  max_steps? : Int = 128,
+  max_steps~ : Int32 = 128,
 ) -> Shrinker[Input] {
   { candidates, text, max_steps, }
 }
@@ -177,14 +177,14 @@ pub fn[Input] shrink(
 ///|
 pub struct ScaleDomain[Scale] {
   values : Array[Scale]
-  compare : (Scale, Scale) -> Int
+  compare : (Scale, Scale) -> Int32
   text : (Scale) -> String
 }
 
 ///|
 pub fn[Scale] ScaleDomain::new(
   values : Array[Scale],
-  compare : (Scale, Scale) -> Int,
+  compare : (Scale, Scale) -> Int32,
   text : (Scale) -> String,
 ) -> ScaleDomain[Scale] {
   { values, compare, text, }
@@ -193,7 +193,7 @@ pub fn[Scale] ScaleDomain::new(
 ///|
 /// Positions of `domain.values` in ascending `domain.compare` order. The sort
 /// is stable, so equal scales keep their input order.
-fn[Scale] ascending_positions(domain : ScaleDomain[Scale]) -> Array[Int] {
+fn[Scale] ascending_positions(domain : ScaleDomain[Scale]) -> Array[Int32] {
   let order = Array::makei(domain.values.length(), index => index)
   for index = 1; index < order.length(); index = index + 1 {
     let current = order[index]

@@ -5,7 +5,7 @@ pub const UNKNOWN : String = "unknown"
 ///|
 /// `concurrency` value when it is not overridden. `concurrency` is the
 /// benchmark's own degree of parallelism, which the process cannot detect.
-pub const UNKNOWN_CONCURRENCY : Int = 0
+pub const UNKNOWN_CONCURRENCY : Int32 = 0
 
 ///|
 /// `clock` value when it is not overridden. The runner times with the
@@ -85,7 +85,7 @@ pub async fn detect(
   runtime? : String,
   cpu? : String,
   gc? : String,
-  concurrency? : Int,
+  concurrency? : Int32,
   clock? : String,
   device? : String,
   frequency_policy? : String,
@@ -209,10 +209,14 @@ pub fn new_run_id(now_ms : UInt64) -> String {
 }
 
 ///|
-let run_sequence : Ref[Int] = Ref(0)
+let run_sequence : Ref[Int32] = Ref(0)
 
 ///|
-fn compose_run_id(now_ms : UInt64, entropy : Bytes?, sequence : Int) -> String {
+fn compose_run_id(
+  now_ms : UInt64,
+  entropy : Bytes?,
+  sequence : Int32,
+) -> String {
   let suffix = match entropy {
     Some(bytes) if bytes.length() > 0 => hex(bytes)
     _ => "seq" + sequence.to_string()
@@ -258,7 +262,7 @@ fn non_blank(text : String) -> String? {
 }
 
 ///|
-fn positive_int(text : String) -> Int? {
+fn positive_int(text : String) -> Int32? {
   let value = @string.parse_int(text.trim()) catch { _ => return None }
   if value > 0 {
     Some(value)
@@ -280,7 +284,7 @@ fn hex(bytes : Bytes) -> String {
 }
 
 ///|
-fn pad(value : Int, width : Int) -> String {
+fn pad(value : Int32, width : Int32) -> String {
   value.to_string().pad_start(width, '0')
 }
 
@@ -288,7 +292,9 @@ fn pad(value : Int, width : Int) -> String {
 /// Splits milliseconds since the Unix epoch into
 /// `(year, month, day, hour, minute, second, millisecond)` in UTC, using the
 /// proleptic Gregorian calendar.
-fn utc_fields(now_ms : UInt64) -> (Int, Int, Int, Int, Int, Int, Int) {
+fn utc_fields(
+  now_ms : UInt64,
+) -> (Int32, Int32, Int32, Int32, Int32, Int32, Int32) {
   let ms = now_ms.reinterpret_as_int64()
   let millisecond = (ms % 1000L).to_int()
   let seconds = ms / 1000L
@@ -361,7 +367,7 @@ fn or_env(detected : String?, names : Array[String]) -> String? {
 ///|
 /// CPU text from the model and the logical core count; `None` when neither
 /// is known.
-fn describe_cpu(model : String?, cores : Int?) -> String? {
+fn describe_cpu(model : String?, cores : Int32?) -> String? {
   match (model, cores) {
     (None, None) => None
     (Some(model), None) => Some(model)

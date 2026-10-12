@@ -171,7 +171,7 @@ async fn main {
           let events = source
             .split("\n")
             .filter(line => line.trim() != "")
-            .length()
+            .count()
           match
             @report.document_from_jsonl(
               source,

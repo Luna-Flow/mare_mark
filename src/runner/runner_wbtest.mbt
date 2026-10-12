@@ -3,11 +3,11 @@ async test "run validates sticky sequence and honors per-iteration setup" {
   let fingerprint_calls = Ref(0)
   let prepare_calls = Ref(0)
   let reset_calls = Ref(0)
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::new(
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::new(
     "integers",
     "1",
     context => context.dataset_key.scale,
-    (input : Int) => {
+    (input : Int32) => {
       fingerprint_calls.val += 1
       "fp:" + input.to_string()
     },
@@ -125,7 +125,7 @@ async test "run validates sticky sequence and honors per-iteration setup" {
 
 ///|
 async test "run_batch synchronizes around excluded operation timing" {
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::new(
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::new(
     "synchronization",
     "1",
     context => context.dataset_key.scale,
@@ -140,7 +140,7 @@ async test "run_batch synchronizes around excluded operation timing" {
     ),
   )
   let synchronizations = Ref(0)
-  let implementation : Implementation[Int, Int, Int] = Implementation::in_process(
+  let implementation : Implementation[Int32, Int32, Int32] = Implementation::in_process(
     "candidate",
     "1",
     () => 0,
@@ -164,7 +164,7 @@ async test "run_batch synchronizes around excluded operation timing" {
 ///|
 async test "excluded batch timing stops before reset" {
   let events : Array[String] = []
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::new(
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::new(
     "excluded-reset",
     "1",
     context => context.dataset_key.scale,
@@ -178,7 +178,7 @@ async test "excluded batch timing stops before reset" {
       @model.WorkspaceScope::BatchWorkspace,
     ),
   )
-  let implementation : Implementation[Int, Int, Int] = Implementation::in_process(
+  let implementation : Implementation[Int32, Int32, Int32] = Implementation::in_process(
     "candidate",
     "1",
     () => 0,
@@ -206,7 +206,7 @@ async test "excluded batch timing stops before reset" {
 ///|
 async test "included batch timing surrounds setup and reset" {
   let events : Array[String] = []
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::new(
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::new(
     "included-batch",
     "1",
     context => context.dataset_key.scale,
@@ -223,7 +223,7 @@ async test "included batch timing surrounds setup and reset" {
       @model.WorkspaceScope::BatchWorkspace,
     ),
   )
-  let implementation : Implementation[Int, Int, Int] = Implementation::in_process(
+  let implementation : Implementation[Int32, Int32, Int32] = Implementation::in_process(
     "candidate",
     "1",
     () => 0,
@@ -250,7 +250,7 @@ async test "included batch timing surrounds setup and reset" {
 ///|
 #cfg(target="native")
 async test "subprocess worker captures abort stderr and timeout" {
-  let aborting : Implementation[Int, Int, Int] = Implementation::worker(
+  let aborting : Implementation[Int32, Int32, Int32] = Implementation::worker(
     "aborting",
     "1",
     () => 0,
@@ -267,7 +267,7 @@ async test "subprocess worker captures abort stderr and timeout" {
       assert_true(stderr.contains("decimal abort"))
     _ => @test.fail("expected aborted worker")
   }
-  let hanging : Implementation[Int, Int, Int] = Implementation::worker(
+  let hanging : Implementation[Int32, Int32, Int32] = Implementation::worker(
     "hanging",
     "1",
     () => 0,
@@ -284,7 +284,7 @@ async test "subprocess worker captures abort stderr and timeout" {
 
 ///|
 async test "calibration scales batch iterations to configured bounds" {
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::new(
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::new(
     "calibration",
     "1",
     context => context.dataset_key.scale,
@@ -298,7 +298,7 @@ async test "calibration scales batch iterations to configured bounds" {
       @model.WorkspaceScope::BatchWorkspace,
     ),
   )
-  let implementation : Implementation[Int, Int, Int] = Implementation::in_process(
+  let implementation : Implementation[Int32, Int32, Int32] = Implementation::in_process(
     "candidate",
     "1",
     () => 0,
@@ -379,7 +379,7 @@ test "bench spec combinators copy mutable input collections" {
 
 ///|
 test "compile aggregates benchmark configuration errors" {
-  let implementations : Array[Implementation[Int, Int, Unit]] = [
+  let implementations : Array[Implementation[Int32, Int32, Unit]] = [
     Implementation::stateless("", "1", value => {
       @model.OperationResult::completed(value, ())
     }),
@@ -390,7 +390,7 @@ test "compile aggregates benchmark configuration errors" {
       @model.OperationResult::completed(value, ())
     }),
   ]
-  let scales : Array[Int] = []
+  let scales : Array[Int32] = []
   let result = single_step("", scales)
     .with_immutable_input(context => context.dataset_key.scale, value => {
       value.to_string()
@@ -410,7 +410,7 @@ test "compile aggregates benchmark configuration errors" {
 
 ///|
 test "incomplete description reports all missing components" {
-  let scales : Array[Int] = []
+  let scales : Array[Int32] = []
   guard single_step("", scales).compile() is Err(errors) else {
     @test.fail("expected missing component errors")
   }
@@ -454,7 +454,7 @@ test "protocol validation aggregates invalid boundaries" {
 
 ///|
 async test "run emits a minimized replayable validation failure" {
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::immutable(
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::immutable(
     "shrinking-integers",
     "1",
     context => context.dataset_key.scale,
@@ -569,13 +569,13 @@ fn minimal_protocol() -> ValidatedProtocol {
 
 ///|
 async test "relational validation records mismatches and replay evidence" {
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::immutable(
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::immutable(
     "relational",
     "1",
     context => context.dataset_key.scale,
     value => value.to_string(),
   )
-  let implementations : Array[Implementation[Int, Int, Unit]] = [
+  let implementations : Array[Implementation[Int32, Int32, Unit]] = [
     Implementation::stateless("reference", "1", value => {
       @model.OperationResult::completed(value, ())
     }),
@@ -604,7 +604,7 @@ async test "relational validation records mismatches and replay evidence" {
       _ => @model.ValidationStatus::Invalid("outcome mismatch")
     }
   })
-  let spec : BenchSpec[Int, Int, Int, Unit, Int, Unit, Int?, Int?] = BenchSpec::advanced(
+  let spec : BenchSpec[Int32, Int32, Int32, Unit, Int32, Unit, Int32?, Int32?] = BenchSpec::advanced(
     "relational-case",
     fixture,
     implementations,
@@ -645,13 +645,13 @@ async test "relational validation records mismatches and replay evidence" {
 
 ///|
 async test "execution outcomes are counted without becoming validation failures" {
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::immutable(
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::immutable(
     "outcomes",
     "1",
     context => context.dataset_key.scale,
     value => value.to_string(),
   )
-  let unsupported : Implementation[Int, Int, Unit] = Implementation::stateless(
+  let unsupported : Implementation[Int32, Int32, Unit] = Implementation::stateless(
     "unsupported",
     "1",
     _ => {
@@ -661,7 +661,7 @@ async test "execution outcomes are counted without becoming validation failures"
       )
     },
   )
-  let expected_difference : Implementation[Int, Int, Unit] = Implementation::stateless(
+  let expected_difference : Implementation[Int32, Int32, Unit] = Implementation::stateless(
     "expected",
     "1",
     _ => {
@@ -766,7 +766,16 @@ test "protocol validation rejects non-finite durations and thresholds" {
 }
 
 ///|
-fn identity_spec() -> BenchSpec[Int, Int, Int, Int, Int, Unit, Int?, Int?] {
+fn identity_spec() -> BenchSpec[
+  Int32,
+  Int32,
+  Int32,
+  Int32,
+  Int32,
+  Unit,
+  Int32?,
+  Int32?,
+] {
   BenchSpec::advanced(
     "identity-case",
     @fixture.Fixture::immutable(
@@ -807,7 +816,7 @@ async fn identity_run(
   seed : UInt64,
   provenance_run_id : String,
   timestamp : String,
-  sink? : @event.ObservationSink = @event.InMemorySink::new().as_sink(),
+  sink~ : @event.ObservationSink = @event.InMemorySink::new().as_sink(),
 ) -> @model.RunSummary {
   let environment = @model.EnvironmentSnapshot::new(
     @model.SemanticEnvironment::new(

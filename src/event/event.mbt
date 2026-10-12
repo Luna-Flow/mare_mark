@@ -13,7 +13,7 @@ pub fn ObservationSink::new(
   emit_validation : (@model.Validation) -> Unit,
   emit_calibration : (@model.CalibrationEvent) -> Unit,
   finish : (@model.RunSummary) -> String,
-  emit_failure? : (@model.ValidationFailure) -> Unit = _ => (),
+  emit_failure~ : (@model.ValidationFailure) -> Unit = _ => (),
 ) -> ObservationSink {
   { emit_observation, emit_validation, emit_failure, emit_calibration, finish, }
 }

@@ -3,7 +3,7 @@ async fn[Prepared, Output, Context] collect_worker_output(
   worker : WorkerSpec[Prepared, Output, Context],
   prepared : Prepared,
   context : Context,
-) -> (Int, String, String) {
+) -> (Int32, String, String) {
   let cwd = worker.cwd.map(path => path[:])
   @async.with_task_group(group => {
     let (stdout_reader, stdout_writer) = @process.read_from_process()

@@ -18,7 +18,7 @@ pub(all) enum AllocationMode {
 pub(all) enum TimingScope {
   ComputeOnly
   EndToEnd
-  Amortized(Int)
+  Amortized(Int32)
   SteadyState
 }
 
@@ -57,11 +57,11 @@ pub fn compute_only() -> TimingScope {
 
 ///|
 pub struct GemmScale {
-  m : Int
-  n : Int
-  k : Int
-  batch : Int
-  reuse_count : Int
+  m : Int32
+  n : Int32
+  k : Int32
+  batch : Int32
+  reuse_count : Int32
   layout_a : Layout
   layout_b : Layout
   layout_c : Layout
@@ -69,11 +69,11 @@ pub struct GemmScale {
 
 ///|
 pub fn GemmScale::new(
-  m : Int,
-  n : Int,
-  k : Int,
-  batch : Int,
-  reuse_count : Int,
+  m : Int32,
+  n : Int32,
+  k : Int32,
+  batch : Int32,
+  reuse_count : Int32,
   layout_a : Layout,
   layout_b : Layout,
   layout_c : Layout,
@@ -83,11 +83,11 @@ pub fn GemmScale::new(
 
 ///|
 pub struct GemmCandidate {
-  mc : Int
-  nc : Int
-  kc : Int
-  mr : Int
-  nr : Int
+  mc : Int32
+  nc : Int32
+  kc : Int32
+  mr : Int32
+  nr : Int32
   packing : Packing
   loop_order : String
   microkernel_id : String
@@ -97,11 +97,11 @@ pub struct GemmCandidate {
 
 ///|
 pub fn GemmCandidate::new(
-  mc : Int,
-  nc : Int,
-  kc : Int,
-  mr : Int,
-  nr : Int,
+  mc : Int32,
+  nc : Int32,
+  kc : Int32,
+  mr : Int32,
+  nr : Int32,
   packing : Packing,
   loop_order : String,
   microkernel_id : String,
@@ -261,8 +261,8 @@ pub struct GemmTuningConfig {
   shapes : Array[GemmScale]
   candidates : Array[GemmCandidate]
   max_workspace_bytes : UInt64
-  exploration_samples : Int
-  confirmation_samples : Int
+  exploration_samples : Int32
+  confirmation_samples : Int32
 }
 
 /// Metadata attached to tuning runs so results are not silently reused across
@@ -277,7 +277,7 @@ pub struct GemmEnvironment {
   runtime : String
   cpu : String
   gc : String
-  concurrency : Int
+  concurrency : Int32
   clock : String
 }
 
@@ -290,7 +290,7 @@ pub fn GemmEnvironment::new(
   runtime : String,
   cpu : String,
   gc : String,
-  concurrency : Int,
+  concurrency : Int32,
   clock : String,
 ) -> GemmEnvironment {
   {
@@ -364,8 +364,8 @@ pub fn GemmTuningConfig::new(
   shapes : Array[GemmScale],
   candidates : Array[GemmCandidate],
   max_workspace_bytes : UInt64,
-  exploration_samples : Int,
-  confirmation_samples : Int,
+  exploration_samples : Int32,
+  confirmation_samples : Int32,
 ) -> GemmTuningConfig {
   {
     schema_version: TuningSchemaVersion::V1,
@@ -416,7 +416,7 @@ pub fn GemmProblem::from_inputs(
 }
 
 ///|
-pub fn matrix_length(scale : GemmScale, operand : String) -> Int {
+pub fn matrix_length(scale : GemmScale, operand : String) -> Int32 {
   if scale.m <= 0 || scale.n <= 0 || scale.k <= 0 || scale.batch <= 0 {
     0
   } else if operand == "a" {
@@ -433,12 +433,12 @@ pub fn matrix_length(scale : GemmScale, operand : String) -> Int {
 ///|
 fn at_batch(
   data : Array[Double],
-  rows : Int,
-  cols : Int,
+  rows : Int32,
+  cols : Int32,
   layout : Layout,
-  batch : Int,
-  row : Int,
-  col : Int,
+  batch : Int32,
+  row : Int32,
+  col : Int32,
 ) -> Double {
   let offset = batch * rows * cols
   if layout is RowMajor {
@@ -451,12 +451,12 @@ fn at_batch(
 ///|
 fn put_batch(
   data : Array[Double],
-  rows : Int,
-  cols : Int,
+  rows : Int32,
+  cols : Int32,
   layout : Layout,
-  batch : Int,
-  row : Int,
-  col : Int,
+  batch : Int32,
+  row : Int32,
+  col : Int32,
   value : Double,
 ) -> Unit {
   let offset = batch * rows * cols
@@ -584,14 +584,14 @@ pub fn gemm_blocked(
   }
   let c = Array::makei(scale.batch * scale.m * scale.n, _ => 0.0)
   for batch = 0; batch < scale.batch; batch = batch + 1 {
-    let read_a = (row : Int, inner : Int) => {
+    let read_a = (row : Int32, inner : Int32) => {
       match packed_a {
         Some(values) =>
           values[batch * scale.m * scale.k + row * scale.k + inner]
         None => at_batch(a, scale.m, scale.k, scale.layout_a, batch, row, inner)
       }
     }
-    let read_b = (inner : Int, col : Int) => {
+    let read_b = (inner : Int32, col : Int32) => {
       match packed_b {
         Some(values) =>
           values[batch * scale.k * scale.n + inner * scale.n + col]
@@ -678,7 +678,7 @@ pub fn execute_candidate(
 ///|
 pub struct GemmValidation {
   valid : Bool
-  mismatches : Int
+  mismatches : Int32
   max_abs_error : Double
 }
 
@@ -736,8 +736,8 @@ pub fn gemm_is_correct(
 ///|
 pub fn reproducible_matrix(
   seed : UInt64,
-  rows : Int,
-  cols : Int,
+  rows : Int32,
+  cols : Int32,
   layout : Layout,
 ) -> Array[Double] {
   if rows <= 0 || cols <= 0 {

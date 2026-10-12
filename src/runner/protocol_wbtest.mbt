@@ -2,10 +2,10 @@
 fn protocol_with(
   design : @model.ExperimentDesign,
   coverage : @model.ValidationCoverage,
-  exploratory : Int,
-  confirmatory : Int,
-  warmup? : Int = 1,
-  repeats? : Int = 1,
+  exploratory : Int32,
+  confirmatory : Int32,
+  warmup~ : Int32 = 1,
+  repeats~ : Int32 = 1,
 ) -> @model.RunProtocol {
   @model.RunProtocol::new(
     design,
@@ -34,9 +34,9 @@ fn protocol_with(
 fn traced_spec(
   trace : Array[String],
   frequency : @model.SetupFrequency,
-  scales : Array[Int],
-) -> BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] {
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::new(
+  scales : Array[Int32],
+) -> BenchSpec[Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32] {
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::new(
     "traced",
     "1",
     context => {
@@ -151,7 +151,7 @@ fn traced_sink(trace : Array[String]) -> @event.ObservationSink {
 async test "reference oracle sequence length controls both sequences" {
   let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
   let sequence_length_calls = Ref(0)
-  let reference : @experiment.ReferenceOracle[Int, Int, Int, Int] = @experiment.ReferenceOracle::new(
+  let reference : @experiment.ReferenceOracle[Int32, Int32, Int32, Int32] = @experiment.ReferenceOracle::new(
     "dynamic-length-reference",
     () => 0,
     _ => {
@@ -177,7 +177,7 @@ async test "reference oracle sequence length controls both sequences" {
     },
     value => value.to_string(),
   )
-  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+  let spec : BenchSpec[Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32] = {
     case: {
       ..spec.case,
       sequence_length: 2,
@@ -245,7 +245,7 @@ async test "reference oracle and actual sequence length mismatch fails validatio
       }
     },
   )
-  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+  let spec : BenchSpec[Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32] = {
     case: {
       ..spec.case,
       sequence_length: 3,
@@ -294,7 +294,7 @@ async test "reference oracle and actual sequence length mismatch fails validatio
 ///|
 async test "matching early termination still fails the configured sequence length" {
   let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
-  let reference : @experiment.ReferenceOracle[Int, Int, Int, Int] = @experiment.ReferenceOracle::new(
+  let reference : @experiment.ReferenceOracle[Int32, Int32, Int32, Int32] = @experiment.ReferenceOracle::new(
     "matching-early-stop-reference",
     () => 0,
     _ => 3,
@@ -315,7 +315,7 @@ async test "matching early termination still fails the configured sequence lengt
       )
     },
   )
-  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+  let spec : BenchSpec[Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32] = {
     case: {
       ..spec.case,
       sequence_length: 3,
@@ -367,10 +367,10 @@ async test "matching early termination still fails the configured sequence lengt
 /// `outcome` with no next context at step 0, and returns the emitted
 /// validations and failures.
 async fn early_stop_run(
-  outcome : @model.ExecutionOutcome[Int],
+  outcome : @model.ExecutionOutcome[Int32],
 ) -> (Array[@model.Validation], Array[@model.ValidationFailure]) {
   let spec = traced_spec([], @model.SetupFrequency::PerDataset, [1])
-  let reference : @experiment.ReferenceOracle[Int, Int, Int, Int] = @experiment.ReferenceOracle::new(
+  let reference : @experiment.ReferenceOracle[Int32, Int32, Int32, Int32] = @experiment.ReferenceOracle::new(
     "early-stop-reference",
     () => 0,
     _ => 3,
@@ -384,7 +384,7 @@ async fn early_stop_run(
     _,
     _,
   ) => @model.OperationResult::new(outcome, None))
-  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+  let spec : BenchSpec[Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32] = {
     case: {
       ..spec.case,
       sequence_length: 3,
@@ -495,7 +495,7 @@ async test "non-positive reference sequence length is a run configuration error"
     (_, _, _, _) => @model.ValidationStatus::Valid,
     value => value.to_string(),
   )
-  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+  let spec : BenchSpec[Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32] = {
     case: { ..spec.case, oracle: @experiment.OracleSpec::Reference(reference), },
   }
   let trace = []
@@ -525,7 +525,12 @@ async test "non-positive reference sequence length is a run configuration error"
     _ => None
   }
   assert_true(raised is Some([InvalidOracleSequenceLength(0)]))
-  let negative_reference : @experiment.ReferenceOracle[Int, Int, Int, Int] = @experiment.ReferenceOracle::new(
+  let negative_reference : @experiment.ReferenceOracle[
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+  ] = @experiment.ReferenceOracle::new(
     "negative-length-reference",
     () => 0,
     _ => -1,
@@ -559,7 +564,7 @@ async test "case and oracle sequence length mismatch is rejected before operatio
     (_, _, _, _) => @model.ValidationStatus::Valid,
     value => value.to_string(),
   )
-  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+  let spec : BenchSpec[Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32] = {
     case: {
       ..spec.case,
       sequence_length: 2,
@@ -610,7 +615,7 @@ async test "an oracle length error on a later dataset stops the run at that data
     (_, _, _, _) => @model.ValidationStatus::Valid,
     value => value.to_string(),
   )
-  let spec : BenchSpec[Int, Int, Int, Int, Int, Int, Int, Int] = {
+  let spec : BenchSpec[Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32] = {
     case: {
       ..spec.case,
       sequence_length: 2,
@@ -657,7 +662,7 @@ async test "an oracle length error on a later dataset stops the run at that data
 ///|
 async fn traced_run(
   frequency : @model.SetupFrequency,
-  scales : Array[Int],
+  scales : Array[Int32],
   protocol : @model.RunProtocol,
 ) -> (Array[String], @model.RunSummary) {
   let trace = []
@@ -1097,13 +1102,13 @@ async test "every-measurement coverage prepares short-lived setup per batch" {
 
 ///|
 async test "every-measurement relational validation targets the measured implementation" {
-  let fixture : @fixture.Fixture[Int, Int, Int] = @fixture.Fixture::immutable(
+  let fixture : @fixture.Fixture[Int32, Int32, Int32] = @fixture.Fixture::immutable(
     "relational-measurement",
     "1",
     context => context.dataset_key.scale,
     value => value.to_string(),
   )
-  let implementations : Array[Implementation[Int, Int, Unit]] = [
+  let implementations : Array[Implementation[Int32, Int32, Unit]] = [
     Implementation::stateless("reference", "1", value => {
       @model.OperationResult::completed(value, ())
     }),
@@ -1125,7 +1130,7 @@ async test "every-measurement relational validation targets the measured impleme
       @model.ValidationStatus::Invalid("pair mismatch")
     }
   })
-  let spec : BenchSpec[Int, Int, Int, Unit, Int, Unit, Int?, Int?] = BenchSpec::advanced(
+  let spec : BenchSpec[Int32, Int32, Int32, Unit, Int32, Unit, Int32?, Int32?] = BenchSpec::advanced(
     "relational-measurement",
     fixture,
     implementations,

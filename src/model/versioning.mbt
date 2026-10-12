@@ -17,7 +17,7 @@ pub(all) enum ProtocolVersion {
 }
 
 ///|
-pub fn ProtocolVersion::version(self : ProtocolVersion) -> Int {
+pub fn ProtocolVersion::version(self : ProtocolVersion) -> Int32 {
   match self {
     V1 => 1
     V2 => 2
@@ -50,7 +50,7 @@ pub(all) enum ArtifactVersion {
 }
 
 ///|
-pub fn ArtifactVersion::version(self : ArtifactVersion) -> Int {
+pub fn ArtifactVersion::version(self : ArtifactVersion) -> Int32 {
   match self {
     V1 => 1
   }
@@ -82,7 +82,7 @@ pub(all) enum SchemaVersion {
 }
 
 ///|
-pub fn SchemaVersion::version(self : SchemaVersion) -> Int {
+pub fn SchemaVersion::version(self : SchemaVersion) -> Int32 {
   match self {
     V1 => 1
     V2 => 2

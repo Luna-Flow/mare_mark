@@ -149,7 +149,7 @@ pub fn report_html(document : @ir.PlotDocument) -> String {
 pub fn render_jsonl_report(
   input_path : String,
   output_path : String,
-  target? : String = "unknown",
+  target~ : String = "unknown",
   baseline? : String,
 ) -> Result[String, String] {
   let source = try @fs.read_file_to_string(input_path) catch {

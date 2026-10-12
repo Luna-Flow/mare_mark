@@ -1,6 +1,6 @@
 ///|
 /// Upper bound on each probing subprocess.
-const COMMAND_TIMEOUT_MS : Int = 5000
+const COMMAND_TIMEOUT_MS : Int32 = 5000
 
 ///|
 fn target_runtime() -> String? {
@@ -45,7 +45,7 @@ async fn probe_cpu() -> String? {
 }
 
 ///|
-async fn probe_logical_cores() -> Int? {
+async fn probe_logical_cores() -> Int32? {
   command_output("getconf", ["_NPROCESSORS_ONLN"]).bind(positive_int)
 }
 

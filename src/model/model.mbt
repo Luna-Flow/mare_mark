@@ -1,29 +1,29 @@
 ///|
 pub struct DatasetKey[Scale] {
   scale : Scale
-  dataset_id : Int
+  dataset_id : Int32
 }
 
 ///|
 pub fn[Scale] DatasetKey::new(
   scale : Scale,
-  dataset_id : Int,
+  dataset_id : Int32,
 ) -> DatasetKey[Scale] {
   { scale, dataset_id, }
 }
 
 ///|
 pub struct MeasurementKey {
-  dataset_id : Int
-  repetition_id : Int
-  block_id : Int
+  dataset_id : Int32
+  repetition_id : Int32
+  block_id : Int32
 }
 
 ///|
 pub fn MeasurementKey::new(
-  dataset_id : Int,
-  repetition_id : Int,
-  block_id : Int,
+  dataset_id : Int32,
+  repetition_id : Int32,
+  block_id : Int32,
 ) -> MeasurementKey {
   { dataset_id, repetition_id, block_id, }
 }
@@ -129,8 +129,8 @@ pub fn BatchPolicy::text(self : BatchPolicy) -> String {
 ///|
 pub struct CalibrationProtocol {
   target_batch_time_us : Double
-  min_batch_iterations : Int
-  max_batch_iterations : Int
+  min_batch_iterations : Int32
+  max_batch_iterations : Int32
   max_sample_time_us : Double
   batch_policy : BatchPolicy
 }
@@ -138,8 +138,8 @@ pub struct CalibrationProtocol {
 ///|
 pub fn CalibrationProtocol::new(
   target_batch_time_us : Double,
-  min_batch_iterations : Int,
-  max_batch_iterations : Int,
+  min_batch_iterations : Int32,
+  max_batch_iterations : Int32,
   max_sample_time_us : Double,
   batch_policy : BatchPolicy,
 ) -> CalibrationProtocol {
@@ -213,31 +213,31 @@ pub fn ValidationCoverage::text(self : ValidationCoverage) -> String {
 ///|
 pub struct RunProtocol {
   experiment_design : ExperimentDesign
-  warmup_iterations : Int
+  warmup_iterations : Int32
   warmup_time_us : Double?
   calibration : CalibrationProtocol
   practical_delta_pct : Double
   order_policy : OrderPolicy
   outlier_policy : OutlierPolicy
   validation_coverage : ValidationCoverage
-  exploratory_samples : Int
-  confirmatory_samples : Int
-  repeats_per_dataset : Int
+  exploratory_samples : Int32
+  confirmatory_samples : Int32
+  repeats_per_dataset : Int32
 }
 
 ///|
 pub fn RunProtocol::new(
   experiment_design : ExperimentDesign,
-  warmup_iterations : Int,
+  warmup_iterations : Int32,
   warmup_time_us : Double?,
   calibration : CalibrationProtocol,
   practical_delta_pct : Double,
   order_policy : OrderPolicy,
   outlier_policy : OutlierPolicy,
   validation_coverage : ValidationCoverage,
-  exploratory_samples : Int,
-  confirmatory_samples : Int,
-  repeats_per_dataset? : Int = 1,
+  exploratory_samples : Int32,
+  confirmatory_samples : Int32,
+  repeats_per_dataset~ : Int32 = 1,
 ) -> RunProtocol {
   {
     experiment_design,
@@ -312,7 +312,7 @@ pub struct PerformanceEnvironment {
   runtime : String
   cpu : String
   gc : String
-  concurrency : Int
+  concurrency : Int32
   clock : String
   device : String
   frequency_policy : String
@@ -323,10 +323,10 @@ pub fn PerformanceEnvironment::new(
   runtime : String,
   cpu : String,
   gc : String,
-  concurrency : Int,
+  concurrency : Int32,
   clock : String,
-  device? : String = "host",
-  frequency_policy? : String = "uncontrolled",
+  device~ : String = "host",
+  frequency_policy~ : String = "uncontrolled",
 ) -> PerformanceEnvironment {
   { runtime, cpu, gc, concurrency, clock, device, frequency_policy, }
 }
@@ -384,8 +384,8 @@ pub(all) enum ExecutionOutcome[Value] {
   ParseFailure(String)
   RaisedFlags(Value, Array[String])
   Trapped(String, Array[String])
-  Aborted(Int, String)
-  Timeout(Int, String)
+  Aborted(Int32, String)
+  Timeout(Int32, String)
   ExpectedDifference(String)
 }
 
@@ -442,16 +442,16 @@ pub struct OperationResult[Value, Context] {
   next_context : Context?
   stdout : String
   stderr : String
-  exit_code : Int?
+  exit_code : Int32?
 }
 
 ///|
 pub fn[Value, Context] OperationResult::new(
   outcome : ExecutionOutcome[Value],
   next_context : Context?,
-  stdout? : String = "",
-  stderr? : String = "",
-  exit_code? : Int,
+  stdout~ : String = "",
+  stderr~ : String = "",
+  exit_code? : Int32,
 ) -> OperationResult[Value, Context] {
   { outcome, next_context, stdout, stderr, exit_code, }
 }
@@ -486,14 +486,14 @@ pub fn CaseDescriptor::new(
 pub struct ReplaySpec {
   command : String
   arguments : Array[String]
-  timeout_ms : Int
+  timeout_ms : Int32
 }
 
 ///|
 pub fn ReplaySpec::new(
   command : String,
   arguments : Array[String],
-  timeout_ms? : Int = 5000,
+  timeout_ms~ : Int32 = 5000,
 ) -> ReplaySpec {
   { command, arguments, timeout_ms, }
 }
@@ -501,8 +501,8 @@ pub fn ReplaySpec::new(
 ///|
 pub(all) struct ValidationEvidence {
   case_id : String
-  dataset_id : Int
-  step_id : Int
+  dataset_id : Int32
+  step_id : Int32
   operation : String
   operands : Array[String]
   context : String
@@ -515,7 +515,7 @@ pub(all) struct ValidationEvidence {
   actual_flags : Array[String]
   trap : String
   stderr : String
-  exit_code : Int?
+  exit_code : Int32?
   fingerprint : String
   implementation_version : String
   replay : ReplaySpec
@@ -605,12 +605,12 @@ pub struct Observation {
   case_id : String
   implementation_id : String
   implementation_version : String
-  dataset_id : Int
-  repetition_id : Int
-  block_id : Int
+  dataset_id : Int32
+  repetition_id : Int32
+  block_id : Int32
   phase : ObservationPhase
   raw_elapsed_us : Double
-  iterations : Int
+  iterations : Int32
   batch_sink : BatchSinkStatus
   setup_timing : SetupTiming
   valid : Bool
@@ -654,18 +654,18 @@ pub fn Observation::new(
   case_id : String,
   implementation_id : String,
   implementation_version : String,
-  dataset_id : Int,
-  repetition_id : Int,
-  block_id : Int,
+  dataset_id : Int32,
+  repetition_id : Int32,
+  block_id : Int32,
   phase : ObservationPhase,
   raw_elapsed_us : Double,
-  iterations : Int,
+  iterations : Int32,
   batch_sink : BatchSinkStatus,
   setup_timing : SetupTiming,
   valid : Bool,
   setup_frequency? : SetupFrequency,
   workspace_scope? : WorkspaceScope,
-  scale_text? : String = "",
+  scale_text~ : String = "",
 ) -> Observation {
   {
     case_id,
@@ -689,21 +689,21 @@ pub fn Observation::new(
 ///|
 pub struct CalibrationEvent {
   implementation_id : String
-  dataset_id : Int
-  batch_iterations : Int
+  dataset_id : Int32
+  batch_iterations : Int32
   elapsed_us : Double
   target_elapsed_us : Double
-  retries : Int
+  retries : Int32
 }
 
 ///|
 pub fn CalibrationEvent::new(
   implementation_id : String,
-  dataset_id : Int,
-  batch_iterations : Int,
+  dataset_id : Int32,
+  batch_iterations : Int32,
   elapsed_us : Double,
   target_elapsed_us : Double,
-  retries : Int,
+  retries : Int32,
 ) -> CalibrationEvent {
   {
     implementation_id,
@@ -725,16 +725,16 @@ pub fn CalibrationEvent::new(
 /// summaries built without them.
 pub struct RunSummary {
   run_id : String
-  observation_count : Int
-  validation_count : Int
-  calibration_count : Int
+  observation_count : Int32
+  validation_count : Int32
+  calibration_count : Int32
   complete : Bool
   artifact_location : String?
-  passed_count : Int
-  failed_count : Int
-  unsupported_count : Int
-  expected_difference_count : Int
-  measurement_validation_count : Int
+  passed_count : Int32
+  failed_count : Int32
+  unsupported_count : Int32
+  expected_difference_count : Int32
+  measurement_validation_count : Int32
   environment : EnvironmentSnapshot?
   protocol : RunProtocol?
   seed : UInt64?
@@ -743,16 +743,16 @@ pub struct RunSummary {
 ///|
 pub fn RunSummary::new(
   run_id : String,
-  observation_count : Int,
-  validation_count : Int,
-  calibration_count : Int,
+  observation_count : Int32,
+  validation_count : Int32,
+  calibration_count : Int32,
   complete : Bool,
   artifact_location : String?,
-  passed_count? : Int = 0,
-  failed_count? : Int = 0,
-  unsupported_count? : Int = 0,
-  expected_difference_count? : Int = 0,
-  measurement_validation_count? : Int = 0,
+  passed_count~ : Int32 = 0,
+  failed_count~ : Int32 = 0,
+  unsupported_count~ : Int32 = 0,
+  expected_difference_count~ : Int32 = 0,
+  measurement_validation_count~ : Int32 = 0,
   environment? : EnvironmentSnapshot,
   protocol? : RunProtocol,
   seed? : UInt64,
@@ -1027,7 +1027,7 @@ pub fn run_identity(
 pub fn artifact_identity(
   case_id : String,
   implementation_id : String,
-  dataset_id : Int,
+  dataset_id : Int32,
   protocol : RunProtocol,
 ) -> String {
   ArtifactVersion::V1.identifier() +

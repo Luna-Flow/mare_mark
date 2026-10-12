@@ -79,7 +79,7 @@ test "exhaustive scoring rejects non-finite measurements" {
 ///|
 test "seeded order separates ids that differ only at the end" {
   let ids = Array::makei(100, index => "candidate-" + index.to_string())
-  let decade : Map[String, Int] = Map([])
+  let decade : Map[String, Int32] = Map([])
   for index, id in ids {
     decade[id] = index / 10
   }
