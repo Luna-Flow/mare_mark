@@ -16,7 +16,7 @@ extern "js" fn js_node_version() -> String? =
 ///|
 /// Queries Node's `os` module (through `process.getBuiltinModule`) for one
 /// fact: 0 the OS type and release, 1 the hostname, 2 the first CPU model.
-extern "js" fn js_os_fact(fact : Int) -> String? =
+extern "js" fn js_os_fact(fact : Int32) -> String? =
   #| function(fact) {
   #|   try {
   #|     if (typeof process === "undefined" || typeof process.getBuiltinModule !== "function") {
@@ -42,7 +42,7 @@ extern "js" fn js_os_fact(fact : Int) -> String? =
 ///|
 /// Logical cores from Node's `os.availableParallelism` or
 /// `navigator.hardwareConcurrency`, or 0.
-extern "js" fn js_logical_cores() -> Int =
+extern "js" fn js_logical_cores() -> Int32 =
   #| function() {
   #|   try {
   #|     if (typeof process !== "undefined" && typeof process.getBuiltinModule === "function") {
@@ -74,7 +74,7 @@ fn probe_cpu() -> String? {
 }
 
 ///|
-fn probe_logical_cores() -> Int? {
+fn probe_logical_cores() -> Int32? {
   let count = js_logical_cores()
   if count > 0 {
     Some(count)

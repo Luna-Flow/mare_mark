@@ -23,15 +23,17 @@ test "execution outcomes preserve value, flags, and failure kinds" {
   assert_true(raised.flags() == ["inexact"])
   assert_true(raised.value_option() is Some(7))
   assert_eq(
-    (ExecutionOutcome::Trapped("overflow", ["overflow"]) : ExecutionOutcome[Int]).kind(),
+    (
+      ExecutionOutcome::Trapped("overflow", ["overflow"]) :
+      ExecutionOutcome[Int32]).kind(),
     "trapped",
   )
   assert_eq(
-    (ExecutionOutcome::Timeout(10, "slow") : ExecutionOutcome[Int]).kind(),
+    (ExecutionOutcome::Timeout(10, "slow") : ExecutionOutcome[Int32]).kind(),
     "timeout",
   )
   assert_eq(
-    (ExecutionOutcome::Aborted(2, "stderr") : ExecutionOutcome[Int]).kind(),
+    (ExecutionOutcome::Aborted(2, "stderr") : ExecutionOutcome[Int32]).kind(),
     "aborted",
   )
 }

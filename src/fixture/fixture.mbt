@@ -1,28 +1,28 @@
 ///|
 pub struct SampleContext {
-  sample_id : Int
+  sample_id : Int32
   implementation_id : String
-  repetition_id : Int
+  repetition_id : Int32
 }
 
 ///|
 pub fn SampleContext::new(
-  sample_id : Int,
+  sample_id : Int32,
   implementation_id : String,
-  repetition_id : Int,
+  repetition_id : Int32,
 ) -> SampleContext {
   { sample_id, implementation_id, repetition_id, }
 }
 
 ///|
 pub struct ResetContext {
-  sample_id : Int
+  sample_id : Int32
   implementation_id : String
 }
 
 ///|
 pub fn ResetContext::new(
-  sample_id : Int,
+  sample_id : Int32,
   implementation_id : String,
 ) -> ResetContext {
   { sample_id, implementation_id, }

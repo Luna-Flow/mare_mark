@@ -17,7 +17,7 @@ pub fn[Scale, Input] Generator::new(
 }
 
 ///|
-pub fn derive_seed(seed : UInt64, domain : String, index : Int) -> UInt64 {
+pub fn derive_seed(seed : UInt64, domain : String, index : Int32) -> UInt64 {
   let mut mixed = seed ^ 0xCBF29CE484222325
   for character in domain {
     mixed = (mixed ^ character.to_int().to_uint64()) * 0x100000001B3
@@ -31,9 +31,9 @@ pub fn derive_seed(seed : UInt64, domain : String, index : Int) -> UInt64 {
 ///|
 pub fn measurement_seed(
   seed : UInt64,
-  dataset_id : Int,
-  repetition_id : Int,
-  block_id : Int,
+  dataset_id : Int32,
+  repetition_id : Int32,
+  block_id : Int32,
 ) -> UInt64 {
   derive_seed(
     derive_seed(

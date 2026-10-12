@@ -374,7 +374,7 @@ test "confirmatory timings group by case, scale and implementation" {
   let observation = (
     case_id : String,
     implementation : String,
-    dataset_id : Int,
+    dataset_id : Int32,
     phase : String,
     scale : String?,
     elapsed_us : Double,

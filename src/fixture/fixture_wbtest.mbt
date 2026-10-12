@@ -1,6 +1,6 @@
 ///|
 test "immutable fixtures preserve materialization and setup policy" {
-  let fixture : Fixture[Int, Int, Int] = Fixture::immutable(
+  let fixture : Fixture[Int32, Int32, Int32] = Fixture::immutable(
     "integers",
     "1",
     context => context.dataset_key.scale + context.dataset_key.dataset_id,

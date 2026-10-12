@@ -34,8 +34,8 @@ pub fn[Prepared, Output, Context] BuiltCandidate::new(
 
 ///|
 pub(all) enum HoldoutPlan[Scale] {
-  MeasurementHoldout(Int)
-  DatasetHoldout(Array[Int])
+  MeasurementHoldout(Int32)
+  DatasetHoldout(Array[Int32])
   ShapeHoldout(Array[Scale])
   WorkloadHoldout(String)
   Combined(Array[HoldoutPlan[Scale]])
@@ -43,23 +43,23 @@ pub(all) enum HoldoutPlan[Scale] {
 
 ///|
 pub struct TuningBudget[Scale] {
-  max_candidates : Int
-  max_measurements : Int
+  max_candidates : Int32
+  max_measurements : Int32
   max_elapsed_us : Double?
-  exploration_samples : Int
-  confirmation_samples : Int
-  finalists : Int
+  exploration_samples : Int32
+  confirmation_samples : Int32
+  finalists : Int32
   holdout : HoldoutPlan[Scale]
 }
 
 ///|
 pub fn[Scale] TuningBudget::new(
-  max_candidates : Int,
-  max_measurements : Int,
+  max_candidates : Int32,
+  max_measurements : Int32,
   max_elapsed_us : Double?,
-  exploration_samples : Int,
-  confirmation_samples : Int,
-  finalists : Int,
+  exploration_samples : Int32,
+  confirmation_samples : Int32,
+  finalists : Int32,
   holdout : HoldoutPlan[Scale],
 ) -> TuningBudget[Scale] {
   {
@@ -136,7 +136,7 @@ pub struct TuningResult {
 ///|
 pub fn[Candidate] exhaustive_scores(
   space : CandidateSpace[Candidate],
-  budget : Int,
+  budget : Int32,
   score : (Candidate) -> CandidateScore,
 ) -> TuningResult {
   let candidates = (space.enumerate)()
@@ -338,10 +338,10 @@ pub fn[Candidate] seeded_order(
 
 ///|
 pub fn confirmation_count(
-  base : Int,
+  base : Int32,
   uncertainty : Double,
-  budget : Int,
-) -> Int {
+  budget : Int32,
+) -> Int32 {
   let multiplier = if uncertainty > 0.2 {
     3
   } else if uncertainty > 0.05 {

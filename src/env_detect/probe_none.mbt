@@ -24,7 +24,7 @@ fn probe_cpu() -> String? {
 }
 
 ///|
-fn probe_logical_cores() -> Int? {
+fn probe_logical_cores() -> Int32? {
   None
 }
 

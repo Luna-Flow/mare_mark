@@ -1,6 +1,6 @@
 ///|
 pub struct SummaryStats {
-  count : Int
+  count : Int32
   min : Double
   max : Double
   mean : Double
@@ -36,16 +36,16 @@ pub struct Comparison {
   speedup : Double
   interval : Interval
   decision : Decision
-  valid_samples : Int
+  valid_samples : Int32
 }
 
 ///|
 pub(all) enum BootstrapError {
   EmptySamples
-  MismatchedPairs(Int, Int)
-  InvalidResamples(Int)
+  MismatchedPairs(Int32, Int32)
+  InvalidResamples(Int32)
   InvalidConfidence(Double)
-  NonFiniteSample(Int)
+  NonFiniteSample(Int32)
 }
 
 ///|
@@ -229,7 +229,7 @@ fn bootstrap_next(state : UInt64) -> UInt64 {
 pub fn bootstrap_interval(
   values : Array[Double],
   seed : UInt64,
-  resamples : Int,
+  resamples : Int32,
   confidence_pct : Double,
   mode : @model.IntervalMode,
 ) -> Result[Interval, BootstrapError] {
@@ -279,7 +279,7 @@ pub fn compare_paired_with_bootstrap(
   practical_delta_pct : Double,
   mode : @model.IntervalMode,
   seed : UInt64,
-  resamples : Int,
+  resamples : Int32,
   confidence_pct : Double,
 ) -> Result[Comparison, BootstrapError] {
   if baseline.length() != candidate.length() {

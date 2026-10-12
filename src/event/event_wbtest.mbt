@@ -111,7 +111,7 @@ test "JSONL sink preserves the versioned event contract" {
   )
   ignore((output.finish)(@model.RunSummary::new("run", 1, 0, 1, true, None)))
   let lines = sink.to_jsonl().split("\n")
-  assert_eq(lines.length(), 3)
+  assert_eq(lines.count(), 3)
   for line in lines {
     let value = @json.parse(line.to_owned())
     guard value is Object(fields) else { abort("event must be an object") }

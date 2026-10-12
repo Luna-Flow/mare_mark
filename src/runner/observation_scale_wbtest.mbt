@@ -45,16 +45,16 @@ fn observation_lines(jsonl : String) -> Array[String] {
 
 ///|
 async test "observation JSONL records the scale of every dataset" {
-  let implementation = Implementation::stateless("identity", "1", (value : Int) => {
-    @model.OperationResult::completed(value, ())
-  })
+  let implementation = Implementation::stateless("identity", "1", (
+    value : Int32,
+  ) => @model.OperationResult::completed(value, ()))
   let spec = BenchSpec::advanced(
     "scaled-identity",
     @fixture.Fixture::immutable(
       "integers",
       "1",
       context => context.dataset_key.scale,
-      (value : Int) => value.to_string(),
+      (value : Int32) => value.to_string(),
     ),
     [implementation],
     OutputSink::keep_last(),
@@ -106,9 +106,9 @@ async test "observation JSONL records the scale of every dataset" {
 
 ///|
 async test "single-step builder records no scale text" {
-  let implementation = Implementation::stateless("identity", "1", (value : Int) => {
-    @model.OperationResult::completed(value, ())
-  })
+  let implementation = Implementation::stateless("identity", "1", (
+    value : Int32,
+  ) => @model.OperationResult::completed(value, ()))
   let plan = single_step("unscaled-identity", [16, 4])
     .with_immutable_input(context => context.dataset_key.scale, value => {
       value.to_string()

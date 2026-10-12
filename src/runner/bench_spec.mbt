@@ -7,12 +7,12 @@ pub(all) enum BenchConfigError {
   EmptyCaseId
   EmptyImplementations
   EmptyScales
-  EmptyImplementationId(Int)
+  EmptyImplementationId(Int32)
   DuplicateImplementationId(String)
-  InvalidSequenceLength(Int)
-  InvalidOracleSequenceLength(Int)
-  OracleSequenceLengthMismatch(Int, Int)
-  PerRunSetupWithMultipleDatasets(Int)
+  InvalidSequenceLength(Int32)
+  InvalidOracleSequenceLength(Int32)
+  OracleSequenceLengthMismatch(Int32, Int32)
+  PerRunSetupWithMultipleDatasets(Int32)
 }
 
 ///|
@@ -25,12 +25,12 @@ pub(all) suberror RunConfigError {
 
 ///|
 pub(all) enum ProtocolConfigError {
-  InvalidInteger(String, Int)
+  InvalidInteger(String, Int32)
   InvalidDuration(String, Double)
-  InvalidIterationRange(Int, Int)
+  InvalidIterationRange(Int32, Int32)
   InvalidPracticalDelta(Double)
-  IndivisibleSamples(String, Int, Int)
-  UnusedRepeatsPerDataset(Int)
+  IndivisibleSamples(String, Int32, Int32)
+  UnusedRepeatsPerDataset(Int32)
 }
 
 ///|
@@ -276,8 +276,8 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Benc
   oracle : @experiment.OracleSpec[Input, Expected, Output, Context],
   scales : Array[Scale],
   scale_text : (Scale) -> String,
-  sequence_length : Int,
-  describe : (Input, Int) -> @model.CaseDescriptor,
+  sequence_length : Int32,
+  describe : (Input, Int32) -> @model.CaseDescriptor,
   input_text : (Input) -> String,
   output_text : (Output) -> String,
   context_text : (Context) -> String,
@@ -412,7 +412,7 @@ pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] Benc
     State,
     SinkValue,
   ],
-  sequence_length : Int,
+  sequence_length : Int32,
 ) -> BenchSpec[
   Scale,
   Input,

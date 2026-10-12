@@ -4,7 +4,7 @@ pub(all) enum TuningSchemaVersion {
 }
 
 ///|
-pub fn TuningSchemaVersion::version(self : TuningSchemaVersion) -> Int {
+pub fn TuningSchemaVersion::version(self : TuningSchemaVersion) -> Int32 {
   match self {
     V1 => 1
   }
