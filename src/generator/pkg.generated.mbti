@@ -8,9 +8,9 @@ import {
 // Values
 pub fn[Scale] context(UInt64, String, String, @model.DatasetKey[Scale], String, String) -> @model.GenerationContext[Scale]
 
-pub fn derive_seed(UInt64, String, Int) -> UInt64
+pub fn derive_seed(UInt64, String, Int32) -> UInt64
 
-pub fn measurement_seed(UInt64, Int, Int, Int) -> UInt64
+pub fn measurement_seed(UInt64, Int32, Int32, Int32) -> UInt64
 
 pub fn stable_fingerprint(String) -> String
 

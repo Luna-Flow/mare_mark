@@ -6,9 +6,9 @@ import {
 }
 
 // Values
-pub fn confirmation_count(Int, Double, Int) -> Int
+pub fn confirmation_count(Int32, Double, Int32) -> Int32
 
-pub fn[Candidate] exhaustive_scores(CandidateSpace[Candidate], Int, (Candidate) -> CandidateScore) -> TuningResult
+pub fn[Candidate] exhaustive_scores(CandidateSpace[Candidate], Int32, (Candidate) -> CandidateScore) -> TuningResult
 
 pub fn pareto_frontier(Array[CandidateScore]) -> Array[CandidateScore]
 
@@ -52,23 +52,23 @@ pub struct CandidateSpace[Candidate] {
 pub fn[Candidate] CandidateSpace::new(() -> Array[Candidate], (Candidate) -> String, (Candidate) -> Bool, (Candidate) -> Array[Candidate]) -> Self[Candidate]
 
 pub(all) enum HoldoutPlan[Scale] {
-  MeasurementHoldout(Int)
-  DatasetHoldout(Array[Int])
+  MeasurementHoldout(Int32)
+  DatasetHoldout(Array[Int32])
   ShapeHoldout(Array[Scale])
   WorkloadHoldout(String)
   Combined(Array[HoldoutPlan[Scale]])
 }
 
 pub struct TuningBudget[Scale] {
-  max_candidates : Int
-  max_measurements : Int
+  max_candidates : Int32
+  max_measurements : Int32
   max_elapsed_us : Double?
-  exploration_samples : Int
-  confirmation_samples : Int
-  finalists : Int
+  exploration_samples : Int32
+  confirmation_samples : Int32
+  finalists : Int32
   holdout : HoldoutPlan[Scale]
 }
-pub fn[Scale] TuningBudget::new(Int, Int, Double?, Int, Int, Int, HoldoutPlan[Scale]) -> Self[Scale]
+pub fn[Scale] TuningBudget::new(Int32, Int32, Double?, Int32, Int32, Int32, HoldoutPlan[Scale]) -> Self[Scale]
 
 pub struct TuningObjective {
   practical_delta_pct : Double

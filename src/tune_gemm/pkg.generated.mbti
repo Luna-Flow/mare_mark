@@ -30,13 +30,13 @@ pub fn gemm_is_correct(GemmScale, Array[Double], Array[Double], GemmCandidate, D
 
 pub fn gemm_reference(GemmScale, Array[Double], Array[Double]) -> Array[Double]
 
-pub fn matrix_length(GemmScale, String) -> Int
+pub fn matrix_length(GemmScale, String) -> Int32
 
 pub fn pack_ab() -> Packing
 
 pub fn pack_operand(GemmScale, Array[Double], String) -> Array[Double]
 
-pub fn reproducible_matrix(UInt64, Int, Int, Layout) -> Array[Double]
+pub fn reproducible_matrix(UInt64, Int32, Int32, Layout) -> Array[Double]
 
 pub fn reusable_workspace() -> AllocationMode
 
@@ -63,18 +63,18 @@ pub(all) enum AllocationMode {
 }
 
 pub struct GemmCandidate {
-  mc : Int
-  nc : Int
-  kc : Int
-  mr : Int
-  nr : Int
+  mc : Int32
+  nc : Int32
+  kc : Int32
+  mr : Int32
+  nr : Int32
   packing : Packing
   loop_order : String
   microkernel_id : String
   allocation_mode : AllocationMode
   timing_scope : TimingScope
 }
-pub fn GemmCandidate::new(Int, Int, Int, Int, Int, Packing, String, String, AllocationMode, TimingScope) -> Self
+pub fn GemmCandidate::new(Int32, Int32, Int32, Int32, Int32, Packing, String, String, AllocationMode, TimingScope) -> Self
 
 pub struct GemmEnvironment {
   target : String
@@ -84,10 +84,10 @@ pub struct GemmEnvironment {
   runtime : String
   cpu : String
   gc : String
-  concurrency : Int
+  concurrency : Int32
   clock : String
 }
-pub fn GemmEnvironment::new(String, String, String, String, String, String, String, Int, String) -> Self
+pub fn GemmEnvironment::new(String, String, String, String, String, String, String, Int32, String) -> Self
 
 pub struct GemmProblem {
   scale : GemmScale
@@ -99,16 +99,16 @@ pub fn GemmProblem::from_inputs(GemmScale, Array[Double], Array[Double]) -> Self
 pub fn GemmProblem::new(GemmScale, Array[Double], Array[Double], Array[Double]) -> Self
 
 pub struct GemmScale {
-  m : Int
-  n : Int
-  k : Int
-  batch : Int
-  reuse_count : Int
+  m : Int32
+  n : Int32
+  k : Int32
+  batch : Int32
+  reuse_count : Int32
   layout_a : Layout
   layout_b : Layout
   layout_c : Layout
 }
-pub fn GemmScale::new(Int, Int, Int, Int, Int, Layout, Layout, Layout) -> Self
+pub fn GemmScale::new(Int32, Int32, Int32, Int32, Int32, Layout, Layout, Layout) -> Self
 
 pub struct GemmTuningConfig {
   schema_version : TuningSchemaVersion
@@ -116,14 +116,14 @@ pub struct GemmTuningConfig {
   shapes : Array[GemmScale]
   candidates : Array[GemmCandidate]
   max_workspace_bytes : UInt64
-  exploration_samples : Int
-  confirmation_samples : Int
+  exploration_samples : Int32
+  confirmation_samples : Int32
 }
-pub fn GemmTuningConfig::new(UInt64, Array[GemmScale], Array[GemmCandidate], UInt64, Int, Int) -> Self
+pub fn GemmTuningConfig::new(UInt64, Array[GemmScale], Array[GemmCandidate], UInt64, Int32, Int32) -> Self
 
 pub struct GemmValidation {
   valid : Bool
-  mismatches : Int
+  mismatches : Int32
   max_abs_error : Double
 }
 
@@ -142,7 +142,7 @@ pub(all) enum Packing {
 pub(all) enum TimingScope {
   ComputeOnly
   EndToEnd
-  Amortized(Int)
+  Amortized(Int32)
   SteadyState
 }
 
@@ -152,7 +152,7 @@ pub(all) enum TuningSchemaVersion {
 pub fn TuningSchemaVersion::identifier(Self) -> String
 pub fn TuningSchemaVersion::implementation(Self) -> String
 pub fn TuningSchemaVersion::lifecycle(Self) -> @model.VersionLifecycle
-pub fn TuningSchemaVersion::version(Self) -> Int
+pub fn TuningSchemaVersion::version(Self) -> Int32
 
 // Type aliases
 

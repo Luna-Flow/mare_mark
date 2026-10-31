@@ -27,17 +27,17 @@ pub fn[Scale, Input] Fixture::immutable(String, String, (@model.GenerationContex
 pub fn[Scale, Input, Prepared] Fixture::new(String, String, (@model.GenerationContext[Scale]) -> Input, (Input) -> String, (Input) -> Input, (Input, String, SampleContext) -> Prepared, (Prepared, ResetContext) -> Unit, @model.SetupPolicy) -> Self[Scale, Input, Prepared]
 
 pub struct ResetContext {
-  sample_id : Int
+  sample_id : Int32
   implementation_id : String
 }
-pub fn ResetContext::new(Int, String) -> Self
+pub fn ResetContext::new(Int32, String) -> Self
 
 pub struct SampleContext {
-  sample_id : Int
+  sample_id : Int32
   implementation_id : String
-  repetition_id : Int
+  repetition_id : Int32
 }
-pub fn SampleContext::new(Int, String, Int) -> Self
+pub fn SampleContext::new(Int32, String, Int32) -> Self
 
 // Type aliases
 

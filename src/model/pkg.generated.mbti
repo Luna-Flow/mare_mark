@@ -2,7 +2,7 @@
 package "Luna-Flow/mare_mark/model"
 
 // Values
-pub fn artifact_identity(String, String, Int, RunProtocol) -> String
+pub fn artifact_identity(String, String, Int32, RunProtocol) -> String
 
 pub fn confirmatory_interval() -> IntervalMode
 
@@ -25,7 +25,7 @@ pub(all) enum ArtifactVersion {
 pub fn ArtifactVersion::identifier(Self) -> String
 pub fn ArtifactVersion::implementation(Self) -> String
 pub fn ArtifactVersion::lifecycle(Self) -> VersionLifecycle
-pub fn ArtifactVersion::version(Self) -> Int
+pub fn ArtifactVersion::version(Self) -> Int32
 
 pub(all) enum BatchPolicy {
   PerImplementation
@@ -41,22 +41,22 @@ pub fn BatchSinkStatus::text(Self) -> String
 
 pub struct CalibrationEvent {
   implementation_id : String
-  dataset_id : Int
-  batch_iterations : Int
+  dataset_id : Int32
+  batch_iterations : Int32
   elapsed_us : Double
   target_elapsed_us : Double
-  retries : Int
+  retries : Int32
 }
-pub fn CalibrationEvent::new(String, Int, Int, Double, Double, Int) -> Self
+pub fn CalibrationEvent::new(String, Int32, Int32, Double, Double, Int32) -> Self
 
 pub struct CalibrationProtocol {
   target_batch_time_us : Double
-  min_batch_iterations : Int
-  max_batch_iterations : Int
+  min_batch_iterations : Int32
+  max_batch_iterations : Int32
   max_sample_time_us : Double
   batch_policy : BatchPolicy
 }
-pub fn CalibrationProtocol::new(Double, Int, Int, Double, BatchPolicy) -> Self
+pub fn CalibrationProtocol::new(Double, Int32, Int32, Double, BatchPolicy) -> Self
 
 pub struct CaseDescriptor {
   operation : String
@@ -79,9 +79,9 @@ pub fn[Scale] CrossoverResult::non_monotonic(Array[String]) -> Self[Scale]
 
 pub struct DatasetKey[Scale] {
   scale : Scale
-  dataset_id : Int
+  dataset_id : Int32
 }
-pub fn[Scale] DatasetKey::new(Scale, Int) -> Self[Scale]
+pub fn[Scale] DatasetKey::new(Scale, Int32) -> Self[Scale]
 
 pub(all) enum DeploymentPolicy[Key, Choice] {
   Global(Choice)
@@ -104,8 +104,8 @@ pub(all) enum ExecutionOutcome[Value] {
   ParseFailure(String)
   RaisedFlags(Value, Array[String])
   Trapped(String, Array[String])
-  Aborted(Int, String)
-  Timeout(Int, String)
+  Aborted(Int32, String)
+  Timeout(Int32, String)
   ExpectedDifference(String)
 }
 pub fn[Value] ExecutionOutcome::flags(Self[Value]) -> Array[String]
@@ -147,22 +147,22 @@ pub enum IntervalMode {
 }
 
 pub struct MeasurementKey {
-  dataset_id : Int
-  repetition_id : Int
-  block_id : Int
+  dataset_id : Int32
+  repetition_id : Int32
+  block_id : Int32
 }
-pub fn MeasurementKey::new(Int, Int, Int) -> Self
+pub fn MeasurementKey::new(Int32, Int32, Int32) -> Self
 
 pub struct Observation {
   case_id : String
   implementation_id : String
   implementation_version : String
-  dataset_id : Int
-  repetition_id : Int
-  block_id : Int
+  dataset_id : Int32
+  repetition_id : Int32
+  block_id : Int32
   phase : ObservationPhase
   raw_elapsed_us : Double
-  iterations : Int
+  iterations : Int32
   batch_sink : BatchSinkStatus
   setup_timing : SetupTiming
   valid : Bool
@@ -170,7 +170,7 @@ pub struct Observation {
   workspace_scope : WorkspaceScope?
   scale_text : String
 }
-pub fn Observation::new(String, String, String, Int, Int, Int, ObservationPhase, Double, Int, BatchSinkStatus, SetupTiming, Bool, setup_frequency? : SetupFrequency, workspace_scope? : WorkspaceScope, scale_text? : String) -> Self
+pub fn Observation::new(String, String, String, Int32, Int32, Int32, ObservationPhase, Double, Int32, BatchSinkStatus, SetupTiming, Bool, setup_frequency? : SetupFrequency, workspace_scope? : WorkspaceScope, scale_text? : String) -> Self
 
 pub(all) enum ObservationPhase {
   Exploratory
@@ -183,10 +183,10 @@ pub struct OperationResult[Value, Context] {
   next_context : Context?
   stdout : String
   stderr : String
-  exit_code : Int?
+  exit_code : Int32?
 }
 pub fn[Value, Context] OperationResult::completed(Value, Context) -> Self[Value, Context]
-pub fn[Value, Context] OperationResult::new(ExecutionOutcome[Value], Context?, stdout? : String, stderr? : String, exit_code? : Int) -> Self[Value, Context]
+pub fn[Value, Context] OperationResult::new(ExecutionOutcome[Value], Context?, stdout? : String, stderr? : String, exit_code? : Int32) -> Self[Value, Context]
 
 pub(all) enum OrderPolicy {
   BalancedBlocks(UInt64)
@@ -212,12 +212,12 @@ pub struct PerformanceEnvironment {
   runtime : String
   cpu : String
   gc : String
-  concurrency : Int
+  concurrency : Int32
   clock : String
   device : String
   frequency_policy : String
 }
-pub fn PerformanceEnvironment::new(String, String, String, Int, String, device? : String, frequency_policy? : String) -> Self
+pub fn PerformanceEnvironment::new(String, String, String, Int32, String, device? : String, frequency_policy? : String) -> Self
 
 pub(all) enum ProtocolVersion {
   V1
@@ -226,7 +226,7 @@ pub(all) enum ProtocolVersion {
 pub fn ProtocolVersion::identifier(Self) -> String
 pub fn ProtocolVersion::implementation(Self) -> String
 pub fn ProtocolVersion::lifecycle(Self) -> VersionLifecycle
-pub fn ProtocolVersion::version(Self) -> Int
+pub fn ProtocolVersion::version(Self) -> Int32
 
 pub struct ProvenanceEnvironment {
   os : String
@@ -248,42 +248,42 @@ pub fn[Key, Choice] Region::new(Key?, Key?, Choice, Array[String]) -> Self[Key, 
 pub struct ReplaySpec {
   command : String
   arguments : Array[String]
-  timeout_ms : Int
+  timeout_ms : Int32
 }
-pub fn ReplaySpec::new(String, Array[String], timeout_ms? : Int) -> Self
+pub fn ReplaySpec::new(String, Array[String], timeout_ms? : Int32) -> Self
 
 pub struct RunProtocol {
   experiment_design : ExperimentDesign
-  warmup_iterations : Int
+  warmup_iterations : Int32
   warmup_time_us : Double?
   calibration : CalibrationProtocol
   practical_delta_pct : Double
   order_policy : OrderPolicy
   outlier_policy : OutlierPolicy
   validation_coverage : ValidationCoverage
-  exploratory_samples : Int
-  confirmatory_samples : Int
-  repeats_per_dataset : Int
+  exploratory_samples : Int32
+  confirmatory_samples : Int32
+  repeats_per_dataset : Int32
 }
-pub fn RunProtocol::new(ExperimentDesign, Int, Double?, CalibrationProtocol, Double, OrderPolicy, OutlierPolicy, ValidationCoverage, Int, Int, repeats_per_dataset? : Int) -> Self
+pub fn RunProtocol::new(ExperimentDesign, Int32, Double?, CalibrationProtocol, Double, OrderPolicy, OutlierPolicy, ValidationCoverage, Int32, Int32, repeats_per_dataset? : Int32) -> Self
 
 pub struct RunSummary {
   run_id : String
-  observation_count : Int
-  validation_count : Int
-  calibration_count : Int
+  observation_count : Int32
+  validation_count : Int32
+  calibration_count : Int32
   complete : Bool
   artifact_location : String?
-  passed_count : Int
-  failed_count : Int
-  unsupported_count : Int
-  expected_difference_count : Int
-  measurement_validation_count : Int
+  passed_count : Int32
+  failed_count : Int32
+  unsupported_count : Int32
+  expected_difference_count : Int32
+  measurement_validation_count : Int32
   environment : EnvironmentSnapshot?
   protocol : RunProtocol?
   seed : UInt64?
 }
-pub fn RunSummary::new(String, Int, Int, Int, Bool, String?, passed_count? : Int, failed_count? : Int, unsupported_count? : Int, expected_difference_count? : Int, measurement_validation_count? : Int, environment? : EnvironmentSnapshot, protocol? : RunProtocol, seed? : UInt64) -> Self
+pub fn RunSummary::new(String, Int32, Int32, Int32, Bool, String?, passed_count? : Int32, failed_count? : Int32, unsupported_count? : Int32, expected_difference_count? : Int32, measurement_validation_count? : Int32, environment? : EnvironmentSnapshot, protocol? : RunProtocol, seed? : UInt64) -> Self
 
 pub struct ScaleBoundary[Scale] {
   below : Scale
@@ -298,7 +298,7 @@ pub(all) enum SchemaVersion {
 pub fn SchemaVersion::identifier(Self) -> String
 pub fn SchemaVersion::implementation(Self) -> String
 pub fn SchemaVersion::lifecycle(Self) -> VersionLifecycle
-pub fn SchemaVersion::version(Self) -> Int
+pub fn SchemaVersion::version(Self) -> Int32
 
 pub struct SemanticEnvironment {
   target : ExecutionTarget
@@ -349,8 +349,8 @@ pub fn ValidationCoverage::text(Self) -> String
 
 pub(all) struct ValidationEvidence {
   case_id : String
-  dataset_id : Int
-  step_id : Int
+  dataset_id : Int32
+  step_id : Int32
   operation : String
   operands : Array[String]
   context : String
@@ -363,7 +363,7 @@ pub(all) struct ValidationEvidence {
   actual_flags : Array[String]
   trap : String
   stderr : String
-  exit_code : Int?
+  exit_code : Int32?
   fingerprint : String
   implementation_version : String
   replay : ReplaySpec

@@ -9,7 +9,7 @@ import {
 }
 
 // Values
-pub fn balanced_order(Int, Int) -> Array[Int]
+pub fn balanced_order(Int32, Int32) -> Array[Int32]
 
 pub async fn[Prepared, Output, Context] execute_operation(Implementation[Prepared, Output, Context], Prepared, Context) -> @model.OperationResult[Output, Context]
 
@@ -33,20 +33,20 @@ pub(all) enum BenchConfigError {
   EmptyCaseId
   EmptyImplementations
   EmptyScales
-  EmptyImplementationId(Int)
+  EmptyImplementationId(Int32)
   DuplicateImplementationId(String)
-  InvalidSequenceLength(Int)
-  InvalidOracleSequenceLength(Int)
-  OracleSequenceLengthMismatch(Int, Int)
-  PerRunSetupWithMultipleDatasets(Int)
+  InvalidSequenceLength(Int32)
+  InvalidOracleSequenceLength(Int32)
+  OracleSequenceLengthMismatch(Int32, Int32)
+  PerRunSetupWithMultipleDatasets(Int32)
 }
 
 pub struct BenchSpec[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] {
   case : DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
 }
-pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::advanced(String, @fixture.Fixture[Scale, Input, Prepared], Array[Implementation[Prepared, Output, Context]], OutputSink[Output, State, SinkValue], @experiment.OracleSpec[Input, Expected, Output, Context], Array[Scale], (Scale) -> String, Int, (Input, Int) -> @model.CaseDescriptor, (Input) -> String, (Output) -> String, (Context) -> String, (Input, String) -> @model.ReplaySpec, shrinker? : @experiment.Shrinker[Input]) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
+pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::advanced(String, @fixture.Fixture[Scale, Input, Prepared], Array[Implementation[Prepared, Output, Context]], OutputSink[Output, State, SinkValue], @experiment.OracleSpec[Input, Expected, Output, Context], Array[Scale], (Scale) -> String, Int32, (Input, Int32) -> @model.CaseDescriptor, (Input) -> String, (Output) -> String, (Context) -> String, (Input, String) -> @model.ReplaySpec, shrinker? : @experiment.Shrinker[Input]) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
 pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::compile(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], protocol? : ValidatedProtocol) -> Result[ValidatedBenchPlan[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Array[BenchConfigError]]
-pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::with_sequence_length(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Int) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
+pub fn[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue] BenchSpec::with_sequence_length(Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue], Int32) -> Self[Scale, Input, Prepared, Expected, Output, Context, State, SinkValue]
 
 pub(all) enum Case {
   Case
@@ -69,8 +69,8 @@ pub struct DifferentialCase[Scale, Input, Prepared, Expected, Output, Context, S
   oracle : @experiment.OracleSpec[Input, Expected, Output, Context]
   scales : Array[Scale]
   scale_text : (Scale) -> String
-  sequence_length : Int
-  describe : (Input, Int) -> @model.CaseDescriptor
+  sequence_length : Int32
+  describe : (Input, Int32) -> @model.CaseDescriptor
   input_text : (Input) -> String
   output_text : (Output) -> String
   context_text : (Context) -> String
@@ -110,12 +110,12 @@ pub fn[Output] OutputSink::keep_last() -> Self[Output, Output?, Output?]
 pub fn[Output, State, SinkValue] OutputSink::new(() -> State, (State, Output) -> State, (State) -> SinkValue) -> Self[Output, State, SinkValue]
 
 pub(all) enum ProtocolConfigError {
-  InvalidInteger(String, Int)
+  InvalidInteger(String, Int32)
   InvalidDuration(String, Double)
-  InvalidIterationRange(Int, Int)
+  InvalidIterationRange(Int32, Int32)
   InvalidPracticalDelta(Double)
-  IndivisibleSamples(String, Int, Int)
-  UnusedRepeatsPerDataset(Int)
+  IndivisibleSamples(String, Int32, Int32)
+  UnusedRepeatsPerDataset(Int32)
 }
 
 pub(all) enum ProtocolPreset {
@@ -153,10 +153,10 @@ pub struct WorkerSpec[Prepared, Output, Context] {
   command : String
   build_arguments : (Prepared, Context) -> Array[String]
   decode : (String) -> @model.OperationResult[Output, Context]
-  timeout_ms : Int
+  timeout_ms : Int32
   cwd : String?
 }
-pub fn[Prepared, Output, Context] WorkerSpec::new(String, (Prepared, Context) -> Array[String], (String) -> @model.OperationResult[Output, Context], timeout_ms? : Int, cwd? : String) -> Self[Prepared, Output, Context]
+pub fn[Prepared, Output, Context] WorkerSpec::new(String, (Prepared, Context) -> Array[String], (String) -> @model.OperationResult[Output, Context], timeout_ms? : Int32, cwd? : String) -> Self[Prepared, Output, Context]
 
 // Type aliases
 
