@@ -14,9 +14,9 @@ pub const DEFAULT_FREQUENCY_POLICY : String = "uncontrolled"
 
 pub const UNKNOWN : String = "unknown"
 
-pub const UNKNOWN_CONCURRENCY : Int = 0
+pub const UNKNOWN_CONCURRENCY : Int32 = 0
 
-pub async fn detect(target? : @model.ExecutionTarget, toolchain? : String, compiler_flags? : String, dtype_abi? : String, runtime? : String, cpu? : String, gc? : String, concurrency? : Int, clock? : String, device? : String, frequency_policy? : String, os? : String, hostname? : String, timestamp? : String, revision? : String, run_id? : String) -> DetectedEnvironment
+pub async fn detect(target? : @model.ExecutionTarget, toolchain? : String, compiler_flags? : String, dtype_abi? : String, runtime? : String, cpu? : String, gc? : String, concurrency? : Int32, clock? : String, device? : String, frequency_policy? : String, os? : String, hostname? : String, timestamp? : String, revision? : String, run_id? : String) -> DetectedEnvironment
 
 pub fn new_run_id(UInt64) -> String
 

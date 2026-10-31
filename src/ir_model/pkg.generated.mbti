@@ -19,9 +19,9 @@ pub(all) enum AxisScale {
 pub struct CapabilityCell {
   implementation : String
   outcome_kind : String
-  count : Int
+  count : Int32
 }
-pub fn CapabilityCell::new(String, String, Int) -> Self
+pub fn CapabilityCell::new(String, String, Int32) -> Self
 
 pub(all) enum ComparisonDecision {
   Faster
@@ -37,15 +37,15 @@ pub struct ComparisonReport {
   practical_delta_pct : Double
   outlier_policy : String
   confidence_pct : Double
-  resamples : Int
-  min_blocks : Int
+  resamples : Int32
+  min_blocks : Int32
   run_seed : UInt64
   protocol_recorded : Bool
   seed_recorded : Bool
   note : String
 }
 pub fn ComparisonReport::empty() -> Self
-pub fn ComparisonReport::new(Array[ComparisonRow], Double, String, Double, Int, Int, UInt64, Bool, Bool, String) -> Self
+pub fn ComparisonReport::new(Array[ComparisonRow], Double, String, Double, Int32, Int32, UInt64, Bool, Bool, String) -> Self
 
 pub struct ComparisonRow {
   case_id : String
@@ -56,21 +56,21 @@ pub struct ComparisonRow {
   reason : String
   estimate : PairedEstimate?
   interval : DeltaInterval?
-  blocks_used : Int
-  blocks_incomplete : Int
-  blocks_outliers : Int
+  blocks_used : Int32
+  blocks_incomplete : Int32
+  blocks_outliers : Int32
   seed : UInt64
 }
-pub fn ComparisonRow::new(String, String, String, String, ComparisonDecision, String, PairedEstimate?, DeltaInterval?, Int, Int, Int, UInt64) -> Self
+pub fn ComparisonRow::new(String, String, String, String, ComparisonDecision, String, PairedEstimate?, DeltaInterval?, Int32, Int32, Int32, UInt64) -> Self
 
 pub struct CorpusSummary {
-  total : Int
-  passed : Int
-  failed : Int
-  unsupported : Int
-  expected_difference : Int
+  total : Int32
+  passed : Int32
+  failed : Int32
+  unsupported : Int32
+  expected_difference : Int32
 }
-pub fn CorpusSummary::new(Int, Int, Int, Int, Int) -> Self
+pub fn CorpusSummary::new(Int32, Int32, Int32, Int32, Int32) -> Self
 
 pub struct Counterexample {
   implementation : String
