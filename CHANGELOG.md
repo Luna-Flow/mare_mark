@@ -4,6 +4,12 @@ All notable changes to mare_mark are documented in this file.
 
 ## Unreleased
 
+## 0.4.1 - 2026-10-31
+
+### Changed
+
+- Dependencies: moonbitlang/x 0.5.7 (was 0.5.5), moonbitlang/async 0.22.5 (was 0.22.4). async 0.22.6 and later make moonc v0.10.18 emit invalid wasm-gc for the runner whitebox tests (a compiler problem), so async stays at 0.22.5 for now. Interfaces regenerated with moon 0.1.20261028.
+
 ## 0.4.0 - 2026-10-10
 
 - **Breaking:** `ReferenceOracle.sequence_length` now determines the expected
