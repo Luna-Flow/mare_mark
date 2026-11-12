@@ -560,7 +560,7 @@ fn tick_labels(svg : String, anchor : String) -> Array[String] {
   for index = 1; index < parts.length(); index = index + 1 {
     let part = parts[index].to_owned()
     match part.find("</text>") {
-      Some(end) => labels.push(part.view(end_offset=end).to_owned())
+      Some(end) => labels.push(part.exact_view(end~).to_owned())
       None => ()
     }
   }

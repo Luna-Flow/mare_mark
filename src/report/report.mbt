@@ -820,12 +820,13 @@ fn observation_failed(
 
 ///|
 /// Where the x value of a timing group comes from.
+#derive(Eq)
 priv enum ScaleSource {
   /// The observation's `scale` field.
   Recorded
   /// The observation has no `scale` field; `dataset_id` stands in for it.
   DatasetId
-} derive(Eq)
+}
 
 ///|
 /// The confirmatory samples of one implementation at one scale of one case.
