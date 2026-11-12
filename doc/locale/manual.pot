@@ -6319,7 +6319,7 @@ msgid "1. Add the module"
 msgstr ""
 
 #: manual/getting_started.md:9
-msgid "You need MoonBit with `moonc` 0.10 or later."
+msgid "You need MoonBit with `moonc` 0.10.20 or later."
 msgstr ""
 
 #: manual/getting_started.md:15
@@ -6471,7 +6471,7 @@ msgid "Then import the packages you need in your `moon.pkg`, for example:"
 msgstr ""
 
 #: manual/index.md:45
-msgid "mare_mark needs the MoonBit toolchain 0.10 or later (`moonc` ≥ 0.10). It depends on `moonbitlang/x` 0.5.5 and `moonbitlang/async` 0.22.4. Every package compiles on all MoonBit targets. `runner.run` is asynchronous and runs where `moonbitlang/async` has a runtime: native, JS and wasm (not wasm-gc). Subprocess workers, the `replay` command and stdin/stdout reports need the native target. `env_detect.detect` probes the host fully on native, partly on Node.js, and falls back to environment variables elsewhere."
+msgid "mare_mark needs the MoonBit toolchain 0.10.20 or later (`moonc` ≥ 0.10.20). It depends on `moonbitlang/x` 0.5.5 and `moonbitlang/async` 0.22.4. Every package compiles on all MoonBit targets. `runner.run` is asynchronous and runs where `moonbitlang/async` has a runtime: native, JS and wasm (not wasm-gc). Subprocess workers, the `replay` command and stdin/stdout reports need the native target. `env_detect.detect` probes the host fully on native, partly on Node.js, and falls back to environment variables elsewhere."
 msgstr ""
 
 #: manual/index.md:53

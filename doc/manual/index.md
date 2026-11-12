@@ -42,7 +42,7 @@ import {
 }
 ```
 
-mare_mark needs the MoonBit toolchain 0.10 or later (`moonc` ≥ 0.10). It
+mare_mark needs the MoonBit toolchain 0.10.20 or later (`moonc` ≥ 0.10.20). It
 depends on `moonbitlang/x` 0.5.5 and `moonbitlang/async` 0.22.4. Every package
 compiles on all MoonBit targets. `runner.run` is asynchronous and runs where
 `moonbitlang/async` has a runtime: native, JS and wasm (not wasm-gc).

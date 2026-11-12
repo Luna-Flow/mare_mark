@@ -6345,8 +6345,8 @@ msgid "1. Add the module"
 msgstr "1. モジュールを追加する"
 
 #: manual/getting_started.md:9
-msgid "You need MoonBit with `moonc` 0.10 or later."
-msgstr "`moonc` 0.10 以降を備えた MoonBit が必要です。"
+msgid "You need MoonBit with `moonc` 0.10.20 or later."
+msgstr "`moonc` 0.10.20 以降を備えた MoonBit が必要です。"
 
 #: manual/getting_started.md:15
 msgid "In the `moon.pkg` of the package that holds your benchmarks:"
@@ -6497,8 +6497,8 @@ msgid "Then import the packages you need in your `moon.pkg`, for example:"
 msgstr "次に、必要なパッケージを `moon.pkg` でインポートします。たとえば次のとおりです。"
 
 #: manual/index.md:45
-msgid "mare_mark needs the MoonBit toolchain 0.10 or later (`moonc` ≥ 0.10). It depends on `moonbitlang/x` 0.5.5 and `moonbitlang/async` 0.22.4. Every package compiles on all MoonBit targets. `runner.run` is asynchronous and runs where `moonbitlang/async` has a runtime: native, JS and wasm (not wasm-gc). Subprocess workers, the `replay` command and stdin/stdout reports need the native target. `env_detect.detect` probes the host fully on native, partly on Node.js, and falls back to environment variables elsewhere."
-msgstr "mare_mark には MoonBit ツールチェーン 0.10 以降（`moonc` ≥ 0.10）が必要です。`moonbitlang/x` 0.5.5 と `moonbitlang/async` 0.22.4 に依存します。すべてのパッケージはすべての MoonBit ターゲットでコンパイルできます。`runner.run` は非同期で、`moonbitlang/async` にランタイムがある native、JS、wasm（wasm-gc を除く）で実行されます。サブプロセスワーカー、`replay` コマンド、stdin/stdout レポートには native ターゲットが必要です。`env_detect.detect` は native ではホストを完全に、Node.js では部分的にプローブし、それ以外では環境変数へフォールバックします。"
+msgid "mare_mark needs the MoonBit toolchain 0.10.20 or later (`moonc` ≥ 0.10.20). It depends on `moonbitlang/x` 0.5.5 and `moonbitlang/async` 0.22.4. Every package compiles on all MoonBit targets. `runner.run` is asynchronous and runs where `moonbitlang/async` has a runtime: native, JS and wasm (not wasm-gc). Subprocess workers, the `replay` command and stdin/stdout reports need the native target. `env_detect.detect` probes the host fully on native, partly on Node.js, and falls back to environment variables elsewhere."
+msgstr "mare_mark には MoonBit ツールチェーン 0.10.20 以降（`moonc` ≥ 0.10.20）が必要です。`moonbitlang/x` 0.5.5 と `moonbitlang/async` 0.22.4 に依存します。すべてのパッケージはすべての MoonBit ターゲットでコンパイルできます。`runner.run` は非同期で、`moonbitlang/async` にランタイムがある native、JS、wasm（wasm-gc を除く）で実行されます。サブプロセスワーカー、`replay` コマンド、stdin/stdout レポートには native ターゲットが必要です。`env_detect.detect` は native ではホストを完全に、Node.js では部分的にプローブし、それ以外では環境変数へフォールバックします。"
 
 #: manual/index.md:53
 msgid "Pages"

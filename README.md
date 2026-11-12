@@ -16,7 +16,7 @@ replayed, re-analysed and audited from its record.
 moon add Luna-Flow/mare_mark@0.4.0
 ```
 
-Requires MoonBit with `moonc` 0.10 or later.
+Requires MoonBit with `moonc` 0.10.20 or later (verified with `moon 0.1.20261104` and `moonc v0.10.20`; older 0.10 compilers ignore `#derive`).
 
 ## Example
 

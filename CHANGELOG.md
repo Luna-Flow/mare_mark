@@ -4,6 +4,11 @@ All notable changes to mare_mark are documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Require MoonBit `moonc` 0.10.20 or later, verified with `moon 0.1.20261104` and `moonc v0.10.20`: `derive(...)` clauses are now `#derive(...)` attributes, which older 0.10 compilers ignore. No public API changed.
+- Bump `moonbitlang/async` from 0.22.5 to 0.22.9. It has no wasm-gc runtime ([moonbitlang/core#4584](https://github.com/moonbitlang/core/issues/4584)), so `async test`s now live in files built only for native, JS and wasm instead of relying on the old pin.
+
 ## 0.4.1 - 2026-10-31
 
 ### Changed
