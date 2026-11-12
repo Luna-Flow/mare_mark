@@ -4,6 +4,10 @@ All notable changes to mare_mark are documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- The README and every manual page now install the current release (`moon add Luna-Flow/mare_mark@0.4.2`) instead of 0.4.0 ([#40](https://github.com/Luna-Flow/mare_mark/issues/40)).
+
 ## 0.4.2 - 2026-11-12
 
 ### Changed
