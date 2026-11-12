@@ -3,12 +3,13 @@ package "Luna-Flow/mare_mark/event"
 
 import {
   "Luna-Flow/mare_mark/model",
+  "moonbitlang/core/json",
 }
 
 // Values
-pub fn protocol_from_json(Json) -> Result[@model.RunProtocol, String]
+pub fn protocol_from_json(@json.Json) -> Result[@model.RunProtocol, String]
 
-pub fn protocol_json(@model.RunProtocol) -> Json
+pub fn protocol_json(@model.RunProtocol) -> @json.Json
 
 pub fn streaming_jsonl((String) -> Unit, String) -> ObservationSink
 
