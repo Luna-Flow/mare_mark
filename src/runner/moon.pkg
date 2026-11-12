@@ -22,5 +22,9 @@ options(
   targets: {
     "worker_native.mbt": [ "native" ],
     "worker_unimplemented.mbt": [ "js", "wasm", "wasm-gc", "llvm" ],
+    // `moonbitlang/async` has no wasm-gc runtime (moonbitlang/core#4584).
+    "observation_scale_async_wbtest.mbt": [ "native", "js", "wasm", "llvm" ],
+    "protocol_async_wbtest.mbt": [ "native", "js", "wasm", "llvm" ],
+    "runner_async_wbtest.mbt": [ "native", "js", "wasm", "llvm" ],
   },
 )
