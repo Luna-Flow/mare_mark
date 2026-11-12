@@ -6,7 +6,7 @@ command-line tools on the fixtures shipped with the repository.
 
 ## 1. Add the module
 
-You need MoonBit with `moonc` 0.10 or later.
+You need MoonBit with `moonc` 0.10.20 or later.
 
 ```sh
 moon add Luna-Flow/mare_mark@0.4.0
