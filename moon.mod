@@ -14,7 +14,7 @@ description = "Reproducible benchmarking, statistical comparison, tuning, and se
 
 import {
   "moonbitlang/x@0.5.7",
-  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.9",
 }
 
 source = "src"
